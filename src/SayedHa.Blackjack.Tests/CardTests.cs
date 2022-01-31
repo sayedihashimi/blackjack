@@ -58,6 +58,15 @@ namespace SayedHa.Blackjack.Tests {
             Assert.True(foundDifferentSuit);
         }
 
+        [Fact]
+        public void Test_ToString() {
+            CardDeck cards = new CardDeckFactory().GetDeckStandardDeckOfCards(1, true);
+            var str = cards.ToString();
+            Assert.NotNull(str);
+            Assert.NotEmpty(str);
+            Console.WriteLine(str);
+        }
+
         // helper methods
         internal static List<Card> GetStandardDeckOfCards() {
             var standardDeck = new List<Card>();
@@ -115,5 +124,6 @@ namespace SayedHa.Blackjack.Tests {
             standardDeck.Add(new Card { Suit = CardSuit.Club, Number = CardNumber.King });
             return standardDeck;
         }
+        
     }
 }

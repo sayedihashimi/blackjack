@@ -11,6 +11,9 @@
         override public int GetHashCode() {
             return this.Suit.GetHashCode() * this.Number.GetHashCode();
         }
+        public override string ToString() {
+            return $"{Number.GetFriendlyString()}{Suit.GetFriendlyString()}";
+        }
     }
 
     public enum CardSuit {
@@ -53,6 +56,36 @@
                 case CardNumber.King: return new int[] { 10 };
                 default: throw new ApplicationException($"Unknown card number:'{cardNumber}'");
             }
+        }
+        public static string GetFriendlyString(this CardNumber cardNumber) {
+            switch (cardNumber) {
+                // 11 value must come first here or the Hand.GetScore method must be updated
+                case CardNumber.Ace: return "A";
+                case CardNumber.Two: return "2";
+                case CardNumber.Three: return "3";
+                case CardNumber.Four: return "4";
+                case CardNumber.Five: return "5";
+                case CardNumber.Six: return "6";
+                case CardNumber.Seven: return "7";
+                case CardNumber.Eight: return "8";
+                case CardNumber.Nine: return "9";
+                case CardNumber.Ten: return "10";
+                case CardNumber.Jack: return "J";
+                case CardNumber.Queen: return "Q";
+                case CardNumber.King: return "K";
+                default: throw new ApplicationException($"Unknown card number:'{cardNumber}'");
+            }
+        }
+    }
+    public static class CardSuitExtensions {
+        public static string GetFriendlyString(this CardSuit cardSuit) {
+            switch (cardSuit) {
+                case CardSuit.Club: return "♥"; // "♧";
+                case CardSuit.Diamond: return "♦"; // "♢";
+                case CardSuit.Heart: return "♥"; // "♡";
+                case CardSuit.Spade: return "♠"; // "♤";
+            }
+            throw new NotImplementedException();
         }
     }
 }
