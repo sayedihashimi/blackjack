@@ -1,11 +1,5 @@
 ﻿using SayedHa.Blackjack.Shared.Extensions;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SayedHa.Blackjack.Shared {
     public class Card {
@@ -25,6 +19,7 @@ namespace SayedHa.Blackjack.Shared {
     public class CardDeck {
         internal LinkedList<Card>? Cards { get; set; }
         internal LinkedListNode<Card>? CurrentCard { get; set; }
+        public List<Card> DiscardedCards { get; internal set; } = new List<Card>();
 
         public CardDeck(LinkedList<Card>? cards) {
             Cards = cards;
@@ -34,6 +29,9 @@ namespace SayedHa.Blackjack.Shared {
 
         public Card? GetCardAndMoveNext() {
             var retValue = CurrentCard?.Value;
+            if(retValue != null) {
+                DiscardedCards.Add(retValue);
+            }
             CurrentCard = CurrentCard?.Next;
             return retValue;
         }
@@ -116,7 +114,8 @@ namespace SayedHa.Blackjack.Shared {
     public static class CardNumberExtension {
         public static int[] GetValues(this CardNumber cardNumber) {
             switch (cardNumber) {
-                case CardNumber.Ace: return new int[] { 1, 11 };
+                // 11 value must come first here or the Hand.GetScore method must be updated
+                case CardNumber.Ace: return new int[] { 11, 1 };
                 case CardNumber.Two: return new int[] { 2 };
                 case CardNumber.Three: return new int[] { 3 };
                 case CardNumber.Four: return new int[] { 4 };
