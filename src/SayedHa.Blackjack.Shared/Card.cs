@@ -12,7 +12,65 @@
             return this.Suit.GetHashCode() * this.Number.GetHashCode();
         }
         public override string ToString() {
-            return $"{Number.GetFriendlyString()}{Suit.GetFriendlyString()}";
+            switch (Number, Suit) {
+                case (CardNumber.Ace, CardSuit.Heart): return "🂱";
+                case (CardNumber.Two, CardSuit.Heart): return "🂲";
+                case (CardNumber.Three, CardSuit.Heart): return "🂳";
+                case (CardNumber.Four, CardSuit.Heart): return "🂴";
+                case (CardNumber.Five, CardSuit.Heart): return "🂵";
+                case (CardNumber.Six, CardSuit.Heart): return "🂶";
+                case (CardNumber.Seven, CardSuit.Heart): return "🂷";
+                case (CardNumber.Eight, CardSuit.Heart): return "🂸";
+                case (CardNumber.Nine, CardSuit.Heart): return "🂹";
+                case (CardNumber.Ten, CardSuit.Heart): return "🂺";
+                case (CardNumber.Jack, CardSuit.Heart): return "🂻";
+                case (CardNumber.Queen, CardSuit.Heart): return "🂽";
+                case (CardNumber.King, CardSuit.Heart): return "🂾";
+                case (CardNumber.Ace, CardSuit.Diamond): return "🃁";
+                case (CardNumber.Two, CardSuit.Diamond): return "🃂";
+                case (CardNumber.Three, CardSuit.Diamond): return "🃃";
+                case (CardNumber.Four, CardSuit.Diamond): return "🃄";
+                case (CardNumber.Five, CardSuit.Diamond): return "🃅";
+                case (CardNumber.Six, CardSuit.Diamond): return "🃆";
+                case (CardNumber.Seven, CardSuit.Diamond): return "🃇";
+                case (CardNumber.Eight, CardSuit.Diamond): return "🃈";
+                case (CardNumber.Nine, CardSuit.Diamond): return "🃉";
+                case (CardNumber.Ten, CardSuit.Diamond): return "🃊";
+                case (CardNumber.Jack, CardSuit.Diamond): return "🃋";
+                case (CardNumber.Queen, CardSuit.Diamond): return "🃍";
+                case (CardNumber.King, CardSuit.Diamond): return "🃎";
+                case (CardNumber.Ace, CardSuit.Spade): return "🂡";
+                case (CardNumber.Two, CardSuit.Spade): return "🂢";
+                case (CardNumber.Three, CardSuit.Spade): return "🂣";
+                case (CardNumber.Four, CardSuit.Spade): return "🂤";
+                case (CardNumber.Five, CardSuit.Spade): return "🂥";
+                case (CardNumber.Six, CardSuit.Spade): return "🂦";
+                case (CardNumber.Seven, CardSuit.Spade): return "🂧";
+                case (CardNumber.Eight, CardSuit.Spade): return "🂨";
+                case (CardNumber.Nine, CardSuit.Spade): return "🂩";
+                case (CardNumber.Ten, CardSuit.Spade): return "🂪";
+                case (CardNumber.Jack, CardSuit.Spade): return "🂪";
+                case (CardNumber.Queen, CardSuit.Spade): return "🂭";
+                case (CardNumber.King, CardSuit.Spade): return "🂮";
+                case (CardNumber.Ace, CardSuit.Club): return "🃑";
+                case (CardNumber.Two, CardSuit.Club): return "🃒";
+                case (CardNumber.Three, CardSuit.Club): return "🃓";
+                case (CardNumber.Four, CardSuit.Club): return "🃔";
+                case (CardNumber.Five, CardSuit.Club): return "🃕";
+                case (CardNumber.Six, CardSuit.Club): return "🃖";
+                case (CardNumber.Seven, CardSuit.Club): return "🃗";
+                case (CardNumber.Eight, CardSuit.Club): return "🃘";
+                case (CardNumber.Nine, CardSuit.Club): return "🃙";
+                case (CardNumber.Ten, CardSuit.Club): return "🃚";
+                case (CardNumber.Jack, CardSuit.Club): return "🃛";
+                case (CardNumber.Queen, CardSuit.Club): return "🃝";
+                case (CardNumber.King, CardSuit.Club): return "🃞";
+                default: throw new ApplicationException($"Unknown card number & suit: Number='{Number}',Suit='{Suit}'");
+
+
+            }
+
+            throw new NotImplementedException();
         }
     }
 
