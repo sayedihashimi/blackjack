@@ -6,69 +6,71 @@ namespace SayedHa.Blackjack.Tests {
     public class Test_CardDeck {
         [Fact]
         public void Test_GetNewStandardCardDeck_ReturnsCorrectCards() {
-            var result = CardDeck.GetNewStandardCardDeck(false);
+            var cards = new CardDeckFactory().GetDeckStandardDeckOfCards(1, true);
 
-            Assert.NotNull(result);
-            Assert.Equal(52, result.Cards?.Count);
+            var cardsToTest = GetStandardDeckOfCards();
 
-            var cardsToTest = new List<Card>();
-            cardsToTest.Add(new Card { Suit = CardSuit.Heart, Value = CardValue.Ace });
-            cardsToTest.Add(new Card { Suit = CardSuit.Heart, Value = CardValue.Two });
-            cardsToTest.Add(new Card { Suit = CardSuit.Heart, Value = CardValue.Three });
-            cardsToTest.Add(new Card { Suit = CardSuit.Heart, Value = CardValue.Four });
-            cardsToTest.Add(new Card { Suit = CardSuit.Heart, Value = CardValue.Five });
-            cardsToTest.Add(new Card { Suit = CardSuit.Heart, Value = CardValue.Six });
-            cardsToTest.Add(new Card { Suit = CardSuit.Heart, Value = CardValue.Seven });
-            cardsToTest.Add(new Card { Suit = CardSuit.Heart, Value = CardValue.Eight });
-            cardsToTest.Add(new Card { Suit = CardSuit.Heart, Value = CardValue.Nine });
-            cardsToTest.Add(new Card { Suit = CardSuit.Heart, Value = CardValue.Ten });
-            cardsToTest.Add(new Card { Suit = CardSuit.Heart, Value = CardValue.Jack });
-            cardsToTest.Add(new Card { Suit = CardSuit.Heart, Value = CardValue.Queen });
-            cardsToTest.Add(new Card { Suit = CardSuit.Heart, Value = CardValue.King });
-            cardsToTest.Add(new Card { Suit = CardSuit.Diamond, Value = CardValue.Ace });
-            cardsToTest.Add(new Card { Suit = CardSuit.Diamond, Value = CardValue.Two });
-            cardsToTest.Add(new Card { Suit = CardSuit.Diamond, Value = CardValue.Three });
-            cardsToTest.Add(new Card { Suit = CardSuit.Diamond, Value = CardValue.Four });
-            cardsToTest.Add(new Card { Suit = CardSuit.Diamond, Value = CardValue.Five });
-            cardsToTest.Add(new Card { Suit = CardSuit.Diamond, Value = CardValue.Six });
-            cardsToTest.Add(new Card { Suit = CardSuit.Diamond, Value = CardValue.Seven });
-            cardsToTest.Add(new Card { Suit = CardSuit.Diamond, Value = CardValue.Eight });
-            cardsToTest.Add(new Card { Suit = CardSuit.Diamond, Value = CardValue.Nine });
-            cardsToTest.Add(new Card { Suit = CardSuit.Diamond, Value = CardValue.Ten });
-            cardsToTest.Add(new Card { Suit = CardSuit.Diamond, Value = CardValue.Jack });
-            cardsToTest.Add(new Card { Suit = CardSuit.Diamond, Value = CardValue.Queen });
-            cardsToTest.Add(new Card { Suit = CardSuit.Diamond, Value = CardValue.King });
-            cardsToTest.Add(new Card { Suit = CardSuit.Spade, Value = CardValue.Ace });
-            cardsToTest.Add(new Card { Suit = CardSuit.Spade, Value = CardValue.Two });
-            cardsToTest.Add(new Card { Suit = CardSuit.Spade, Value = CardValue.Three });
-            cardsToTest.Add(new Card { Suit = CardSuit.Spade, Value = CardValue.Four });
-            cardsToTest.Add(new Card { Suit = CardSuit.Spade, Value = CardValue.Five });
-            cardsToTest.Add(new Card { Suit = CardSuit.Spade, Value = CardValue.Six });
-            cardsToTest.Add(new Card { Suit = CardSuit.Spade, Value = CardValue.Seven });
-            cardsToTest.Add(new Card { Suit = CardSuit.Spade, Value = CardValue.Eight });
-            cardsToTest.Add(new Card { Suit = CardSuit.Spade, Value = CardValue.Nine });
-            cardsToTest.Add(new Card { Suit = CardSuit.Spade, Value = CardValue.Ten });
-            cardsToTest.Add(new Card { Suit = CardSuit.Spade, Value = CardValue.Jack });
-            cardsToTest.Add(new Card { Suit = CardSuit.Spade, Value = CardValue.Queen });
-            cardsToTest.Add(new Card { Suit = CardSuit.Spade, Value = CardValue.King });
-            cardsToTest.Add(new Card { Suit = CardSuit.Club, Value = CardValue.Ace });
-            cardsToTest.Add(new Card { Suit = CardSuit.Club, Value = CardValue.Two });
-            cardsToTest.Add(new Card { Suit = CardSuit.Club, Value = CardValue.Three });
-            cardsToTest.Add(new Card { Suit = CardSuit.Club, Value = CardValue.Four });
-            cardsToTest.Add(new Card { Suit = CardSuit.Club, Value = CardValue.Five });
-            cardsToTest.Add(new Card { Suit = CardSuit.Club, Value = CardValue.Six });
-            cardsToTest.Add(new Card { Suit = CardSuit.Club, Value = CardValue.Seven });
-            cardsToTest.Add(new Card { Suit = CardSuit.Club, Value = CardValue.Eight });
-            cardsToTest.Add(new Card { Suit = CardSuit.Club, Value = CardValue.Nine });
-            cardsToTest.Add(new Card { Suit = CardSuit.Club, Value = CardValue.Ten });
-            cardsToTest.Add(new Card { Suit = CardSuit.Club, Value = CardValue.Jack });
-            cardsToTest.Add(new Card { Suit = CardSuit.Club, Value = CardValue.Queen });
-            cardsToTest.Add(new Card { Suit = CardSuit.Club, Value = CardValue.King });
-            
-            foreach(var ct in cardsToTest) {
-                Assert.True(result.Cards?.Contains(ct));
+            Assert.NotNull(cards);
+            foreach(var card in cardsToTest) {
+                Assert.True(cards.Contains(card));
             }
+        }
 
+        public static List<Card> GetStandardDeckOfCards() {
+            var standardDeck = new List<Card>();
+            standardDeck.Add(new Card { Suit = CardSuit.Heart, Number = CardNumber.Ace });
+            standardDeck.Add(new Card { Suit = CardSuit.Heart, Number = CardNumber.Two });
+            standardDeck.Add(new Card { Suit = CardSuit.Heart, Number = CardNumber.Three });
+            standardDeck.Add(new Card { Suit = CardSuit.Heart, Number = CardNumber.Four });
+            standardDeck.Add(new Card { Suit = CardSuit.Heart, Number = CardNumber.Five });
+            standardDeck.Add(new Card { Suit = CardSuit.Heart, Number = CardNumber.Six });
+            standardDeck.Add(new Card { Suit = CardSuit.Heart, Number = CardNumber.Seven });
+            standardDeck.Add(new Card { Suit = CardSuit.Heart, Number = CardNumber.Eight });
+            standardDeck.Add(new Card { Suit = CardSuit.Heart, Number = CardNumber.Nine });
+            standardDeck.Add(new Card { Suit = CardSuit.Heart, Number = CardNumber.Ten });
+            standardDeck.Add(new Card { Suit = CardSuit.Heart, Number = CardNumber.Jack });
+            standardDeck.Add(new Card { Suit = CardSuit.Heart, Number = CardNumber.Queen });
+            standardDeck.Add(new Card { Suit = CardSuit.Heart, Number = CardNumber.King });
+            standardDeck.Add(new Card { Suit = CardSuit.Diamond, Number = CardNumber.Ace });
+            standardDeck.Add(new Card { Suit = CardSuit.Diamond, Number = CardNumber.Two });
+            standardDeck.Add(new Card { Suit = CardSuit.Diamond, Number = CardNumber.Three });
+            standardDeck.Add(new Card { Suit = CardSuit.Diamond, Number = CardNumber.Four });
+            standardDeck.Add(new Card { Suit = CardSuit.Diamond, Number = CardNumber.Five });
+            standardDeck.Add(new Card { Suit = CardSuit.Diamond, Number = CardNumber.Six });
+            standardDeck.Add(new Card { Suit = CardSuit.Diamond, Number = CardNumber.Seven });
+            standardDeck.Add(new Card { Suit = CardSuit.Diamond, Number = CardNumber.Eight });
+            standardDeck.Add(new Card { Suit = CardSuit.Diamond, Number = CardNumber.Nine });
+            standardDeck.Add(new Card { Suit = CardSuit.Diamond, Number = CardNumber.Ten });
+            standardDeck.Add(new Card { Suit = CardSuit.Diamond, Number = CardNumber.Jack });
+            standardDeck.Add(new Card { Suit = CardSuit.Diamond, Number = CardNumber.Queen });
+            standardDeck.Add(new Card { Suit = CardSuit.Diamond, Number = CardNumber.King });
+            standardDeck.Add(new Card { Suit = CardSuit.Spade, Number = CardNumber.Ace });
+            standardDeck.Add(new Card { Suit = CardSuit.Spade, Number = CardNumber.Two });
+            standardDeck.Add(new Card { Suit = CardSuit.Spade, Number = CardNumber.Three });
+            standardDeck.Add(new Card { Suit = CardSuit.Spade, Number = CardNumber.Four });
+            standardDeck.Add(new Card { Suit = CardSuit.Spade, Number = CardNumber.Five });
+            standardDeck.Add(new Card { Suit = CardSuit.Spade, Number = CardNumber.Six });
+            standardDeck.Add(new Card { Suit = CardSuit.Spade, Number = CardNumber.Seven });
+            standardDeck.Add(new Card { Suit = CardSuit.Spade, Number = CardNumber.Eight });
+            standardDeck.Add(new Card { Suit = CardSuit.Spade, Number = CardNumber.Nine });
+            standardDeck.Add(new Card { Suit = CardSuit.Spade, Number = CardNumber.Ten });
+            standardDeck.Add(new Card { Suit = CardSuit.Spade, Number = CardNumber.Jack });
+            standardDeck.Add(new Card { Suit = CardSuit.Spade, Number = CardNumber.Queen });
+            standardDeck.Add(new Card { Suit = CardSuit.Spade, Number = CardNumber.King });
+            standardDeck.Add(new Card { Suit = CardSuit.Club, Number = CardNumber.Ace });
+            standardDeck.Add(new Card { Suit = CardSuit.Club, Number = CardNumber.Two });
+            standardDeck.Add(new Card { Suit = CardSuit.Club, Number = CardNumber.Three });
+            standardDeck.Add(new Card { Suit = CardSuit.Club, Number = CardNumber.Four });
+            standardDeck.Add(new Card { Suit = CardSuit.Club, Number = CardNumber.Five });
+            standardDeck.Add(new Card { Suit = CardSuit.Club, Number = CardNumber.Six });
+            standardDeck.Add(new Card { Suit = CardSuit.Club, Number = CardNumber.Seven });
+            standardDeck.Add(new Card { Suit = CardSuit.Club, Number = CardNumber.Eight });
+            standardDeck.Add(new Card { Suit = CardSuit.Club, Number = CardNumber.Nine });
+            standardDeck.Add(new Card { Suit = CardSuit.Club, Number = CardNumber.Ten });
+            standardDeck.Add(new Card { Suit = CardSuit.Club, Number = CardNumber.Jack });
+            standardDeck.Add(new Card { Suit = CardSuit.Club, Number = CardNumber.Queen });
+            standardDeck.Add(new Card { Suit = CardSuit.Club, Number = CardNumber.King });
+            return standardDeck;
         }
     }
 }
