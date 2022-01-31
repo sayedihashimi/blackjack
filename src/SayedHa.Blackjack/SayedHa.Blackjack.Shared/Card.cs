@@ -32,10 +32,14 @@ namespace SayedHa.Blackjack.Shared {
         }
 
 
-        public Card? MoveNext() {
+        public Card? GetCardAndMoveNext() {
             var retValue = CurrentCard?.Value;
             CurrentCard = CurrentCard?.Next;
             return retValue;
+        }
+
+        public Card? GetCurrentCard() {
+            return CurrentCard?.Value;
         }
 
         public bool Contains(Card card) {
