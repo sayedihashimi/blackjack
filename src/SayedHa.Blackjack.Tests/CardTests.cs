@@ -39,11 +39,11 @@ namespace SayedHa.Blackjack.Tests {
         public void Test_Shuffle_For_One_Deck() {
             CardDeck cards = new CardDeckFactory().GetDeckStandardDeckOfCards(1, true);
             // check the first ten cards to ensure they don't shrae the same suit
-            var firstSuit = cards.GetCurrentCard().Suit;
+            var firstSuit = cards?.GetCurrentCard()?.Suit;
             int numToTest = 10;
             bool foundDifferentSuit = false;
             for (int i = 0; i < numToTest; i++) {
-                var currentCard = cards.GetCardAndMoveNext();
+                var currentCard = cards?.GetCardAndMoveNext();
                 if (currentCard != null) { 
                     if (currentCard.Suit != firstSuit) {
                         foundDifferentSuit = true;
