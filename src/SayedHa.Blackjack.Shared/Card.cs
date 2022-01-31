@@ -1,7 +1,4 @@
-﻿using SayedHa.Blackjack.Shared.Extensions;
-using System.Diagnostics;
-
-namespace SayedHa.Blackjack.Shared {
+﻿namespace SayedHa.Blackjack.Shared {
     public class Card {
         public CardSuit Suit { get; init; }
         public CardNumber Number { get; init; }
@@ -15,80 +12,6 @@ namespace SayedHa.Blackjack.Shared {
             return this.Suit.GetHashCode() * this.Number.GetHashCode();
         }
     }
-
-    public class CardDeck {
-        internal LinkedList<Card>? Cards { get; set; }
-        internal LinkedListNode<Card>? CurrentCard { get; set; }
-        public List<Card> DiscardedCards { get; internal set; } = new List<Card>();
-
-        public CardDeck(LinkedList<Card>? cards) {
-            Cards = cards;
-            CurrentCard = Cards != null ? Cards.First : null;
-        }
-
-
-        public Card? GetCardAndMoveNext() {
-            var retValue = CurrentCard?.Value;
-            if(retValue != null) {
-                DiscardedCards.Add(retValue);
-            }
-            CurrentCard = CurrentCard?.Next;
-            return retValue;
-        }
-
-        public Card? GetCurrentCard() {
-            return CurrentCard?.Value;
-        }
-
-        public bool Contains(Card card) {
-            if (card == null) {
-                throw new ArgumentNullException(nameof(card));
-            }
-
-            return Cards != null ? Cards.Contains(card) : throw new ApplicationException("CardDeck hasn't been initalized, Cards is null");
-        }
-    }
-    public class CardDeckFactory {
-        public CardDeck GetDeckStandardDeckOfCards(int numDecks = 1, bool shuffle = true) {
-            Debug.Assert(numDecks > 0);
-
-            var cardList = new List<Card>();
-            for (var i = 0; i < numDecks; i++) {
-                var temp = GetStandardDeckOfCardsAsList(false);
-                cardList.AddRange(temp);
-            }
-
-            if (shuffle) {
-                cardList.Shuffle();
-            }
-
-            // convert into a linkedlist
-            LinkedList<Card> cards = new LinkedList<Card>();
-            foreach (var card in cardList) {
-                cards.AddLast(card);
-            }
-
-            return new CardDeck(cards);
-        }
-        internal List<Card> GetStandardDeckOfCardsAsList(bool shuffle) {
-            var cards = new List<Card>();
-            foreach (CardSuit suit in (CardSuit[])Enum.GetValues(typeof(CardSuit))) {
-                foreach (CardNumber value in (CardNumber[])Enum.GetValues(typeof(CardNumber))) {
-                    cards.Add(new Card {
-                        Suit = suit,
-                        Number = value
-                    });
-                }
-            }
-
-            if (shuffle) {
-                cards.Shuffle();
-            }
-
-            return cards;
-        }
-    }
-
 
     public enum CardSuit {
         Heart,
