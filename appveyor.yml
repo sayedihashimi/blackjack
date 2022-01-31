@@ -1,0 +1,10 @@
+version: 1.0.{build}
+image: Visual Studio 2022
+configuration: Release
+before_build:
+- ps: dotnet restore src/SayedHa.Blackjack/SayedHa.Blackjack.sln
+build:
+  project: src/SayedHa.Blackjack/SayedHa.Blackjack.sln
+  verbosity: normal
+after_build:
+- ps: dotnet pack src/SayedHa.Blackjack/SayedHa.Blackjack.Console/SayedHa.Blackjack.Console.csproj -c Release

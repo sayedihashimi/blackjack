@@ -6,80 +6,74 @@ namespace SayedHa.Blackjack.Tests {
     public class TestHand {
         [Fact]
         public void Test_Score_TwoCards_NoAce_NotOver21() {
-            var cardsAndExpectedScore = new Dictionary<Hand, int>();
-            cardsAndExpectedScore.Add(
-                new Hand {
-                    DealtCards = new List<Card> {
+            var hand1 = new Hand {
+                DealtCards = new List<Card> {
                         new Card{Number=CardNumber.Nine, Suit=CardSuit.Diamond },
                         new Card{Number=CardNumber.Two, Suit=CardSuit.Heart }
                     }
-                },
-                11);
-            cardsAndExpectedScore.Add(
-                new Hand {
-                    DealtCards = new List<Card> {
+            };
+            Assert.Equal(11, hand1.GetScore());
+
+            var hand2 = new Hand {
+                DealtCards = new List<Card> {
                         new Card{Number=CardNumber.Eight, Suit=CardSuit.Club },
                         new Card{Number=CardNumber.Eight, Suit=CardSuit.Spade }
                     }
-                },
-                16);
-            cardsAndExpectedScore.Add(
-                new Hand {
-                    DealtCards = new List<Card> {
+            };
+            Assert.Equal(16, hand2.GetScore());
+
+            var hand3 = new Hand {
+                DealtCards = new List<Card> {
                         new Card{Number=CardNumber.King, Suit=CardSuit.Diamond },
                         new Card{Number=CardNumber.King, Suit=CardSuit.Heart }
                     }
-                },
-                20);
-            cardsAndExpectedScore.Add(
-                new Hand {
-                    DealtCards = new List<Card> {
+            };
+            Assert.Equal(20, hand3.GetScore());
+
+            var hand4 = new Hand {
+                DealtCards = new List<Card> {
                         new Card{Number=CardNumber.Queen, Suit=CardSuit.Diamond },
                         new Card{Number=CardNumber.Jack, Suit=CardSuit.Heart }
                     }
-                },
-                20);
-
-            foreach (var ces in cardsAndExpectedScore) {
-                Assert.Equal(ces.Value, ces.Key.GetScore());
-            }
+            };
+            Assert.Equal(20, hand4.GetScore());
         }
 
         [Fact]
         public void Test_Score_ThreeCards_NoAce_21OrOver() {
             var hand1 = new Hand {
                 DealtCards = new List<Card> {
-                        new Card{Number=CardNumber.Nine, Suit=CardSuit.Diamond },
-                        new Card{Number=CardNumber.Two, Suit=CardSuit.Heart },
-                        new Card{Number=CardNumber.King, Suit=CardSuit.Heart }
-                    }
+                    new Card{Number=CardNumber.Nine, Suit=CardSuit.Diamond },
+                    new Card{Number=CardNumber.Two, Suit=CardSuit.Heart },
+                    new Card{Number=CardNumber.King, Suit=CardSuit.Heart }
+                }
             };
             Assert.Equal(21, hand1.GetScore());
 
             var hand2 = new Hand {
                 DealtCards = new List<Card> {
-                        new Card{Number=CardNumber.Eight, Suit=CardSuit.Club },
-                        new Card{Number=CardNumber.Eight, Suit=CardSuit.Spade },
-                        new Card{Number=CardNumber.Jack, Suit=CardSuit.Heart }
-                    }
+                    new Card{Number=CardNumber.Eight, Suit=CardSuit.Club },
+                    new Card{Number=CardNumber.Eight, Suit=CardSuit.Spade },
+                    new Card{Number=CardNumber.Jack, Suit=CardSuit.Heart }
+                }
             };
             Assert.Equal(26, hand2.GetScore());
 
             var hand3 = new Hand {
                 DealtCards = new List<Card> {
-                        new Card{Number=CardNumber.Six, Suit=CardSuit.Diamond },
-                        new Card{Number=CardNumber.King, Suit=CardSuit.Heart },
-                        new Card{Number=CardNumber.Five, Suit=CardSuit.Club }
-                    }
+                    new Card{Number=CardNumber.Six, Suit=CardSuit.Diamond },
+                    new Card{Number=CardNumber.King, Suit=CardSuit.Heart },
+                    new Card{Number=CardNumber.Five, Suit=CardSuit.Club }
+                }
             };
             Assert.Equal(21, hand3.GetScore());
 
             var hand4 = new Hand {
                 DealtCards = new List<Card> {
-                        new Card{Number=CardNumber.Queen, Suit=CardSuit.Diamond },
-                        new Card{Number=CardNumber.Jack, Suit=CardSuit.Heart },
-                        new Card{Number=CardNumber.Ten, Suit=CardSuit.Club }
-                    }
+                    new Card{Number=CardNumber.Queen, Suit=CardSuit.Diamond },
+                    new Card{Number=CardNumber.Jack, Suit=CardSuit.Heart },
+                    new Card{Number=CardNumber.Ten, Suit=CardSuit.Club }
+                }
             };
             Assert.Equal(30, hand4.GetScore());
         }

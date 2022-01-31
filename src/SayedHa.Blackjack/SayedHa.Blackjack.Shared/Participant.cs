@@ -1,9 +1,21 @@
 ﻿using System.Diagnostics;
 
 namespace SayedHa.Blackjack.Shared {
-    public class Participant {
-        public ParticipantRole Role { get; set; } = ParticipantRole.Player;
+    public class Player {
+        public Player(ParticipantRole role){
+            Role = role;
+        }
+        public ParticipantRole Role { get; init; }
         public Hand Hand { get; set; } = new Hand();
+    }
+
+    public class Dealer:Player {
+        public Dealer():base(ParticipantRole.Dealer) {
+        }
+    }
+    public class Opponent : Player {
+        public Opponent() : base(ParticipantRole.Player) {
+        }
     }
 
     public enum ParticipantRole {
@@ -21,12 +33,28 @@ namespace SayedHa.Blackjack.Shared {
                 }
             }
         }
-                        
-        internal List<Card> DealtCards { get; set; }=new List<Card>();
+
+        private List<Card> _dealtCards = new List<Card>();
+        internal List<Card> DealtCards {
+            get {
+                return _dealtCards;
+            }
+            set {
+                _dealtCards = value;
+                _scoreCached = ComputeScore();
+            }
+        }
+        protected int _scoreCached;
+
 
         public void ReceiveCard(Card card) {
             Debug.Assert(card != null);
             DealtCards.Add(card);
+            _scoreCached = ComputeScore();
+        }
+
+        public int GetScore() {
+            return _scoreCached;
         }
 
         /// <summary>
@@ -35,7 +63,7 @@ namespace SayedHa.Blackjack.Shared {
         /// this method must be updated.
         /// </summary>
         /// <returns>numeric score of DealtCards</returns>
-        public int GetScore() {
+        public int ComputeScore() {
             if(DealtCards == null || DealtCards.Count == 0) return 0;
 
             // have to handle the Ace case where it has more than one value
