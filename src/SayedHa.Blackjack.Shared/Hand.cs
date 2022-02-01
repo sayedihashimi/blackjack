@@ -1,7 +1,9 @@
 ﻿using System.Diagnostics;
+using System.Text;
 
 namespace SayedHa.Blackjack.Shared {
     public class Hand {
+        private ILogger _logger = new Logger();
         public Hand() { }
         public Hand(List<Card> cards) {
             Debug.Assert(cards != null);
@@ -30,6 +32,7 @@ namespace SayedHa.Blackjack.Shared {
 
         public void ReceiveCard(Card card) {
             Debug.Assert(card != null);
+            _logger.Log($"dealt card: {card.ToString()}");
             DealtCards.Add(card);
             _scoreCached = ComputeScore();
         }
@@ -94,6 +97,21 @@ namespace SayedHa.Blackjack.Shared {
             }
 
             return sumSingleValueCards;
+        }
+
+        public override string ToString() {
+            var sb = new StringBuilder();
+            sb.Append("[");
+            for(var i = 0; i < DealtCards.Count; i++) {
+                sb.Append(DealtCards[i]);
+                if (i < DealtCards.Count - 1) {
+                    sb.Append(",");
+                }
+            }
+            sb.Append(']');
+            sb.Append($" Score={GetScore()}");
+            
+            return sb.ToString().Trim();
         }
     }
     public enum HandResult {

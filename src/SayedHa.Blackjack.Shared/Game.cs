@@ -44,6 +44,8 @@ namespace SayedHa.Blackjack.Shared {
             NumDecks = numDecks;
             NumOpponents = numOpponents;
         }
+        // TODO: need to plumb in this logger in a better way
+        private ILogger _logger = new Logger();
         private GameFactory gameFactory = new GameFactory();
         protected int NumDecks { get; init; }
         protected int NumOpponents { get; init; }
@@ -62,15 +64,20 @@ namespace SayedHa.Blackjack.Shared {
             }
 
             // deal two cards to each opponent
-            foreach(var opponent in game.Opponents) {                
+            // TODO: move index to participant, maybe make a name property or something
+            int index = 1;
+            foreach(var opponent in game.Opponents) {
+                _logger.Log($"dealing cards to opponent {index}");
                 var newhand = new Hand();
                 newhand.ReceiveCard(game.Cards.GetCardAndMoveNext()!);
                 newhand.ReceiveCard(game.Cards.GetCardAndMoveNext()!);
                 opponent.Hands.Add(newhand);
                 // TODO: at some point we need to cover the case when game.Cards runs out of cards and needs to be shuffled again.
+                index++;
             }
 
             // deal two cards to the dealer
+            _logger.Log("Dealing cards to dealer");
             var dealerHand = new Hand();
             dealerHand.ReceiveCard(game.Cards.GetCardAndMoveNext()!);
             dealerHand.ReceiveCard(game.Cards.GetCardAndMoveNext()!);
@@ -80,7 +87,7 @@ namespace SayedHa.Blackjack.Shared {
             foreach (var opponent in game.Opponents) {
                 PlayForParticipant(opponent, game.Cards);
             }
-
+            _logger.Log(string.Empty);
             // now play for the dealer
             PlayForParticipant(game.Dealer, game.Cards);
 
@@ -97,6 +104,7 @@ namespace SayedHa.Blackjack.Shared {
             Debug.Assert(participant.Hands.Count == 1);
             // we need to play the hand for the opponent now
             // if a split occurs, we need to create a new hand and play each hand seperately
+            _logger.Log($"playing for '{participant.Role}'");
             PlayHand(participant.Hands[0], participant, cards);
         }
 
@@ -110,6 +118,7 @@ namespace SayedHa.Blackjack.Shared {
 
             // if the nextAction is to split we need to create two hands and deal a new card to each hand
             if (nextAction == HandAction.Split) {
+                _logger.Log($"action = split. Hand={hand}");
                 var newHand = new Hand();
                 newHand.ReceiveCard(hand.DealtCards[1]);
                 hand.DealtCards.RemoveAt(1);
@@ -140,6 +149,7 @@ namespace SayedHa.Blackjack.Shared {
             // next action at this point shouldn't be split.
             // splits should have already been taken care of at this point
             var nextAction = participant.Player.GetNextAction(hand);
+            _logger.Log($"next action: {nextAction}, Hand={hand}");
             switch (nextAction){
                 case HandAction.Split: throw new ApplicationException("no splits here");
                 case HandAction.Stand: 
