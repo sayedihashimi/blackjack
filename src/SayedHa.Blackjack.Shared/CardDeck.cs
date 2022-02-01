@@ -2,11 +2,13 @@
 
 namespace SayedHa.Blackjack.Shared {
     public class CardDeck {
+        private ILogger _logger;
         internal LinkedList<Card>? Cards { get; set; }
         internal LinkedListNode<Card>? CurrentCard { get; set; }
         public List<Card> DiscardedCards { get; internal set; } = new List<Card>();
 
-        public CardDeck(LinkedList<Card>? cards) {
+        public CardDeck(ILogger logger,LinkedList<Card>? cards) {
+            _logger = logger;
             Cards = cards;
             CurrentCard = Cards != null ? Cards.First : null;
         }

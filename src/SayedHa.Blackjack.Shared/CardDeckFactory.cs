@@ -22,7 +22,7 @@ namespace SayedHa.Blackjack.Shared {
                 cards.AddLast(card);
             }
 
-            return new CardDeck(cards);
+            return new CardDeck(new Logger(), cards);
         }
         internal List<Card> GetStandardDeckOfCardsAsList(bool shuffle) {
             var cards = new List<Card>();

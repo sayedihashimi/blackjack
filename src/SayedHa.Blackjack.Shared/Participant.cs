@@ -1,23 +1,44 @@
-﻿namespace SayedHa.Blackjack.Shared {
-    public class Player {
-        public Player(ParticipantRole role){
+﻿using SayedHa.Blackjack.Shared.Players;
+
+namespace SayedHa.Blackjack.Shared {
+    public class Participant {
+        public Participant(ParticipantRole role, Player player){
             Role = role;
+            Player = player;
         }
         public ParticipantRole Role { get; init; }
-        public Hand Hand { get; set; } = new Hand();
+
+        // needs to be a list because of splits
+        public List<Hand> Hands { get; set; } = new List<Hand>();
+
+        /// <summary>
+        /// This determines the next action for the players hand(s).
+        /// </summary>
+        public Player Player { get; init; }
     }
 
-    public class Dealer:Player {
-        public Dealer():base(ParticipantRole.Dealer) {
+    public class Dealer:Participant {
+        public Dealer(Player player):base(ParticipantRole.Dealer, player) {
         }
     }
-    public class Opponent : Player {
-        public Opponent() : base(ParticipantRole.Player) {
+    public class Opponent : Participant {
+        public Opponent(Player player) : base(ParticipantRole.Player, player) {
         }
     }
 
     public enum ParticipantRole {
         Dealer,
         Player
+    }
+
+    public class ParticipantFactory {
+        public Participant GetDefaultDealer() {
+            return new Dealer(new DealerPlayer());
+        }
+
+        public Participant GetDefaultOpponent() {
+            // TODO: update with a better player when one is ready
+            return new Opponent(new DealerPlayer());
+        }
     }
 }

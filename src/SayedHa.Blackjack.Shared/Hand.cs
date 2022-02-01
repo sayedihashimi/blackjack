@@ -12,6 +12,10 @@ namespace SayedHa.Blackjack.Shared {
             }
         }
 
+        // TODO: Still not sure if this property is needed, let's see.
+        public HandStatus Status { get; internal set; } = HandStatus.InPlay;
+        public HandResult HandResult { get; internal set; } = HandResult.InPlay;
+
         private List<Card> _dealtCards = new List<Card>();
         internal List<Card> DealtCards {
             get {
@@ -24,7 +28,6 @@ namespace SayedHa.Blackjack.Shared {
         }
         protected int _scoreCached;
 
-
         public void ReceiveCard(Card card) {
             Debug.Assert(card != null);
             DealtCards.Add(card);
@@ -33,6 +36,24 @@ namespace SayedHa.Blackjack.Shared {
 
         public int GetScore() {
             return _scoreCached;
+        }
+
+        /// <summary>
+        /// Call this mehtod at the end of the game to indicate if the hand was a win/loss
+        /// </summary>
+        /// <param name="result"></param>
+        public void SetHandResult(HandResult result) {
+            HandResult = result;
+        }
+        /// <summary>
+        /// Call this method when no other actions can be taken on the Hand.
+        /// The most common case that this is used is when a hand has been completed
+        /// and the dealer moves on to play the next hand.
+        /// For example, after a double down is executed, this should be called
+        /// to prevent any other actions on this hand.
+        /// </summary>
+        public void MarkHandAsClosed() {
+            Status = HandStatus.Closed;
         }
 
         /// <summary>
@@ -74,5 +95,18 @@ namespace SayedHa.Blackjack.Shared {
 
             return sumSingleValueCards;
         }
+    }
+    public enum HandResult {
+        InPlay,
+        Win,
+        Loss,
+        Push
+    }
+    public enum HandStatus {
+        InPlay,
+        // Closed hand is one that cannot take any more actions. For example after a Double down has been executed,
+        // no more actions can be taken on that hand.
+        // It doesn't mean that it's a lost hand.
+        Closed
     }
 }

@@ -12,6 +12,7 @@
             return this.Suit.GetHashCode() * this.Number.GetHashCode();
         }
 
+        // note: these characters don't seem to be supported in the fonts used in the terminal
         public override string ToString() => (Number, Suit) switch {
             (CardNumber.Ace, CardSuit.Heart) => "🂱",
             (CardNumber.Two, CardSuit.Heart) => "🂲",
