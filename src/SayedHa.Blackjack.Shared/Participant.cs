@@ -38,7 +38,8 @@ namespace SayedHa.Blackjack.Shared {
 
         public Participant GetDefaultOpponent() {
             // TODO: update with a better player when one is ready
-            return new Opponent(new DealerPlayer());
+            return new Opponent(new BasicStrategyPlayer());
         }
+
     }
 }

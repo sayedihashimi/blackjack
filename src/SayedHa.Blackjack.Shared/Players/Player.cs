@@ -10,6 +10,6 @@
         /// Each player is free to implement whatever playing
         /// style they prefer.
         /// </summary>
-        public abstract HandAction GetNextAction(Hand hand);
+        public abstract HandAction GetNextAction(Hand hand, Hand dealerHand);
     }
 }

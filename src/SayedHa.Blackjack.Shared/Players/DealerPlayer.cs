@@ -14,7 +14,7 @@ namespace SayedHa.Blackjack.Shared.Players {
         }
 
         public int MinScoreToStand { get; protected init; }
-        public override HandAction GetNextAction(Hand hand) {
+        public override HandAction GetNextAction(Hand hand, Hand dealerHand) {
             Debug.Assert(hand != null);
 
             if (hand.Status == HandStatus.Closed) {
