@@ -71,7 +71,7 @@ namespace SayedHa.Blackjack.Shared {
                         else if(handScore == dealerScore) {
                             sb.Append("Push ");
                         }
-                        else if(handScore > dealerScore) {
+                        else if(handScore > dealerScore || dealerScore > 21) {
                             sb.Append("Win ");
                         }
                         else {
