@@ -32,8 +32,8 @@ namespace SayedHa.Blackjack.Shared {
 
         public Card? DealersVisibleCard {
             get {
-                if (_dealtCards != null && _dealtCards.Count > 0) {
-                    return _dealtCards[0];
+                if (_dealtCards != null && _dealtCards.Count >= 2) {
+                    return _dealtCards[1];
                 }
 
                 return null;
@@ -42,7 +42,7 @@ namespace SayedHa.Blackjack.Shared {
 
         public void ReceiveCard(Card card) {
             Debug.Assert(card != null);
-            _logger.Log($"  card: {card.ToString()}");
+            _logger.LogLine($"  card: {card.ToString()}");
             DealtCards.Add(card);
             _scoreCached = ComputeScore();
         }

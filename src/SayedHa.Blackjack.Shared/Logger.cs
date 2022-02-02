@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace SayedHa.Blackjack.Shared {
     public interface ILogger {
-        void Log(string message);
+        void LogLine(string message);
     }
 
     public class Logger : ILogger {
-        public void Log(string message) {
+        public void LogLine(string message) {
             Console.WriteLine(message);
         }
     }

@@ -78,6 +78,8 @@ namespace SayedHa.Blackjack.Shared.Players {
                 case (12, CardNumber.Five):
                 case (12, CardNumber.Six):
                     return HandAction.Stand;
+                case(12, _):
+                    return HandAction.Hit;
 
                 // "Always double down on 11, always"
                 case (11, _):
