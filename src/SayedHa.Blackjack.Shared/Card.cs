@@ -81,10 +81,10 @@
     public static class CardSuitExtensions {
         public static string GetFriendlyString(this CardSuit cardSuit) {
             switch (cardSuit) {
-                case CardSuit.Club: return "♥"; // "♧";
-                case CardSuit.Diamond: return "♦"; // "♢";
-                case CardSuit.Heart: return "♥"; // "♡";
-                case CardSuit.Spade: return "♠"; // "♤";
+                case CardSuit.Club: return "(c)";     // "♥"; // "♧";
+                case CardSuit.Diamond: return "(d)";  // "♦"; // "♢";
+                case CardSuit.Heart: return "(h)";    // "♥"; // "♡";
+                case CardSuit.Spade: return "(s)";    // "♠"; // "♤";
             }
             throw new NotImplementedException();
         }
