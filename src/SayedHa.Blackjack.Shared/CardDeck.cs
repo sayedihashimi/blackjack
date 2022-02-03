@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using SayedHa.Blackjack.Shared.Extensions;
+using System.Text;
 
 namespace SayedHa.Blackjack.Shared {
     public class CardDeck {
@@ -11,6 +12,15 @@ namespace SayedHa.Blackjack.Shared {
             _logger = logger;
             Cards = cards;
             CurrentCard = Cards != null ? Cards.First : null;
+        }
+        public void ShuffleCards() {
+            // clear the discarded cards
+            // rebuild the linkedlist
+            DiscardedCards.Clear();
+            var cardList = Cards!.ToList();
+            cardList.Shuffle();
+            Cards = new LinkedList<Card>(cardList);
+            CurrentCard = Cards!.First;
         }
 
         public Card? GetCardAndMoveNext() {
@@ -34,6 +44,11 @@ namespace SayedHa.Blackjack.Shared {
             return Cards != null ? Cards.Contains(card) : throw new ApplicationException("CardDeck hasn't been initalized, Cards is null");
         }
 
+        public int GetNumRemainingCards() => 
+            Cards != null && DiscardedCards != null ? Cards.Count() - DiscardedCards.Count : 0;
+        public int GetTotalNumCards() =>
+            Cards != null ? Cards.Count() : 0;
+        
         override public string ToString() {
             if(Cards == null) {
                 return "(empty)";

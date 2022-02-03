@@ -4,10 +4,11 @@ using System.Diagnostics;
 
 namespace SayedHa.Blackjack.Shared {
     public class Game {
-        public Game(CardDeck cards, Participant dealer, List<Participant> opponents) {
+        public Game(CardDeck cards, Participant dealer, List<Participant> opponents, int shuffleThresholdPercent=KnownValues.DefaultShuffleThresholdPercent) {
             Cards = cards;
             Dealer = dealer;
             Opponents = opponents;
+            ShuffleThresholdPercent = shuffleThresholdPercent;
         }
 
         public GameStatus Status { get; set; } = GameStatus.InPlay;
@@ -15,6 +16,7 @@ namespace SayedHa.Blackjack.Shared {
         public CardDeck Cards { get; internal init; }
         protected internal Participant Dealer { get; internal init; }
         protected internal List<Participant> Opponents { get; internal init; }
+        public int ShuffleThresholdPercent { get; internal init; }
     }
     public enum GameStatus {
         InPlay,
@@ -22,7 +24,7 @@ namespace SayedHa.Blackjack.Shared {
     }
 
     public class GameFactory {
-        public Game CreateNewGame(int numDecks = 4, int numOpponents = 1) {
+        public Game CreateNewGame(int numDecks = 4, int numOpponents = 1, int shuffleThresholdPercent = KnownValues.DefaultShuffleThresholdPercent) {
             Debug.Assert(numDecks > 0);
             Debug.Assert(numOpponents > 0);
 

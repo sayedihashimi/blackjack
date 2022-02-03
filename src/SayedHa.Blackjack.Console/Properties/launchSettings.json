@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "SayedHa.Blackjack.Console": {
+      "commandName": "Project",
+      "commandLineArgs": "100"
+    }
+  }
+}

@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Reflection.Metadata;
 using System.Text;
 
 namespace SayedHa.Blackjack.Shared {
@@ -16,9 +17,33 @@ namespace SayedHa.Blackjack.Shared {
         public Game CreateNewGame(int numDecks = 4, int numOpponents = 1) =>
             gameFactory.CreateNewGame(numDecks, numOpponents);
 
+        protected void ShuffleCardsIfNeeded(Game game) {
+            Debug.Assert(game != null);
+            Debug.Assert(game.Cards != null);
+            Debug.Assert(game.Cards.GetNumRemainingCards() > 0);
+
+            var cards = game.Cards;
+
+            // if the discarded # of cards exceeds specified amount, shuffle the cards
+            var percentRemainingCards = (float)cards.GetNumRemainingCards() / (float)cards.GetTotalNumCards();
+            if (percentRemainingCards * 100 <= game.ShuffleThresholdPercent) {
+                _logger.LogLine("**** shuffling cards");
+                game.Cards.ShuffleCards();
+            }
+        }
+
         public void PlayGame(Game game) {
             Debug.Assert(game != null);
             Debug.Assert(game.Cards != null);
+
+            // need to reset the hands
+            game.Dealer.Hands.Clear();
+            foreach(var op in game.Opponents) {
+                op.Hands.Clear();
+            }
+            // check to see if the deck needs to be shuffled or not
+            ShuffleCardsIfNeeded(game);
+
             // very first action for a new deck is to discard one card
             _ = game.Cards.GetCardAndMoveNext();
 
