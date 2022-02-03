@@ -79,14 +79,12 @@
         }
     }
     public static class CardSuitExtensions {
-        public static string GetFriendlyString(this CardSuit cardSuit) {
-            switch (cardSuit) {
-                case CardSuit.Club: return "(c)";     // "♥"; // "♧";
-                case CardSuit.Diamond: return "(d)";  // "♦"; // "♢";
-                case CardSuit.Heart: return "(h)";    // "♥"; // "♡";
-                case CardSuit.Spade: return "(s)";    // "♠"; // "♤";
-            }
-            throw new NotImplementedException();
-        }
+        public static string GetFriendlyString(this CardSuit cardSuit) => cardSuit switch {
+            CardSuit.Club => "(c)",
+            CardSuit.Diamond => "(d)",
+            CardSuit.Heart => "(h)",
+            CardSuit.Spade => "(s)",
+            _ => throw new NotImplementedException()
+        };
     }
 }
