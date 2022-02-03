@@ -32,7 +32,7 @@ namespace SayedHa.Blackjack.Shared {
             }
         }
 
-        public void PlayGame(Game game) {
+        public GameResult PlayGame(Game game) {
             Debug.Assert(game != null);
             Debug.Assert(game.Cards != null);
 
@@ -77,7 +77,7 @@ namespace SayedHa.Blackjack.Shared {
                     PlayForParticipant(opponent, game.Dealer, game.Cards);
                 }
                 _logger.LogLine(string.Empty);
-                
+
                 // now play for the dealer
                 PlayForParticipant(game.Dealer, game.Dealer, game.Cards);
 
@@ -85,21 +85,26 @@ namespace SayedHa.Blackjack.Shared {
                 var dealerScore = game.Dealer.Hands[0].GetScore();
 
                 _logger.LogLine(string.Empty);
+
                 foreach (var opponent in game.Opponents) {
                     var sb = new StringBuilder();
                     sb.Append("Result: ");
-                    foreach(var hand in opponent.Hands) {
+                    foreach (var hand in opponent.Hands) {
                         var handScore = hand.GetScore();
                         if (handScore > 21) {
+                            hand.SetHandResult(HandResult.DealerWon);
                             sb.Append("Busted ");
                         }
-                        else if(handScore == dealerScore) {
+                        else if (handScore == dealerScore) {
+                            hand.SetHandResult(HandResult.Push);
                             sb.Append("Push ");
                         }
-                        else if(handScore > dealerScore || dealerScore > 21) {
+                        else if (handScore > dealerScore || dealerScore > 21) {
+                            hand.SetHandResult(HandResult.OpponentWon);
                             sb.Append("Win ");
                         }
                         else {
+                            hand.SetHandResult(HandResult.DealerWon);
                             sb.Append("Lose ");
                         }
                     }
@@ -108,8 +113,21 @@ namespace SayedHa.Blackjack.Shared {
 
             }
             else {
-                _logger.LogLine("Dealer has blackjack, you lose");
-            }            
+                foreach (var op in game.Opponents) {
+                    foreach (var hand in op.Hands) {
+                        hand.SetHandResult(HandResult.DealerWon);
+                    }
+                    _logger.LogLine("Dealer has blackjack, you lose");
+                }
+            }
+
+            var gameResults = new List<GameResult>();
+            var allHands = new List<Hand>();
+            foreach (var op in game.Opponents) {
+                allHands.AddRange(op.Hands);
+            }
+
+            return new GameResult(game.Dealer.Hands[0], allHands);
         }
 
         private bool DoesDealerHaveBlackjack(Hand dealerHand) => (dealerHand.DealtCards[0].Number, dealerHand.DealtCards[1].Number) switch {
@@ -179,7 +197,7 @@ namespace SayedHa.Blackjack.Shared {
             switch (nextAction) {
                 case HandAction.Split: throw new ApplicationException("no splits here");
                 case HandAction.Stand:
-                    hand.Status = HandStatus.Closed;
+                    hand.MarkHandAsClosed();
                     break;
                 case HandAction.Hit:
                     hand.ReceiveCard(cards.GetCardAndMoveNext()!);
@@ -188,11 +206,12 @@ namespace SayedHa.Blackjack.Shared {
                     break;
                 case HandAction.Double:
                     hand.ReceiveCard(cards.GetCardAndMoveNext()!);
-                    hand.Status = HandStatus.Closed;
+                    hand.MarkHandAsClosed();
                     break;
                 default:
                     throw new ApplicationException($"unknown value for nextAction:'{nextAction}'");
             }
         }
     }
+
 }

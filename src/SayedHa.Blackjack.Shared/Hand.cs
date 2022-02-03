@@ -15,8 +15,8 @@ namespace SayedHa.Blackjack.Shared {
         }
 
         // TODO: Still not sure if this property is needed, let's see.
-        public HandStatus Status { get; internal set; } = HandStatus.InPlay;
-        public HandResult HandResult { get; internal set; } = HandResult.InPlay;
+        public HandStatus Status { get; protected set; } = HandStatus.InPlay;
+        public HandResult HandResult { get; protected set; } = HandResult.InPlay;
 
         private List<Card> _dealtCards = new List<Card>();
         internal List<Card> DealtCards {
@@ -126,8 +126,8 @@ namespace SayedHa.Blackjack.Shared {
     }
     public enum HandResult {
         InPlay,
-        Win,
-        Loss,
+        DealerWon,
+        OpponentWon,
         Push
     }
     public enum HandStatus {
