@@ -3,8 +3,11 @@ using System.Text;
 
 namespace SayedHa.Blackjack.Shared {
     public class Hand {
-        private ILogger _logger = new Logger();
+        private ILogger _logger = new NullLogger();
         public Hand() { }
+        public Hand(ILogger logger) {
+            _logger = logger;
+        }
         public Hand(List<Card> cards) {
             Debug.Assert(cards != null);
             if (cards != null && cards.Count > 0) {

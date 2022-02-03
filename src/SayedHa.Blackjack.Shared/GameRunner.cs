@@ -4,18 +4,19 @@ using System.Text;
 
 namespace SayedHa.Blackjack.Shared {
     public class GameRunner {
-        public GameRunner(int numDecks, int numOpponents) {
+        public GameRunner(ILogger logger, int numDecks, int numOpponents) {
             NumDecks = numDecks;
             NumOpponents = numOpponents;
+            _logger = logger;
         }
-        // TODO: need to plumb in this logger in a better way
-        private ILogger _logger = new Logger();
+
+        private ILogger _logger = new NullLogger();
         private GameFactory gameFactory = new GameFactory();
         protected int NumDecks { get; init; }
         protected int NumOpponents { get; init; }
 
         public Game CreateNewGame(int numDecks = 4, int numOpponents = 1) =>
-            gameFactory.CreateNewGame(numDecks, numOpponents);
+            gameFactory.CreateNewGame(numDecks, numOpponents, KnownValues.DefaultShuffleThresholdPercent, _logger);
 
         protected void ShuffleCardsIfNeeded(Game game) {
             Debug.Assert(game != null);
@@ -56,7 +57,7 @@ namespace SayedHa.Blackjack.Shared {
             int index = 1;
             foreach (var opponent in game.Opponents) {
                 _logger.LogLine($"dealing cards to opponent {index}");
-                var newhand = new Hand();
+                var newhand = new Hand(_logger);
                 newhand.ReceiveCard(game.Cards.GetCardAndMoveNext()!);
                 newhand.ReceiveCard(game.Cards.GetCardAndMoveNext()!);
                 opponent.Hands.Add(newhand);
@@ -66,7 +67,7 @@ namespace SayedHa.Blackjack.Shared {
 
             // deal two cards to the dealer
             _logger.LogLine("Dealing cards to dealer (second card dealt is visible to the opponents)");
-            var dealerHand = new Hand();
+            var dealerHand = new Hand(_logger);
             dealerHand.ReceiveCard(game.Cards.GetCardAndMoveNext()!);
             dealerHand.ReceiveCard(game.Cards.GetCardAndMoveNext()!);
             game.Dealer.Hands.Add(dealerHand);
@@ -163,7 +164,7 @@ namespace SayedHa.Blackjack.Shared {
             // if the nextAction is to split we need to create two hands and deal a new card to each hand
             if (nextAction == HandAction.Split) {
                 _logger.LogLine($"action = split. Hand={hand}");
-                var newHand = new Hand();
+                var newHand = new Hand(_logger);
                 newHand.ReceiveCard(hand.DealtCards[1]);
                 hand.DealtCards.RemoveAt(1);
                 participant.Hands.Add(newHand);

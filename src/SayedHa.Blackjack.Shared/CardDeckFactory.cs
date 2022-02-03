@@ -3,9 +3,11 @@ using System.Diagnostics;
 
 namespace SayedHa.Blackjack.Shared {
     public class CardDeckFactory {
-        public CardDeck GetDeckStandardDeckOfCards(int numDecks = 1, bool shuffle = true) {
+        public CardDeck GetDeckStandardDeckOfCards(int numDecks, bool shuffle, ILogger? logger=null) {
             Debug.Assert(numDecks > 0);
-
+            if (logger == null) {
+                logger = new NullLogger();
+            }
             var cardList = new List<Card>();
             for (var i = 0; i < numDecks; i++) {
                 var temp = GetStandardDeckOfCardsAsList(false);
@@ -22,7 +24,7 @@ namespace SayedHa.Blackjack.Shared {
                 cards.AddLast(card);
             }
 
-            return new CardDeck(new Logger(), cards);
+            return new CardDeck(logger, cards);
         }
         internal List<Card> GetStandardDeckOfCardsAsList(bool shuffle) {
             var cards = new List<Card>();

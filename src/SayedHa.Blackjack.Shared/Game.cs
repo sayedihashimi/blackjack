@@ -24,17 +24,20 @@ namespace SayedHa.Blackjack.Shared {
     }
 
     public class GameFactory {
-        public Game CreateNewGame(int numDecks = 4, int numOpponents = 1, int shuffleThresholdPercent = KnownValues.DefaultShuffleThresholdPercent) {
+        public Game CreateNewGame(int numDecks = 4, int numOpponents = 1, int shuffleThresholdPercent = KnownValues.DefaultShuffleThresholdPercent, ILogger? logger = null) {
+            if (logger == null) {
+                logger = new NullLogger();
+            }
             Debug.Assert(numDecks > 0);
             Debug.Assert(numOpponents > 0);
 
-            var cards = new CardDeckFactory().GetDeckStandardDeckOfCards(numDecks);
+            var cards = new CardDeckFactory().GetDeckStandardDeckOfCards(numDecks,true);
             var pf = new ParticipantFactory();
             var dealerPlayer = pf.GetDefaultDealer();
             var opponents = new List<Participant>();
 
             for (var i = 0; i < numOpponents; i++) {
-                opponents.Add(pf.GetDefaultOpponent());
+                opponents.Add(pf.GetDefaultOpponent(logger));
             }
 
             return new Game(cards, dealerPlayer, opponents);

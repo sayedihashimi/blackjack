@@ -4,25 +4,35 @@ using System.Diagnostics;
 using System.Reflection.Metadata;
 using System.Text;
 
+// usage
+// [numGamesToPlay] [pathToCsvFileToWriteResults] [enableConsoleLogger]
+
 var numGamesToPlay = 10;
 string? pathToCsvForGameResult = null;
+bool addLogger = true;
 if(args != null && args.Length > 0) {
     numGamesToPlay = int.Parse(args[0]);
     if (args.Length > 1) {
         pathToCsvForGameResult = args[1];
     }
+
+    if (args.Length > 2) {
+        addLogger = bool.Parse(args[2]);
+    }
 }
 
-Console.WriteLine($"Playing {numGamesToPlay} games");
+var logger = new Logger(addLogger);
 
+
+logger.LogLine($"Playing {numGamesToPlay} games");
 try {
-    var gameRunner = new GameRunner(6, 1);
-    Console.WriteLine("----------------------------------------------------");
+    var gameRunner = new GameRunner(logger,6, 1);
+    logger.LogLine("----------------------------------------------------");
     var gameResults = new List<GameResult>();
     var game = gameRunner.CreateNewGame();
     for (int i = 0; i < numGamesToPlay; i++) {
-        gameResults.Add(gameRunner.PlayGame(game));        
-        Console.WriteLine("----------------------------------------------------");
+        gameResults.Add(gameRunner.PlayGame(game));
+        logger.LogLine("----------------------------------------------------");
     }
 
 
@@ -30,11 +40,11 @@ try {
         await CreateCsvFileForResultsAsync(pathToCsvForGameResult, gameResults);
     }
     else {
-        Console.WriteLine("Not creating csv file because no argument was passed with the path");
+        logger.LogLine("Not creating csv file because no argument was passed with the path");
     }
 }
 catch(Exception ex) {
-    Console.WriteLine(ex.ToString());
+    logger.LogLine(ex.ToString());
 }
 
 async Task CreateCsvFileForResultsAsync(string pathToCsv,List<GameResult>results) {
