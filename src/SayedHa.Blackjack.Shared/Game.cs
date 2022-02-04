@@ -37,7 +37,7 @@ namespace SayedHa.Blackjack.Shared {
 
             var cards = new CardDeckFactory().GetDeckStandardDeckOfCards(numDecks,true);
             var pf = new ParticipantFactory();
-            var dealerPlayer = pf.CreateNewOpponent(opponentPlayStrategy, logger);
+            var dealerPlayer = pf.GetDefaultDealer();
             var opponents = new List<Participant>();
 
             for (var i = 0; i < numOpponents; i++) {
@@ -49,6 +49,12 @@ namespace SayedHa.Blackjack.Shared {
     }
     public enum OpponentPlayStrategy {
         BasicStrategy,
-        StandOn17
+        StandOn14,
+        StandOn15,
+        StandOn16,
+        // default for the dealer as well as StandOnValuePlayer
+        StandOn17,
+        StandOn18,
+        AlwaysStand
     }
 }

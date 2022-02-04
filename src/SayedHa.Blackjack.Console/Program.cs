@@ -27,20 +27,27 @@ int numDecks = 6;
 
 var strategiesToPlay = new List<OpponentPlayStrategy>() {
     OpponentPlayStrategy.BasicStrategy,
-    OpponentPlayStrategy.StandOn17
+    OpponentPlayStrategy.StandOn14,
+    OpponentPlayStrategy.StandOn16,
+    OpponentPlayStrategy.StandOn17,
+    OpponentPlayStrategy.AlwaysStand
 };
+
+strategiesToPlay = new List<OpponentPlayStrategy>() { OpponentPlayStrategy.StandOn14 };
+
+var timestamp = DateTime.Now.ToString("yyyy.MM.dd-hhmmss.ff");
 
 foreach (var strategy in strategiesToPlay) {
     logger.LogLine($"Playing {numGamesToPlay} games with strategy '{strategy}'");
-    await PlayGameWithStrategyAsync(strategy, pathToCsvForGameResult, logger);
+    await PlayGameWithStrategyAsync(strategy, pathToCsvForGameResult, timestamp, logger);
 }
 
-async Task PlayGameWithStrategyAsync(OpponentPlayStrategy opponentPlayStrategy, string? outputFolderPath, ILogger logger) {
+async Task PlayGameWithStrategyAsync(OpponentPlayStrategy opponentPlayStrategy, string? outputFolderPath, string? outputFilePrefix, ILogger logger) {
     try {
         var gameRunner = new GameRunner(logger, 6, 1);
         logger.LogLine("----------------------------------------------------");
         var gameResults = new List<GameResult>();
-        var game = gameRunner.CreateNewGame(numDecks, 1, OpponentPlayStrategy.BasicStrategy);
+        var game = gameRunner.CreateNewGame(numDecks, 1, opponentPlayStrategy);
         for (int i = 0; i < numGamesToPlay; i++) {
             gameResults.Add(gameRunner.PlayGame(game));
             logger.LogLine("----------------------------------------------------");
@@ -51,9 +58,13 @@ async Task PlayGameWithStrategyAsync(OpponentPlayStrategy opponentPlayStrategy, 
             if (!Directory.Exists(outputFolderPath)) {
                 Directory.CreateDirectory(outputFolderPath);
             }
-
-            var timestamp = DateTime.Now.ToString("yyyy.MM.dd-hh.mm.ss.ff");
-            var fullpathtofile = Path.Combine(outputFolderPath, $"{timestamp}-{opponentPlayStrategy}.csv");
+            outputFilePrefix = outputFilePrefix ?? DateTime.Now.ToString("yyyy.MM.dd-hhmmss.ff");
+            var newdirpath = Path.Combine(outputFolderPath, outputFilePrefix);
+            if (!Directory.Exists(newdirpath)) {
+                Directory.CreateDirectory(newdirpath);
+            }
+            
+            var fullpathtofile = Path.Combine(newdirpath, $"{opponentPlayStrategy}.csv");
             await CreateCsvFileForResultsAsync(fullpathtofile, gameResults);
         }
         else {
