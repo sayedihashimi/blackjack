@@ -7,9 +7,9 @@ namespace SayedHa.Blackjack.Shared.Players {
     ///  - Stand
     /// The dealer must hit if the card score is less than 17 (MinScoreToStand).
     /// </summary>
-    public class DealerPlayer : Player {
-        public DealerPlayer() : this(17) { }
-        public DealerPlayer(int minScoreToStand) {
+    public class StandOnValuePlayer : Player {
+        public StandOnValuePlayer() : this(17) { }
+        public StandOnValuePlayer(int minScoreToStand) {
             MinScoreToStand = minScoreToStand;
         }
 

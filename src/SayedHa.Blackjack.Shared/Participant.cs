@@ -33,12 +33,12 @@ namespace SayedHa.Blackjack.Shared {
 
     public class ParticipantFactory {
         public Participant GetDefaultDealer() {
-            return new Dealer(new DealerPlayer());
+            return new Dealer(new StandOnValuePlayer());
         }
 
         public Participant CreateNewOpponent(OpponentPlayStrategy strategy, ILogger logger) => strategy switch {
             OpponentPlayStrategy.BasicStrategy => new Opponent(new BasicStrategyPlayer(logger)),
-            OpponentPlayStrategy.StandOn17 => new Opponent(new DealerPlayer()),
+            OpponentPlayStrategy.StandOn17 => new Opponent(new StandOnValuePlayer()),
             _ => throw new ApplicationException($"unknown value for OpponentPlayStrategy: '{strategy}'")
         };
 
