@@ -2,6 +2,7 @@
 using SayedHa.Blackjack.Shared;
 using System.Diagnostics;
 using System.Reflection.Metadata;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 // usage
@@ -22,29 +23,46 @@ if(args != null && args.Length > 0) {
 }
 
 var logger = new Logger(addLogger);
+int numDecks = 6;
 
+var strategiesToPlay = new List<OpponentPlayStrategy>() {
+    OpponentPlayStrategy.BasicStrategy,
+    OpponentPlayStrategy.StandOn17
+};
 
-logger.LogLine($"Playing {numGamesToPlay} games");
-try {
-    var gameRunner = new GameRunner(logger,6, 1);
-    logger.LogLine("----------------------------------------------------");
-    var gameResults = new List<GameResult>();
-    var game = gameRunner.CreateNewGame();
-    for (int i = 0; i < numGamesToPlay; i++) {
-        gameResults.Add(gameRunner.PlayGame(game));
-        logger.LogLine("----------------------------------------------------");
-    }
-
-
-    if (!string.IsNullOrEmpty(pathToCsvForGameResult)) {
-        await CreateCsvFileForResultsAsync(pathToCsvForGameResult, gameResults);
-    }
-    else {
-        logger.LogLine("Not creating csv file because no argument was passed with the path");
-    }
+foreach (var strategy in strategiesToPlay) {
+    logger.LogLine($"Playing {numGamesToPlay} games with strategy '{strategy}'");
+    await PlayGameWithStrategyAsync(strategy, pathToCsvForGameResult, logger);
 }
-catch(Exception ex) {
-    logger.LogLine(ex.ToString());
+
+async Task PlayGameWithStrategyAsync(OpponentPlayStrategy opponentPlayStrategy, string? outputFolderPath, ILogger logger) {
+    try {
+        var gameRunner = new GameRunner(logger, 6, 1);
+        logger.LogLine("----------------------------------------------------");
+        var gameResults = new List<GameResult>();
+        var game = gameRunner.CreateNewGame(numDecks, 1, OpponentPlayStrategy.BasicStrategy);
+        for (int i = 0; i < numGamesToPlay; i++) {
+            gameResults.Add(gameRunner.PlayGame(game));
+            logger.LogLine("----------------------------------------------------");
+        }
+
+        if (!string.IsNullOrEmpty(outputFolderPath)) {
+            // if the folder doesn't exist create it
+            if (!Directory.Exists(outputFolderPath)) {
+                Directory.CreateDirectory(outputFolderPath);
+            }
+
+            var timestamp = DateTime.Now.ToString("yyyy.MM.dd-hh.mm.ss.ff");
+            var fullpathtofile = Path.Combine(outputFolderPath, $"{timestamp}-{opponentPlayStrategy}.csv");
+            await CreateCsvFileForResultsAsync(fullpathtofile, gameResults);
+        }
+        else {
+            logger.LogLine("Not creating csv file because no argument was passed with the path");
+        }
+    }
+    catch (Exception ex) {
+        logger.LogLine(ex.ToString());
+    }
 }
 
 async Task CreateCsvFileForResultsAsync(string pathToCsv,List<GameResult>results) {

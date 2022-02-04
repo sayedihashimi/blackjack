@@ -2,7 +2,7 @@
   "profiles": {
     "SayedHa.Blackjack.Console": {
       "commandName": "Project",
-      "commandLineArgs": "100 C:\\temp\\blackjack\\results-debug.csv true"
+      "commandLineArgs": "100 C:\\temp\\blackjack\\ true"
     }
   }
 }

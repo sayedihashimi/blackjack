@@ -15,8 +15,8 @@ namespace SayedHa.Blackjack.Shared {
         protected int NumDecks { get; init; }
         protected int NumOpponents { get; init; }
 
-        public Game CreateNewGame(int numDecks = 4, int numOpponents = 1) =>
-            gameFactory.CreateNewGame(numDecks, numOpponents, KnownValues.DefaultShuffleThresholdPercent, _logger);
+        public Game CreateNewGame(int numDecks, int numOpponents, OpponentPlayStrategy opponentPlayStrategy) =>
+            gameFactory.CreateNewGame(numDecks, numOpponents,opponentPlayStrategy, KnownValues.DefaultShuffleThresholdPercent, _logger);
 
         protected void ShuffleCardsIfNeeded(Game game) {
             Debug.Assert(game != null);

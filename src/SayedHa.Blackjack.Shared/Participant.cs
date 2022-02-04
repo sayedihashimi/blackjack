@@ -36,10 +36,11 @@ namespace SayedHa.Blackjack.Shared {
             return new Dealer(new DealerPlayer());
         }
 
-        public Participant GetDefaultOpponent(ILogger logger) {
-            // TODO: update with a better player when one is ready
-            return new Opponent(new BasicStrategyPlayer(logger));
-        }
+        public Participant CreateNewOpponent(OpponentPlayStrategy strategy, ILogger logger) => strategy switch {
+            OpponentPlayStrategy.BasicStrategy => new Opponent(new BasicStrategyPlayer(logger)),
+            OpponentPlayStrategy.StandOn17 => new Opponent(new DealerPlayer()),
+            _ => throw new ApplicationException($"unknown value for OpponentPlayStrategy: '{strategy}'")
+        };
 
     }
 }
