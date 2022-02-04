@@ -49,12 +49,16 @@ namespace SayedHa.Blackjack.Shared {
     }
     public enum OpponentPlayStrategy {
         BasicStrategy,
+        StandOn12,
+        StandOn13,
         StandOn14,
         StandOn15,
         StandOn16,
         // default for the dealer as well as StandOnValuePlayer
         StandOn17,
         StandOn18,
+        StandOn19,
+        StandOn20,
         AlwaysStand
     }
 }

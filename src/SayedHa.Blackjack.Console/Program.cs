@@ -27,13 +27,17 @@ int numDecks = 6;
 
 var strategiesToPlay = new List<OpponentPlayStrategy>() {
     OpponentPlayStrategy.BasicStrategy,
+    OpponentPlayStrategy.StandOn12,
+    OpponentPlayStrategy.StandOn13,
     OpponentPlayStrategy.StandOn14,
+    OpponentPlayStrategy.StandOn15,
     OpponentPlayStrategy.StandOn16,
     OpponentPlayStrategy.StandOn17,
+    OpponentPlayStrategy.StandOn18,
+    OpponentPlayStrategy.StandOn19,
+    OpponentPlayStrategy.StandOn20,
     OpponentPlayStrategy.AlwaysStand
 };
-
-strategiesToPlay = new List<OpponentPlayStrategy>() { OpponentPlayStrategy.StandOn14 };
 
 var timestamp = DateTime.Now.ToString("yyyy.MM.dd-hhmmss.ff");
 
