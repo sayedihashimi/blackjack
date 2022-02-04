@@ -26,4 +26,17 @@ namespace SayedHa.Blackjack.Shared.Players {
             return hand.GetScore() < MinScoreToStand ? HandAction.Hit : HandAction.Stand;
         }
     }
+
+    public class RandomPlayer : Player {
+        public override HandAction GetNextAction(Hand hand, Hand dealerHand) {
+            if (hand.Status == HandStatus.Closed) {
+                return HandAction.Stand;
+            }
+
+            var randomNum = new Random().Next(0, 10000);
+            var shouldHit = randomNum % 2 == 0 ? true : false;
+
+            return shouldHit ? HandAction.Hit : HandAction.Stand;
+        }
+    }
 }

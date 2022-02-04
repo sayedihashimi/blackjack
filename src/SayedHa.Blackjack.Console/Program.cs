@@ -36,7 +36,8 @@ var strategiesToPlay = new List<OpponentPlayStrategy>() {
     OpponentPlayStrategy.StandOn18,
     OpponentPlayStrategy.StandOn19,
     OpponentPlayStrategy.StandOn20,
-    OpponentPlayStrategy.AlwaysStand
+    OpponentPlayStrategy.AlwaysStand,
+    OpponentPlayStrategy.Random
 };
 
 var timestamp = DateTime.Now.ToString("yyyy.MM.dd-hhmmss.ff");
