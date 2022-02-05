@@ -35,7 +35,7 @@ namespace SayedHa.Blackjack.Shared {
             Debug.Assert(numDecks > 0);
             Debug.Assert(numOpponents > 0);
 
-            var cards = new CardDeckFactory().GetDeckStandardDeckOfCards(numDecks,true);
+            var cards = new CardDeckFactory().CreateCardDeck(numDecks,true);
             var pf = new ParticipantFactory();
             var dealerPlayer = pf.GetDefaultDealer();
             var opponents = new List<Participant>();

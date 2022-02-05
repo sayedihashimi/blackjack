@@ -14,7 +14,6 @@
 
         // note: these characters don't seem to be supported in the fonts used in the terminal
         public override string ToString() => $"{Number.GetFriendlyString()}{Suit.GetFriendlyString()}";
-
     }
 
     public enum CardSuit {

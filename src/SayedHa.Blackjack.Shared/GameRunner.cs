@@ -4,16 +4,12 @@ using System.Text;
 
 namespace SayedHa.Blackjack.Shared {
     public class GameRunner {
-        public GameRunner(ILogger logger, int numDecks, int numOpponents) {
-            NumDecks = numDecks;
-            NumOpponents = numOpponents;
+        public GameRunner(ILogger logger) {
             _logger = logger;
         }
 
         private ILogger _logger = new NullLogger();
         private GameFactory gameFactory = new GameFactory();
-        protected int NumDecks { get; init; }
-        protected int NumOpponents { get; init; }
 
         public Game CreateNewGame(int numDecks, int numOpponents, OpponentPlayStrategy opponentPlayStrategy) =>
             gameFactory.CreateNewGame(numDecks, numOpponents,opponentPlayStrategy, KnownValues.DefaultShuffleThresholdPercent, _logger);
@@ -30,6 +26,8 @@ namespace SayedHa.Blackjack.Shared {
             if (percentRemainingCards * 100 <= game.ShuffleThresholdPercent) {
                 _logger.LogLine("**** shuffling cards");
                 game.Cards.ShuffleCards();
+                // discard the first card after every shuffle
+                _ = game.Cards.GetCardAndMoveNext();
             }
         }
 
@@ -45,7 +43,7 @@ namespace SayedHa.Blackjack.Shared {
             // check to see if the deck needs to be shuffled or not
             ShuffleCardsIfNeeded(game);
 
-            // very first action for a new deck is to discard one card
+            // very first action for a new deck is to discard one card.
             _ = game.Cards.GetCardAndMoveNext();
 
             if (game == null || game.Cards == null) {

@@ -49,7 +49,7 @@ foreach (var strategy in strategiesToPlay) {
 
 async Task PlayGameWithStrategyAsync(OpponentPlayStrategy opponentPlayStrategy, string? outputFolderPath, string? outputFilePrefix, ILogger logger) {
     try {
-        var gameRunner = new GameRunner(logger, 6, 1);
+        var gameRunner = new GameRunner(logger);
         logger.LogLine("----------------------------------------------------");
         var gameResults = new List<GameResult>();
         var game = gameRunner.CreateNewGame(numDecks, 1, opponentPlayStrategy);

@@ -7,7 +7,7 @@ namespace SayedHa.Blackjack.Tests {
     public class Test_CardDeck {
         [Fact]
         public void Test_GetNewStandardCardDeck_ReturnsCorrectCards() {
-            var cards = new CardDeckFactory().GetDeckStandardDeckOfCards(1, true);
+            var cards = new CardDeckFactory().CreateCardDeck(1, true);
 
             var allStandardCards = GetStandardDeckOfCards();
 
@@ -19,7 +19,7 @@ namespace SayedHa.Blackjack.Tests {
 
         [Fact]
         public void Test_MoveNext_EnumeratesAllCards_For_One_Deck() {
-            var cards = new CardDeckFactory().GetDeckStandardDeckOfCards(1, true);
+            var cards = new CardDeckFactory().CreateCardDeck(1, true);
             var cardsAsList = new List<Card>();
             var nextCard = cards.GetCardAndMoveNext();
             do {
@@ -37,7 +37,7 @@ namespace SayedHa.Blackjack.Tests {
         }
         [Fact]
         public void Test_Shuffle_For_One_Deck() {
-            CardDeck cards = new CardDeckFactory().GetDeckStandardDeckOfCards(1, true);
+            CardDeck cards = new CardDeckFactory().CreateCardDeck(1, true);
             // check the first ten cards to ensure they don't shrae the same suit
             var firstSuit = cards?.GetCurrentCard()?.Suit;
             int numToTest = 10;
@@ -60,7 +60,7 @@ namespace SayedHa.Blackjack.Tests {
 
         [Fact]
         public void Test_ToString() {
-            CardDeck cards = new CardDeckFactory().GetDeckStandardDeckOfCards(1, true);
+            CardDeck cards = new CardDeckFactory().CreateCardDeck(1, true);
             var str = cards.ToString();
             Assert.NotNull(str);
             Assert.NotEmpty(str);

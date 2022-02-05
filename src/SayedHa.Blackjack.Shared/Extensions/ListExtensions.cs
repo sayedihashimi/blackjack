@@ -13,5 +13,13 @@
                 list[n] = value;
             }
         }
+
+        public static LinkedList<T> ConvertToLinkedList<T>(this List<T> cards) {
+            var result = new LinkedList<T>();
+            foreach (var item in cards) {
+                result.AddLast(item);
+            }
+            return result;
+        }
     }
 }
