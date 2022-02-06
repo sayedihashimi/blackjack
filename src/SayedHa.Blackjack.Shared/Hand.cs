@@ -18,9 +18,10 @@ using System.Text;
 namespace SayedHa.Blackjack.Shared {
     public class Hand {
         private ILogger _logger = new NullLogger();
-        public Hand() { }
-        public Hand(ILogger logger) {
-            _logger = logger;
+        public Hand(int bet, ILogger logger) {
+            Debug.Assert(bet >= 0);
+            Bet = bet;
+            _logger = logger ?? new NullLogger();
         }
         public Hand(List<Card> cards) {
             Debug.Assert(cards != null);
@@ -34,6 +35,8 @@ namespace SayedHa.Blackjack.Shared {
         // TODO: Still not sure if this property is needed, let's see.
         public HandStatus Status { get; protected set; } = HandStatus.InPlay;
         public HandResult HandResult { get; protected set; } = HandResult.InPlay;
+
+        public int Bet { get; init; }
 
         private List<Card> _dealtCards = new List<Card>();
         internal List<Card> DealtCards {

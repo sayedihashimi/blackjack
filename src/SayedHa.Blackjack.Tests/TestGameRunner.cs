@@ -29,6 +29,9 @@ namespace SayedHa.Blackjack.Tests {
             var playStrategy = OpponentPlayStrategy.BasicStrategy;
             var pf = new ParticipantFactory();
 
+            var bankroll = new Bankroll(1000);
+            var bettingStrategy = BettingStrategy.CreateNewDefaultBettingStrategy();
+
             var game = new Game(
                 new CardDeckFactory().CreateCardDeck(GetSampleDeck01(), logger),
                 pf.GetDefaultDealer(),

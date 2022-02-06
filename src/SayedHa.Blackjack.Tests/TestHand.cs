@@ -20,7 +20,7 @@ namespace SayedHa.Blackjack.Tests {
     public class TestHand {
         [Fact]
         public void Test_Score_TwoCards_NoAce_NotOver21() {
-            var hand1 = new Hand {
+            var hand1 = new Hand(5,new NullLogger()) {
                 DealtCards = new List<Card> {
                         new Card{Number=CardNumber.Nine, Suit=CardSuit.Diamond },
                         new Card{Number=CardNumber.Two, Suit=CardSuit.Heart }
@@ -28,7 +28,7 @@ namespace SayedHa.Blackjack.Tests {
             };
             Assert.Equal(11, hand1.GetScore());
 
-            var hand2 = new Hand {
+            var hand2 = new Hand(5, new NullLogger()) {
                 DealtCards = new List<Card> {
                         new Card{Number=CardNumber.Eight, Suit=CardSuit.Club },
                         new Card{Number=CardNumber.Eight, Suit=CardSuit.Spade }
@@ -36,7 +36,7 @@ namespace SayedHa.Blackjack.Tests {
             };
             Assert.Equal(16, hand2.GetScore());
 
-            var hand3 = new Hand {
+            var hand3 = new Hand(5, new NullLogger()) {
                 DealtCards = new List<Card> {
                         new Card{Number=CardNumber.King, Suit=CardSuit.Diamond },
                         new Card{Number=CardNumber.King, Suit=CardSuit.Heart }
@@ -44,7 +44,7 @@ namespace SayedHa.Blackjack.Tests {
             };
             Assert.Equal(20, hand3.GetScore());
 
-            var hand4 = new Hand {
+            var hand4 = new Hand(5, new NullLogger()) {
                 DealtCards = new List<Card> {
                         new Card{Number=CardNumber.Queen, Suit=CardSuit.Diamond },
                         new Card{Number=CardNumber.Jack, Suit=CardSuit.Heart }
@@ -55,7 +55,7 @@ namespace SayedHa.Blackjack.Tests {
 
         [Fact]
         public void Test_Score_ThreeCards_NoAce_21OrOver() {
-            var hand1 = new Hand {
+            var hand1 = new Hand(5, new NullLogger()) {
                 DealtCards = new List<Card> {
                     new Card{Number=CardNumber.Nine, Suit=CardSuit.Diamond },
                     new Card{Number=CardNumber.Two, Suit=CardSuit.Heart },
@@ -64,7 +64,7 @@ namespace SayedHa.Blackjack.Tests {
             };
             Assert.Equal(21, hand1.GetScore());
 
-            var hand2 = new Hand {
+            var hand2 = new Hand(5, new NullLogger()) {
                 DealtCards = new List<Card> {
                     new Card{Number=CardNumber.Eight, Suit=CardSuit.Club },
                     new Card{Number=CardNumber.Eight, Suit=CardSuit.Spade },
@@ -73,7 +73,7 @@ namespace SayedHa.Blackjack.Tests {
             };
             Assert.Equal(26, hand2.GetScore());
 
-            var hand3 = new Hand {
+            var hand3 = new Hand(5, new NullLogger()) {
                 DealtCards = new List<Card> {
                     new Card{Number=CardNumber.Six, Suit=CardSuit.Diamond },
                     new Card{Number=CardNumber.King, Suit=CardSuit.Heart },
@@ -82,7 +82,7 @@ namespace SayedHa.Blackjack.Tests {
             };
             Assert.Equal(21, hand3.GetScore());
 
-            var hand4 = new Hand {
+            var hand4 = new Hand(5, new NullLogger()) {
                 DealtCards = new List<Card> {
                     new Card{Number=CardNumber.Queen, Suit=CardSuit.Diamond },
                     new Card{Number=CardNumber.Jack, Suit=CardSuit.Heart },
@@ -93,7 +93,7 @@ namespace SayedHa.Blackjack.Tests {
         }
         [Fact]
         public void Test_Score_WithAce_NotOver21() {
-            var hand1 = new Hand {
+            var hand1 = new Hand(5, new NullLogger()) {
                 DealtCards = new List<Card> {
                         new Card{Number=CardNumber.Ace, Suit=CardSuit.Diamond },
                         new Card{Number=CardNumber.King, Suit=CardSuit.Heart }
@@ -101,7 +101,7 @@ namespace SayedHa.Blackjack.Tests {
             };
             Assert.Equal(21, hand1.GetScore());
 
-            var hand2 = new Hand {
+            var hand2 = new Hand(5, new NullLogger()) {
                 DealtCards = new List<Card> {
                         new Card{Number=CardNumber.Two, Suit=CardSuit.Club },
                         new Card{Number=CardNumber.Three, Suit=CardSuit.Spade },
@@ -110,7 +110,7 @@ namespace SayedHa.Blackjack.Tests {
             };
             Assert.Equal(16, hand2.GetScore());
 
-            var hand3 = new Hand {
+            var hand3 = new Hand(5, new NullLogger()) {
                 DealtCards = new List<Card> {
                         new Card{Number=CardNumber.Eight, Suit=CardSuit.Diamond },
                         new Card{Number=CardNumber.Ace, Suit=CardSuit.Heart },
@@ -119,7 +119,7 @@ namespace SayedHa.Blackjack.Tests {
             };
             Assert.Equal(21, hand3.GetScore());
 
-            var hand4 = new Hand {
+            var hand4 = new Hand(5, new NullLogger()) {
                 DealtCards = new List<Card> {
                         new Card{Number=CardNumber.Queen, Suit=CardSuit.Diamond },
                         new Card{Number=CardNumber.Ace, Suit=CardSuit.Heart },
@@ -128,7 +128,7 @@ namespace SayedHa.Blackjack.Tests {
             };
             Assert.Equal(21, hand4.GetScore());
 
-            var hand5 = new Hand {
+            var hand5 = new Hand(5, new NullLogger()) {
                 DealtCards = new List<Card> {
                         new Card{Number=CardNumber.Queen, Suit=CardSuit.Diamond },
                         new Card{Number=CardNumber.Ace, Suit=CardSuit.Heart },
@@ -137,7 +137,7 @@ namespace SayedHa.Blackjack.Tests {
             };
             Assert.Equal(14, hand5.GetScore());
 
-            var hand6 = new Hand {
+            var hand6 = new Hand(5,new NullLogger()) {
                 DealtCards = new List<Card> {
                     new Card{Number=CardNumber.Ace, Suit = CardSuit.Diamond },
                     new Card{Number=CardNumber.Ace, Suit = CardSuit.Heart },
@@ -147,7 +147,7 @@ namespace SayedHa.Blackjack.Tests {
             };
             Assert.Equal(14, hand6.GetScore());
 
-            var hand7 = new Hand {
+            var hand7 = new Hand(5,new NullLogger()) {
                 DealtCards = new List<Card> {
                     new Card{Number=CardNumber.Three, Suit = CardSuit.Diamond },
                     new Card{Number=CardNumber.Ace, Suit = CardSuit.Spade },
@@ -159,7 +159,7 @@ namespace SayedHa.Blackjack.Tests {
             };
             Assert.Equal(19, hand7.GetScore());
 
-            var hand8 = new Hand {
+            var hand8 = new Hand(5,new NullLogger()) {
                 DealtCards = new List<Card> {
                     new Card{Number=CardNumber.Three, Suit = CardSuit.Diamond },
                     new Card{Number=CardNumber.Ace, Suit = CardSuit.Spade },
@@ -174,7 +174,7 @@ namespace SayedHa.Blackjack.Tests {
 
         [Fact]
         public void Test_Score_WithAce_Over21() {
-            var hand1 = new Hand {
+            var hand1 = new Hand(5,new NullLogger()) {
                 DealtCards = new List<Card> {
                     new Card{Number=CardNumber.Ace, Suit=CardSuit.Diamond },
                     new Card{Number=CardNumber.Ace, Suit=CardSuit.Diamond },
@@ -183,7 +183,7 @@ namespace SayedHa.Blackjack.Tests {
             };
             Assert.Equal(22, hand1.GetScore());
 
-            var hand2 = new Hand {
+            var hand2 = new Hand(5,new NullLogger()) {
                 DealtCards = new List<Card> {
                     new Card{Number=CardNumber.Ten, Suit=CardSuit.Diamond },
                     new Card{Number=CardNumber.Six, Suit=CardSuit.Club },
@@ -193,7 +193,7 @@ namespace SayedHa.Blackjack.Tests {
             };
             Assert.Equal(25, hand2.GetScore());
 
-            var hand3 = new Hand {
+            var hand3 = new Hand(5,new NullLogger()) {
                 DealtCards = new List<Card> {
                     new Card{Number=CardNumber.Eight, Suit=CardSuit.Diamond },
                     new Card{Number=CardNumber.Ace, Suit=CardSuit.Heart },
@@ -205,7 +205,7 @@ namespace SayedHa.Blackjack.Tests {
             };
             Assert.Equal(22, hand3.GetScore());
 
-            var hand4 = new Hand {
+            var hand4 = new Hand(5,new NullLogger()) {
                 DealtCards = new List<Card> {
                     new Card{Number=CardNumber.Queen, Suit=CardSuit.Diamond },
                     new Card{Number=CardNumber.Ace, Suit=CardSuit.Heart },
@@ -215,7 +215,7 @@ namespace SayedHa.Blackjack.Tests {
             };
             Assert.Equal(22, hand4.GetScore());
 
-            var hand5 = new Hand {
+            var hand5 = new Hand(5,new NullLogger()) {
                 DealtCards = new List<Card> {
                     new Card{Number=CardNumber.Ace, Suit=CardSuit.Heart },
                     new Card{Number=CardNumber.Jack, Suit=CardSuit.Heart },
@@ -226,7 +226,7 @@ namespace SayedHa.Blackjack.Tests {
             };
             Assert.Equal(25, hand5.GetScore());
 
-            var hand6 = new Hand {
+            var hand6 = new Hand(5,new NullLogger()) {
                 DealtCards = new List<Card> {
                     new Card{Number=CardNumber.Ace, Suit = CardSuit.Diamond },
                     new Card{Number=CardNumber.Ace, Suit = CardSuit.Heart },

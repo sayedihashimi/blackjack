@@ -65,7 +65,7 @@ async Task PlayGameWithStrategyAsync(OpponentPlayStrategy opponentPlayStrategy, 
         var gameRunner = new GameRunner(logger);
         logger.LogLine("----------------------------------------------------");
         var gameResults = new List<GameResult>();
-        var game = gameRunner.CreateNewGame(numDecks, 1, opponentPlayStrategy);
+        var game = gameRunner.CreateNewGame(numDecks, 1, opponentPlayStrategy, true);
         for (int i = 0; i < numGamesToPlay; i++) {
             gameResults.Add(gameRunner.PlayGame(game));
             logger.LogLine("----------------------------------------------------");

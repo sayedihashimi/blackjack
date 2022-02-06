@@ -25,8 +25,19 @@ namespace SayedHa.Blackjack.Shared {
         private ILogger _logger = new NullLogger();
         private GameFactory gameFactory = new GameFactory();
 
-        public Game CreateNewGame(int numDecks, int numOpponents, OpponentPlayStrategy opponentPlayStrategy) =>
-            gameFactory.CreateNewGame(numDecks, numOpponents,opponentPlayStrategy, KnownValues.DefaultShuffleThresholdPercent, _logger);
+        public Game CreateNewGame(int numDecks, int numOpponents, OpponentPlayStrategy opponentPlayStrategy, bool discardFirstCard) {
+            var game = gameFactory.CreateNewGame(numDecks, numOpponents, opponentPlayStrategy, KnownValues.DefaultShuffleThresholdPercent, _logger);
+
+            var bankroll = Bankroll.CreateNewDefaultBankroll();
+            var bettingStrategy = BettingStrategy.CreateNewDefaultBettingStrategy();
+
+            if (discardFirstCard) {
+                // very first action for a new deck is to discard one card.
+                _ = game.Cards.GetCardAndMoveNext();
+            }
+
+            return game;
+        }
 
         protected void ShuffleCardsIfNeeded(Game game) {
             Debug.Assert(game != null);
@@ -57,6 +68,7 @@ namespace SayedHa.Blackjack.Shared {
             // check to see if the deck needs to be shuffled or not
             ShuffleCardsIfNeeded(game);
 
+            // TODO: Move this somewhere else, it's being called too much
             // very first action for a new deck is to discard one card.
             _ = game.Cards.GetCardAndMoveNext();
 
@@ -64,12 +76,15 @@ namespace SayedHa.Blackjack.Shared {
                 throw new ApplicationException();
             }
 
+            // TODO: move this
+            int betAmount = 5;
+
             // deal two cards to each opponent
             // TODO: move index to participant, maybe make a name property or something
             int index = 1;
             foreach (var opponent in game.Opponents) {
                 _logger.LogLine($"dealing cards to opponent {index}");
-                var newhand = new Hand(_logger);
+                var newhand = new Hand(betAmount, _logger);
                 newhand.ReceiveCard(game.Cards.GetCardAndMoveNext()!);
                 newhand.ReceiveCard(game.Cards.GetCardAndMoveNext()!);
                 opponent.Hands.Add(newhand);
@@ -79,7 +94,7 @@ namespace SayedHa.Blackjack.Shared {
 
             // deal two cards to the dealer
             _logger.LogLine("Dealing cards to dealer (second card dealt is visible to the opponents)");
-            var dealerHand = new Hand(_logger);
+            var dealerHand = new Hand(betAmount,_logger);
             dealerHand.ReceiveCard(game.Cards.GetCardAndMoveNext()!);
             dealerHand.ReceiveCard(game.Cards.GetCardAndMoveNext()!);
             game.Dealer.Hands.Add(dealerHand);
@@ -176,7 +191,10 @@ namespace SayedHa.Blackjack.Shared {
             // if the nextAction is to split we need to create two hands and deal a new card to each hand
             if (nextAction == HandAction.Split) {
                 _logger.LogLine($"action = split. Hand={hand}");
-                var newHand = new Hand(_logger);
+
+                // TODO: Update
+                int betAmount = 5;
+                var newHand = new Hand(betAmount, _logger);
                 newHand.ReceiveCard(hand.DealtCards[1]);
                 hand.DealtCards.RemoveAt(1);
                 participant.Hands.Add(newHand);

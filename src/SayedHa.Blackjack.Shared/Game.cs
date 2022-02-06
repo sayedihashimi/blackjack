@@ -54,6 +54,10 @@ namespace SayedHa.Blackjack.Shared {
             var dealerPlayer = pf.GetDefaultDealer();
             var opponents = new List<Participant>();
 
+            // TODO: Get from somewhere else
+            var bankRoll = new Bankroll(0);
+            var bettingStrategy = BettingStrategy.CreateNewDefaultBettingStrategy();
+
             for (var i = 0; i < numOpponents; i++) {
                 opponents.Add(pf.CreateNewOpponent(opponentPlayStrategy, logger));
             }
