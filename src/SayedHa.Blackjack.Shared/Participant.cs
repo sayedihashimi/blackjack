@@ -17,17 +17,15 @@ using System.Diagnostics;
 
 namespace SayedHa.Blackjack.Shared {
     public class Participant {
-        public Participant(ParticipantRole role, Player player,Bankroll bankroll, BettingStrategy bettingStrategy){
+        public Participant(ParticipantRole role, Player player,Bankroll bankroll){
             Role = role;
             Player = player;
 
             Bankroll = bankroll;
-            BettingStrategy = bettingStrategy;
         }
         public ParticipantRole Role { get; init; }
 
         public Bankroll Bankroll { get; protected init; }
-        public BettingStrategy BettingStrategy { get; protected init; }
 
         // needs to be a list because of splits
         public List<Hand> Hands { get; set; } = new List<Hand>();
@@ -39,13 +37,13 @@ namespace SayedHa.Blackjack.Shared {
     }
 
     public class Dealer:Participant {
-        public Dealer(Player player, Bankroll bankroll, BettingStrategy bettingStrategy) :
-            base(ParticipantRole.Dealer, player, bankroll, bettingStrategy) {
+        public Dealer(Player player, Bankroll bankroll) :
+            base(ParticipantRole.Dealer, player, bankroll) {
         }
     }
     public class Opponent : Participant {
-        public Opponent(Player player, Bankroll bankroll, BettingStrategy bettingStrategy) : 
-            base(ParticipantRole.Player, player,bankroll,bettingStrategy) {
+        public Opponent(Player player, Bankroll bankroll) : 
+            base(ParticipantRole.Player, player,bankroll) {
         }
     }
 

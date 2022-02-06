@@ -26,17 +26,12 @@ namespace SayedHa.Blackjack.Tests {
         [Fact]
         public void Test_PlayGame_01() {
             var logger = new Logger();
-            var playStrategy = OpponentPlayStrategy.BasicStrategy;
             var pf = new ParticipantFactory();
 
-            var bankroll = new Bankroll(1000);
-            var bettingStrategy = BettingStrategy.CreateNewDefaultBettingStrategy();
+            var bankroll = Bankroll.CreateNewDefaultBankroll();
 
-            var game = new Game(
-                new CardDeckFactory().CreateCardDeck(GetSampleDeck01(), logger),
-                pf.GetDefaultDealer(),
-                new List<Participant> { pf.CreateNewOpponent(playStrategy, logger) },
-                20);
+            var gf = new GameFactory();
+            var game = gf.CreateNewGame(new CardDeckFactory().CreateCardDeck(GetSampleDeck01(), logger), 1, pf, pf.OpponentPlayStrategy);
 
             var gameRunner = new GameRunner(logger);
             var result = gameRunner.PlayGame(game);

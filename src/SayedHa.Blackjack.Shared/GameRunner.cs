@@ -25,11 +25,8 @@ namespace SayedHa.Blackjack.Shared {
         private ILogger _logger = new NullLogger();
         private GameFactory gameFactory = new GameFactory();
 
-        public Game CreateNewGame(int numDecks, int numOpponents, OpponentPlayStrategy opponentPlayStrategy, bool discardFirstCard) {
-            var game = gameFactory.CreateNewGame(numDecks, numOpponents, opponentPlayStrategy, KnownValues.DefaultShuffleThresholdPercent, _logger);
-
-            var bankroll = Bankroll.CreateNewDefaultBankroll();
-            var bettingStrategy = BettingStrategy.CreateNewDefaultBettingStrategy();
+        public Game CreateNewGame(int numDecks, int numOpponents, ParticipantFactory participantFactory, bool discardFirstCard) {
+            var game = gameFactory.CreateNewGame(numDecks, numOpponents, participantFactory, KnownValues.DefaultShuffleThresholdPercent, _logger);
 
             if (discardFirstCard) {
                 // very first action for a new deck is to discard one card.

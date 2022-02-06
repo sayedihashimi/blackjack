@@ -18,7 +18,7 @@ using System.Diagnostics;
 
 namespace SayedHa.Blackjack.Shared {
     public class Game {
-        public Game(CardDeck cards, Participant dealer, List<Participant> opponents, int shuffleThresholdPercent=KnownValues.DefaultShuffleThresholdPercent) {
+        public Game(CardDeck cards, Participant dealer, List<Participant> opponents, int shuffleThresholdPercent = KnownValues.DefaultShuffleThresholdPercent) {
             Cards = cards;
             Dealer = dealer;
             Opponents = opponents;
@@ -38,9 +38,18 @@ namespace SayedHa.Blackjack.Shared {
     }
 
     public class GameFactory {
+
+        public Game CreateNewGame(int numDecks,
+                int numOpponents,
+                ParticipantFactory participantFactory,
+                int shuffleThresholdPercent = KnownValues.DefaultShuffleThresholdPercent,
+                ILogger? logger = null) {
+            return CreateNewGame(numDecks, numOpponents, participantFactory, participantFactory.OpponentPlayStrategy);
+        }
         public Game CreateNewGame(
                 int numDecks,
                 int numOpponents,
+                ParticipantFactory participantFactory,
                 OpponentPlayStrategy opponentPlayStrategy,
                 int shuffleThresholdPercent = KnownValues.DefaultShuffleThresholdPercent,
                 ILogger? logger = null) {
@@ -49,20 +58,46 @@ namespace SayedHa.Blackjack.Shared {
             Debug.Assert(numDecks > 0);
             Debug.Assert(numOpponents > 0);
 
-            var cards = new CardDeckFactory().CreateCardDeck(numDecks,true);
-            var pf = new ParticipantFactory();
-            var dealerPlayer = pf.GetDefaultDealer();
+            var cards = new CardDeckFactory().CreateCardDeck(numDecks, true);
+            var dealerPlayer = participantFactory.GetDefaultDealer();
             var opponents = new List<Participant>();
 
             // TODO: Get from somewhere else
-            var bankRoll = new Bankroll(0);
-            var bettingStrategy = BettingStrategy.CreateNewDefaultBettingStrategy();
+            var bankRoll = new Bankroll(0, participantFactory.Bankroll.BettingStrategy);
+
 
             for (var i = 0; i < numOpponents; i++) {
-                opponents.Add(pf.CreateNewOpponent(opponentPlayStrategy, logger));
+                opponents.Add(participantFactory.CreateNewOpponent(opponentPlayStrategy, logger));
             }
 
             return new Game(cards, dealerPlayer, opponents);
+        }
+        public Game CreateNewGame(
+                CardDeck cards,
+                int numOpponents,
+                ParticipantFactory participantFactory,
+                OpponentPlayStrategy opponentPlayStrategy,
+                int shuffleThresholdPercent = KnownValues.DefaultShuffleThresholdPercent,
+                ILogger? logger = null) {
+
+            logger = logger ?? new NullLogger();
+            Debug.Assert(cards != null);
+            Debug.Assert(numOpponents > 0);
+
+            var dealerPlayer = participantFactory.GetDefaultDealer();
+            var opponents = new List<Participant>();
+
+            // TODO: Get from somewhere else
+            var bankRoll = new Bankroll(0, participantFactory.Bankroll.BettingStrategy);
+
+
+            for (var i = 0; i < numOpponents; i++) {
+                opponents.Add(participantFactory.CreateNewOpponent(opponentPlayStrategy, logger));
+            }
+
+            return new Game(cards, dealerPlayer, opponents);
+
+            throw new NotImplementedException();
         }
     }
     public enum OpponentPlayStrategy {
