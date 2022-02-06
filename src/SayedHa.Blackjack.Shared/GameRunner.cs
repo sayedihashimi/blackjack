@@ -137,8 +137,10 @@ namespace SayedHa.Blackjack.Shared {
                         }
                         else if (handScore > dealerScore || dealerScore > 21) {
                             hand.SetHandResult(HandResult.OpponentWon);
+                            float betMultiplier = 1;
+                            betMultiplier = handScore == 21 ? 3 / 2 : 1;
                             opponent.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet);
-                            game.Dealer.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet * -1);
+                            game.Dealer.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet * betMultiplier);
                             sb.Append("Win ");
                         }
                         else {
@@ -172,7 +174,7 @@ namespace SayedHa.Blackjack.Shared {
             return new GameResult(game.Dealer.Hands[0], allHands);
         }
 
-        private bool DoesDealerHaveBlackjack(Hand dealerHand) => (dealerHand.DealtCards[0].Number, dealerHand.DealtCards[1].Number) switch {
+        private bool DoesHandHaveBlackjack(Hand dealerHand) => (dealerHand.DealtCards[0].Number, dealerHand.DealtCards[1].Number) switch {
             (CardNumber.Ace, CardNumber.Ten) => true,
             (CardNumber.Ace, CardNumber.Jack) => true,
             (CardNumber.Ace, CardNumber.Queen) => true,
@@ -181,6 +183,18 @@ namespace SayedHa.Blackjack.Shared {
             (CardNumber.Jack, CardNumber.Ace) => true,
             (CardNumber.Queen, CardNumber.Ace) => true,
             (CardNumber.King, CardNumber.Ace) => true,
+            _ => false
+        };
+        /// <summary>
+        /// For the dealer to have blackjack the visible card must be an ace
+        /// </summary>
+        /// <param name="dealerHand"></param>
+        /// <returns></returns>
+        private bool DoesDealerHaveBlackjack(DealerHand dealerHand) => (dealerHand.DealersVisibleCard.Number, dealerHand.DealersHiddenCard.Number) switch {
+            (CardNumber.Ace, CardNumber.Ten) => true,
+            (CardNumber.Ace, CardNumber.Jack) => true,
+            (CardNumber.Ace, CardNumber.Queen) => true,
+            (CardNumber.Ace, CardNumber.King) => true,
             _ => false
         };
 

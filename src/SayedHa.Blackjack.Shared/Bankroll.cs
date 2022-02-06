@@ -19,14 +19,14 @@ namespace SayedHa.Blackjack.Shared {
             InitialBankroll = initialBankroll;
             DollarsRemaining = InitialBankroll;
         }
-        public int DollarsRemaining { get; protected set; }
-        public int InitialBankroll { get; protected init; }
+        public float DollarsRemaining { get; protected set; }
+        public float InitialBankroll { get; protected init; }
         public static Bankroll CreateNewDefaultBankroll() {
             return new Bankroll(1000);
         }
-        public List<int> Transactions { get; protected set; }=new List<int>();
+        public List<float> Transactions { get; protected set; }=new List<float>();
 
-        public int AddToDollarsRemaining(int amount) {
+        public float AddToDollarsRemaining(float amount) {
             Transactions.Add(amount);
             DollarsRemaining += amount;
             return DollarsRemaining;

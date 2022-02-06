@@ -22,18 +22,15 @@ namespace SayedHa.Blackjack.Shared {
         }
 
         public Card? DealersVisibleCard {
-            get {
-                if (DealtCards != null && DealtCards.Count >= 2) {
-                    return DealtCards[1];
-                }
-
-                return null;
-            }
+            get => DealtCards != null && DealtCards.Count >= 2 ? DealtCards[1] : null;
+        }
+        public Card? DealersHiddenCard {
+            get => DealtCards != null && DealtCards.Count >= 1 ? DealtCards[0] : null;
         }
     }
     public class Hand {
         private ILogger _logger = new NullLogger();
-        public Hand(int bet, ILogger logger) {
+        public Hand(float bet, ILogger logger) {
             Debug.Assert(bet >= 0);
             Bet = bet;
             _logger = logger ?? new NullLogger();
@@ -51,7 +48,7 @@ namespace SayedHa.Blackjack.Shared {
         public HandStatus Status { get; protected set; } = HandStatus.InPlay;
         public HandResult HandResult { get; protected set; } = HandResult.InPlay;
 
-        public int Bet { get; init; }
+        public float Bet { get; init; }
 
         private List<Card> _dealtCards = new List<Card>();
         internal List<Card> DealtCards {
