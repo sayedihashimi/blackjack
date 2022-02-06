@@ -24,5 +24,13 @@ namespace SayedHa.Blackjack.Shared {
         public static Bankroll CreateNewDefaultBankroll() {
             return new Bankroll(1000);
         }
+        public List<int> Transactions { get; protected set; }=new List<int>();
+
+        public int AddToDollarsRemaining(int amount) {
+            Transactions.Add(amount);
+            DollarsRemaining += amount;
+            return DollarsRemaining;
+        }
+
     }
 }

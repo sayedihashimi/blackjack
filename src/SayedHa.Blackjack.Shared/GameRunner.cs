@@ -14,6 +14,7 @@
 // along with SayedHa.Blackjack.  If not, see <https://www.gnu.org/licenses/>.
 using System.Diagnostics;
 using System.Reflection.Metadata;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace SayedHa.Blackjack.Shared {
@@ -74,7 +75,7 @@ namespace SayedHa.Blackjack.Shared {
             }
 
             // TODO: move this
-            int betAmount = 5;
+            // int betAmount = 5;
 
             // deal two cards to each opponent
             // TODO: move index to participant, maybe make a name property or something
@@ -82,12 +83,12 @@ namespace SayedHa.Blackjack.Shared {
             foreach (var opponent in game.Opponents) {
                 _logger.LogLine($"dealing cards to opponent {index}");
 
-                
+                int betAmount = opponent.BettingStrategy.GetNextBetAmount();
                 var newhand = new Hand(betAmount, _logger);
                 newhand.ReceiveCard(game.Cards.GetCardAndMoveNext()!);
                 newhand.ReceiveCard(game.Cards.GetCardAndMoveNext()!);
                 opponent.Hands.Add(newhand);
-                // TODO: at some point we need to cover the case when game.Cards runs out of cards and needs to be shuffled again.
+
                 index++;
             }
 
@@ -97,6 +98,11 @@ namespace SayedHa.Blackjack.Shared {
             dealerHand.ReceiveCard(game.Cards.GetCardAndMoveNext()!);
             dealerHand.ReceiveCard(game.Cards.GetCardAndMoveNext()!);
             game.Dealer.Hands.Add(dealerHand);
+
+            // TODO: Change how the flow works should be more like:
+            //  1) Does dealer have blackjack? => gane over
+            //  2) Does player have blackjack? => 3:2 payout to that hand
+            //  3) Regular play
 
             if (!DoesDealerHaveBlackjack(dealerHand)) {
                 // play each opponent now
@@ -120,18 +126,25 @@ namespace SayedHa.Blackjack.Shared {
                         var handScore = hand.GetScore();
                         if (handScore > 21) {
                             hand.SetHandResult(HandResult.DealerWon);
+                            opponent.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet * -1);
+                            game.Dealer.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet);
                             sb.Append("Busted ");
                         }
                         else if (handScore == dealerScore) {
                             hand.SetHandResult(HandResult.Push);
+                            // no change to any bankroll on a push
                             sb.Append("Push ");
                         }
                         else if (handScore > dealerScore || dealerScore > 21) {
                             hand.SetHandResult(HandResult.OpponentWon);
+                            opponent.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet);
+                            game.Dealer.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet * -1);
                             sb.Append("Win ");
                         }
                         else {
                             hand.SetHandResult(HandResult.DealerWon);
+                            opponent.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet * -1);
+                            game.Dealer.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet);
                             sb.Append("Lose ");
                         }
                     }
@@ -143,6 +156,8 @@ namespace SayedHa.Blackjack.Shared {
                 foreach (var op in game.Opponents) {
                     foreach (var hand in op.Hands) {
                         hand.SetHandResult(HandResult.DealerWon);
+                        op.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet * -1);
+                        game.Dealer.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet);
                     }
                     _logger.LogLine("Dealer has blackjack, you lose");
                 }

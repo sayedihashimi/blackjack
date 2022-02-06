@@ -80,6 +80,25 @@ namespace SayedHa.Blackjack.Tests {
             Assert.NotEmpty(str);
             Console.WriteLine(str);
         }
+        [Fact]
+        public void Test_GetRemainingCardsAsList() {
+            CardDeck deck = new CardDeckFactory().CreateCardDeck(1, false);
+            // deal a few cards
+            int cardsToDeal = 10;
+            for (var i = 0; i < cardsToDeal; i++) {
+                deck.GetCardAndMoveNext();
+            }
+
+            var remainingCards = deck.GetRemainingCardsAsList();
+            Assert.NotNull(remainingCards);
+            Assert.Equal(52-cardsToDeal, remainingCards.Count);
+            Assert.Equal(52, remainingCards.Count + deck.DiscardedCards.Count);
+
+            // make sure no card in DiscardedCards is in remainingcards
+            foreach (var card in deck.DiscardedCards) {
+                Assert.DoesNotContain<Card>(card, remainingCards);
+            }
+        }
 
         // helper methods
         internal static List<Card> GetStandardDeckOfCards() {

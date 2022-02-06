@@ -22,7 +22,7 @@ namespace SayedHa.Blackjack.Shared {
         }
         public Bankroll Bankroll { get; protected set; }
 
-        public abstract int GetNextBetAmount(Hand hand);
+        public abstract int GetNextBetAmount();
 
         public static BettingStrategy CreateNewDefaultBettingStrategy() {
             return CreateNewDefaultBettingStrategy(Bankroll.CreateNewDefaultBankroll());
@@ -38,9 +38,7 @@ namespace SayedHa.Blackjack.Shared {
             BetAmount = betAmount;
         }
         public int BetAmount { get; protected set; }
-        public override int GetNextBetAmount(Hand hand) {
-            Debug.Assert(hand != null);
-
+        public override int GetNextBetAmount() {
             // TODO: improve this
             return Bankroll.DollarsRemaining > 5 ? 5 : 0;
         }

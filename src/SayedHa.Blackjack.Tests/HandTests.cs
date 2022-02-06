@@ -17,7 +17,7 @@ using System.Collections.Generic;
 using Xunit;
 
 namespace SayedHa.Blackjack.Tests {
-    public class TestHand {
+    public class HandTests {
         [Fact]
         public void Test_Score_TwoCards_NoAce_NotOver21() {
             var hand1 = new Hand(5,new NullLogger()) {

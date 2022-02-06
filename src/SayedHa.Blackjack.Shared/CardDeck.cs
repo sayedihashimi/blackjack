@@ -22,6 +22,18 @@ namespace SayedHa.Blackjack.Shared {
         internal LinkedListNode<Card>? CurrentCard { get; set; }
         public List<Card> DiscardedCards { get; internal set; } = new List<Card>();
 
+        public List<Card> GetRemainingCardsAsList() {
+            var remainingCards = new List<Card> ();
+
+            var currentCard = CurrentCard;
+            while (currentCard != null) {
+                remainingCards.Add(currentCard.Value);
+                currentCard = currentCard.Next;
+            }
+
+            return remainingCards;
+        }
+
         public CardDeck(ILogger logger,LinkedList<Card>? cards) {
             _logger = logger;
             Cards = cards;

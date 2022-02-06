@@ -21,7 +21,7 @@ using System.Threading.Tasks;
 using Xunit;
 
 namespace SayedHa.Blackjack.Tests {
-    public class TestGameRunner {
+    public class GameRunnerTests {
         
         [Fact]
         public void Test_PlayGame_01() {
