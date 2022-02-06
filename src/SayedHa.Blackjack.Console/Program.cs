@@ -66,9 +66,8 @@ async Task PlayGameWithStrategyAsync(OpponentPlayStrategy opponentPlayStrategy, 
         logger.LogLine("----------------------------------------------------");
         var gameResults = new List<GameResult>();
 
-        var bankroll = Bankroll.CreateNewDefaultBankroll();
-        
-        var pf = new ParticipantFactory(bankroll, opponentPlayStrategy);
+        var bettingStrategy = BettingStrategy.CreateNewDefaultBettingStrategy();
+        var pf = new ParticipantFactory(bettingStrategy, opponentPlayStrategy);
 
         var game = gameRunner.CreateNewGame(numDecks, 1, pf, true);
         for (int i = 0; i < numGamesToPlay; i++) {

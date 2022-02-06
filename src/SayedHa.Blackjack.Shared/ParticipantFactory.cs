@@ -19,36 +19,36 @@ namespace SayedHa.Blackjack.Shared {
     public class ParticipantFactory {
 
         public ParticipantFactory():
-            this(Bankroll.CreateNewDefaultBankroll(), 
+            this(Shared.BettingStrategy.CreateNewDefaultBettingStrategy(), 
             OpponentPlayStrategy.BasicStrategy) {
 
         }
-        public ParticipantFactory(Bankroll bankroll, OpponentPlayStrategy opponentPlayStrategy) {
-            Bankroll = bankroll;
+        public ParticipantFactory(BettingStrategy bettingStrategy, OpponentPlayStrategy opponentPlayStrategy) {
+            BettingStrategy = bettingStrategy;
             OpponentPlayStrategy = opponentPlayStrategy;
         }
 
         public Participant GetDefaultDealer() {
-            return new Dealer(new StandOnValuePlayer(17, ParticipantRole.Dealer), Bankroll);
+            return new Dealer(new StandOnValuePlayer(17, ParticipantRole.Dealer), BettingStrategy.CreateNewDefaultBettingStrategy());
         }
 
-        public Bankroll Bankroll { get; protected init; }
+        public BettingStrategy BettingStrategy { get; protected init; }
         public OpponentPlayStrategy OpponentPlayStrategy { get; protected init; }
-
+        
 
         public Participant CreateNewOpponent(OpponentPlayStrategy strategy, ILogger logger) => strategy switch {
-            OpponentPlayStrategy.BasicStrategy => new Opponent(new BasicStrategyPlayer(logger), Bankroll),
-            OpponentPlayStrategy.StandOn12 => new Opponent(new StandOnValuePlayer(12, ParticipantRole.Player), Bankroll),
-            OpponentPlayStrategy.StandOn13 => new Opponent(new StandOnValuePlayer(13, ParticipantRole.Player), Bankroll),
-            OpponentPlayStrategy.StandOn14 => new Opponent(new StandOnValuePlayer(14, ParticipantRole.Player), Bankroll),
-            OpponentPlayStrategy.StandOn15 => new Opponent(new StandOnValuePlayer(15, ParticipantRole.Player), Bankroll),
-            OpponentPlayStrategy.StandOn16 => new Opponent(new StandOnValuePlayer(16, ParticipantRole.Player), Bankroll),
-            OpponentPlayStrategy.StandOn17 => new Opponent(new StandOnValuePlayer(17, ParticipantRole.Player), Bankroll),
-            OpponentPlayStrategy.StandOn18 => new Opponent(new StandOnValuePlayer(18, ParticipantRole.Player), Bankroll),
-            OpponentPlayStrategy.StandOn19 => new Opponent(new StandOnValuePlayer(19, ParticipantRole.Player), Bankroll),
-            OpponentPlayStrategy.StandOn20 => new Opponent(new StandOnValuePlayer(20, ParticipantRole.Player), Bankroll),
-            OpponentPlayStrategy.AlwaysStand => new Opponent(new StandOnValuePlayer(2, ParticipantRole.Player), Bankroll),
-            OpponentPlayStrategy.Random => new Opponent(new RandomPlayer(), Bankroll),
+            OpponentPlayStrategy.BasicStrategy => new Opponent(new BasicStrategyPlayer(logger), BettingStrategy),
+            OpponentPlayStrategy.StandOn12 => new Opponent(new StandOnValuePlayer(12, ParticipantRole.Player), BettingStrategy),
+            OpponentPlayStrategy.StandOn13 => new Opponent(new StandOnValuePlayer(13, ParticipantRole.Player), BettingStrategy),
+            OpponentPlayStrategy.StandOn14 => new Opponent(new StandOnValuePlayer(14, ParticipantRole.Player), BettingStrategy),
+            OpponentPlayStrategy.StandOn15 => new Opponent(new StandOnValuePlayer(15, ParticipantRole.Player), BettingStrategy),
+            OpponentPlayStrategy.StandOn16 => new Opponent(new StandOnValuePlayer(16, ParticipantRole.Player), BettingStrategy),
+            OpponentPlayStrategy.StandOn17 => new Opponent(new StandOnValuePlayer(17, ParticipantRole.Player), BettingStrategy),
+            OpponentPlayStrategy.StandOn18 => new Opponent(new StandOnValuePlayer(18, ParticipantRole.Player), BettingStrategy),
+            OpponentPlayStrategy.StandOn19 => new Opponent(new StandOnValuePlayer(19, ParticipantRole.Player), BettingStrategy),
+            OpponentPlayStrategy.StandOn20 => new Opponent(new StandOnValuePlayer(20, ParticipantRole.Player), BettingStrategy),
+            OpponentPlayStrategy.AlwaysStand => new Opponent(new StandOnValuePlayer(2, ParticipantRole.Player), BettingStrategy),
+            OpponentPlayStrategy.Random => new Opponent(new RandomPlayer(), BettingStrategy),
             _ => throw new ApplicationException($"unknown value for OpponentPlayStrategy: '{strategy}'")
         };
 

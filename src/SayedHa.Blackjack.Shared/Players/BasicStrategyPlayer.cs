@@ -28,7 +28,7 @@ namespace SayedHa.Blackjack.Shared.Players {
             _logger = logger;
         }
         private ILogger _logger = new NullLogger();
-        public override HandAction GetNextAction(Hand hand, Hand dealerHand) {
+        public override HandAction GetNextAction(Hand hand, DealerHand dealerHand) {
             // if only two cards, first check to see if the action should be split
             if(hand.DealtCards.Count == 2) {
                 if (ShouldSplitWith(hand.DealtCards[0].Number, hand.DealtCards[1].Number, dealerHand.DealersVisibleCard!.Number)) {

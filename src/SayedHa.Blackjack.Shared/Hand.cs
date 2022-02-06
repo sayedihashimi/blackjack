@@ -16,6 +16,21 @@ using System.Diagnostics;
 using System.Text;
 
 namespace SayedHa.Blackjack.Shared {
+    public class DealerHand : Hand {
+        public DealerHand(ILogger logger) : base(0, logger) {
+
+        }
+
+        public Card? DealersVisibleCard {
+            get {
+                if (DealtCards != null && DealtCards.Count >= 2) {
+                    return DealtCards[1];
+                }
+
+                return null;
+            }
+        }
+    }
     public class Hand {
         private ILogger _logger = new NullLogger();
         public Hand(int bet, ILogger logger) {
@@ -49,16 +64,6 @@ namespace SayedHa.Blackjack.Shared {
             }
         }
         protected int _scoreCached;
-
-        public Card? DealersVisibleCard {
-            get {
-                if (_dealtCards != null && _dealtCards.Count >= 2) {
-                    return _dealtCards[1];
-                }
-
-                return null;
-            }
-        }
 
         public void ReceiveCard(Card card) {
             Debug.Assert(card != null);

@@ -81,6 +81,8 @@ namespace SayedHa.Blackjack.Shared {
             int index = 1;
             foreach (var opponent in game.Opponents) {
                 _logger.LogLine($"dealing cards to opponent {index}");
+
+                
                 var newhand = new Hand(betAmount, _logger);
                 newhand.ReceiveCard(game.Cards.GetCardAndMoveNext()!);
                 newhand.ReceiveCard(game.Cards.GetCardAndMoveNext()!);
@@ -91,7 +93,7 @@ namespace SayedHa.Blackjack.Shared {
 
             // deal two cards to the dealer
             _logger.LogLine("Dealing cards to dealer (second card dealt is visible to the opponents)");
-            var dealerHand = new Hand(betAmount,_logger);
+            var dealerHand = new DealerHand(_logger);
             dealerHand.ReceiveCard(game.Cards.GetCardAndMoveNext()!);
             dealerHand.ReceiveCard(game.Cards.GetCardAndMoveNext()!);
             game.Dealer.Hands.Add(dealerHand);
@@ -174,11 +176,11 @@ namespace SayedHa.Blackjack.Shared {
             // we need to play the hand for the opponent now
             // if a split occurs, we need to create a new hand and play each hand seperately
             _logger.LogLine($"playing for '{participant.Role}'");
-            PlayHand(participant.Hands[0], dealer.Hands[0], participant, cards);
+            PlayHand(participant.Hands[0], dealer.Hands[0] as DealerHand, participant, cards);
         }
 
         // returns a list because a hand can be split
-        protected List<Hand> PlayHand(Hand hand, Hand dealerHand, Participant participant, CardDeck cards) {
+        protected List<Hand> PlayHand(Hand hand, DealerHand dealerHand, Participant participant, CardDeck cards) {
             Debug.Assert(hand != null);
             Debug.Assert(participant != null);
             Debug.Assert(cards != null);
@@ -189,9 +191,7 @@ namespace SayedHa.Blackjack.Shared {
             if (nextAction == HandAction.Split) {
                 _logger.LogLine($"action = split. Hand={hand}");
 
-                // TODO: Update
-                int betAmount = 5;
-                var newHand = new Hand(betAmount, _logger);
+                var newHand = new Hand(hand.Bet, _logger);
                 newHand.ReceiveCard(hand.DealtCards[1]);
                 hand.DealtCards.RemoveAt(1);
                 participant.Hands.Add(newHand);
@@ -217,7 +217,7 @@ namespace SayedHa.Blackjack.Shared {
 
             return participant.Hands;
         }
-        protected void PlayNextAction(Hand hand, Hand dealerHand, Participant participant, CardDeck cards) {
+        protected void PlayNextAction(Hand hand, DealerHand dealerHand, Participant participant, CardDeck cards) {
             // next action at this point shouldn't be split.
             // splits should have already been taken care of at this point
             var nextAction = participant.Player.GetNextAction(hand, dealerHand);

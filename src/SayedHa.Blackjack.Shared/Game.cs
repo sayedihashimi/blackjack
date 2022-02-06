@@ -63,7 +63,7 @@ namespace SayedHa.Blackjack.Shared {
             var opponents = new List<Participant>();
 
             // TODO: Get from somewhere else
-            var bankRoll = new Bankroll(0, participantFactory.Bankroll.BettingStrategy);
+            var bankRoll = new Bankroll(0);
 
 
             for (var i = 0; i < numOpponents; i++) {
@@ -88,8 +88,8 @@ namespace SayedHa.Blackjack.Shared {
             var opponents = new List<Participant>();
 
             // TODO: Get from somewhere else
-            var bankRoll = new Bankroll(0, participantFactory.Bankroll.BettingStrategy);
 
+            var bettingStrategy = BettingStrategy.CreateNewDefaultBettingStrategy(Bankroll.CreateNewDefaultBankroll());
 
             for (var i = 0; i < numOpponents; i++) {
                 opponents.Add(participantFactory.CreateNewOpponent(opponentPlayStrategy, logger));

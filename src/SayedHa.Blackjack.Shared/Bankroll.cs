@@ -15,16 +15,14 @@
 
 namespace SayedHa.Blackjack.Shared {
     public class Bankroll {
-        public Bankroll(int initialBankroll,BettingStrategy bettingStrategy) {
+        public Bankroll(int initialBankroll) {
             InitialBankroll = initialBankroll;
             DollarsRemaining = InitialBankroll;
-            BettingStrategy = bettingStrategy;
         }
         public int DollarsRemaining { get; protected set; }
         public int InitialBankroll { get; protected init; }
-        public BettingStrategy BettingStrategy { get; protected init; }
         public static Bankroll CreateNewDefaultBankroll() {
-            return new Bankroll(1000, BettingStrategy.CreateNewDefaultBettingStrategy());
+            return new Bankroll(1000);
         }
     }
 }

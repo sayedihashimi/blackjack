@@ -17,25 +17,32 @@ using System.Diagnostics;
 
 namespace SayedHa.Blackjack.Shared {
     public abstract class BettingStrategy {
-        public abstract int GetNextBetAmount(Bankroll bankroll, Hand hand);
+        protected BettingStrategy(Bankroll bankroll) {
+            Bankroll = bankroll;
+        }
+        public Bankroll Bankroll { get; protected set; }
+
+        public abstract int GetNextBetAmount(Hand hand);
 
         public static BettingStrategy CreateNewDefaultBettingStrategy() {
-            return new FixedBettingStrategy(5);
+            return CreateNewDefaultBettingStrategy(Bankroll.CreateNewDefaultBankroll());
+        }
+        public static BettingStrategy CreateNewDefaultBettingStrategy(Bankroll bankroll) {
+            return new FixedBettingStrategy(bankroll, 5);
         }
     }
 
     public class FixedBettingStrategy : BettingStrategy {
-        public FixedBettingStrategy() : this(5) { }
-        public FixedBettingStrategy(int betAmount) {
+        public FixedBettingStrategy(Bankroll bankroll) : this(bankroll, 5) { }
+        public FixedBettingStrategy(Bankroll bankroll, int betAmount) :base(bankroll) {
             BetAmount = betAmount;
         }
         public int BetAmount { get; protected set; }
-        public override int GetNextBetAmount(Bankroll bankroll, Hand hand) {
-            Debug.Assert(bankroll != null);
+        public override int GetNextBetAmount(Hand hand) {
             Debug.Assert(hand != null);
 
             // TODO: improve this
-            return bankroll.DollarsRemaining > 5 ? 5 : 0;
+            return Bankroll.DollarsRemaining > 5 ? 5 : 0;
         }
     }
 }
