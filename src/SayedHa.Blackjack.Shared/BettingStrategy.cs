@@ -39,8 +39,7 @@ namespace SayedHa.Blackjack.Shared {
         }
         public int BetAmount { get; protected set; }
         public override int GetNextBetAmount() {
-            // TODO: improve this
-            return Bankroll.DollarsRemaining > 5 ? 5 : 0;
+            return 5;
         }
     }
 }

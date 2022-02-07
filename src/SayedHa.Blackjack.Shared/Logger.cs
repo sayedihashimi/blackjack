@@ -21,25 +21,42 @@ using System.Threading.Tasks;
 namespace SayedHa.Blackjack.Shared {
     public interface ILogger {
         void LogLine(string message);
-        bool LoggerEnabled { get; set; }
+        bool EnableConsoleLogger { get; set; }
     }
 
     public class Logger : ILogger {
         public Logger() { }
 
         public Logger(bool loggerEnabled) {
-            LoggerEnabled = loggerEnabled;
+            EnableConsoleLogger = loggerEnabled;
         }
+        ~Logger() {
+            if(_writer != null) {
+                _writer.Flush();
+                _writer.Dispose();
+            }
+        }
+        public bool EnableConsoleLogger { get; set; } = true;
+
+        public bool LogToFile { get; set; }
+        
+        private StreamWriter? _writer;
 
         public void LogLine(string message) {
-            if (LoggerEnabled) {
+            if (EnableConsoleLogger) {
                 Console.WriteLine(message);
-            }            
+            }
+            if (LogToFile) {
+                _writer!.WriteLine(message);
+            }
         }
-        public bool LoggerEnabled { get; set; } = true;
+        public void EnableLogToFile(string filepath) {
+            _writer = new StreamWriter(filepath);
+            LogToFile = true;
+        }
     }
     public class NullLogger : ILogger {
-        public bool LoggerEnabled { get; set; } = false;
+        public bool EnableConsoleLogger { get; set; } = false;
 
         public void LogLine(string message) {
             // do nothing

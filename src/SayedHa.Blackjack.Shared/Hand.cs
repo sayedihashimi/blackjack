@@ -35,14 +35,14 @@ namespace SayedHa.Blackjack.Shared {
             Bet = bet;
             _logger = logger ?? new NullLogger();
         }
-        public Hand(List<Card> cards) {
-            Debug.Assert(cards != null);
-            if (cards != null && cards.Count > 0) {
-                foreach (var card in cards) {
-                    ReceiveCard(card);
-                }
-            }
-        }
+        //public Hand(List<Card> cards) {
+        //    Debug.Assert(cards != null);
+        //    if (cards != null && cards.Count > 0) {
+        //        foreach (var card in cards) {
+        //            ReceiveCard(card);
+        //        }
+        //    }
+        //}
 
         // TODO: Still not sure if this property is needed, let's see.
         public HandStatus Status { get; protected set; } = HandStatus.InPlay;

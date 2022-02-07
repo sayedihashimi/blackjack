@@ -125,7 +125,7 @@ namespace SayedHa.Blackjack.Shared {
                         var handScore = hand.GetScore();
                         if (handScore > 21) {
                             hand.SetHandResult(HandResult.DealerWon);
-                            opponent.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet * -1, opponent.Name);
+                            opponent.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet * -1F, opponent.Name);
                             game.Dealer.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet, game.Dealer.Name);
                             sb.Append($"Busted -{hand.Bet} ");
                         }
@@ -137,15 +137,15 @@ namespace SayedHa.Blackjack.Shared {
                         else if (handScore > dealerScore || dealerScore > 21) {
                             hand.SetHandResult(HandResult.OpponentWon);
                             float betMultiplier = 1;
-                            betMultiplier = handScore == 21 ? 3 / 2 : 1;
+                            betMultiplier = handScore == 21 ? 3F / 2F : 1;
                             var amtToAdd = hand.Bet * betMultiplier;
                             opponent.BettingStrategy.Bankroll.AddToDollarsRemaining(amtToAdd, opponent.Name);
-                            game.Dealer.BettingStrategy.Bankroll.AddToDollarsRemaining(amtToAdd*-1, game.Dealer.Name);
+                            game.Dealer.BettingStrategy.Bankroll.AddToDollarsRemaining(amtToAdd* -1F, game.Dealer.Name);
                             sb.Append($"Win {amtToAdd}");
                         }
                         else {
                             hand.SetHandResult(HandResult.DealerWon);
-                            opponent.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet * -1, opponent.Name);
+                            opponent.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet * -1F, opponent.Name);
                             game.Dealer.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet, game.Dealer.Name);
                             sb.Append($"Lose -{hand.Bet} ");
                         }
@@ -158,7 +158,7 @@ namespace SayedHa.Blackjack.Shared {
                 foreach (var op in game.Opponents) {
                     foreach (var hand in op.Hands) {
                         hand.SetHandResult(HandResult.DealerWon);
-                        op.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet * -1, op.Name);
+                        op.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet * -1F, op.Name);
                         game.Dealer.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet, game.Dealer.Name);
                     }
                     _logger.LogLine("Dealer has blackjack, you lose");
@@ -244,7 +244,8 @@ namespace SayedHa.Blackjack.Shared {
                 PlayNextAction(hand, dealerHand, participant, cards);
             }
 
-            return participant.Hands;
+            return new List<Hand> { hand };
+            // return participant.Hands;
         }
         protected void PlayNextAction(Hand hand, DealerHand dealerHand, Participant participant, CardDeck cards) {
             // next action at this point shouldn't be split.

@@ -19,19 +19,23 @@ using System.Runtime.CompilerServices;
 using System.Text;
 
 // usage
-// [numGamesToPlay] [pathToCsvFileToWriteResults] [enableConsoleLogger]
+// [numGamesToPlay] [pathToCsvFileToWriteResults] [enableConsoleLogger] [enableFileLogger]
 
 var numGamesToPlay = 10;
-string? pathToCsvForGameResult = null;
+string? outputPath = null;
 bool addLogger = true;
-if(args != null && args.Length > 0) {
+bool enableFileLogger = false;
+if (args != null && args.Length > 0) {
     numGamesToPlay = int.Parse(args[0]);
     if (args.Length > 1) {
-        pathToCsvForGameResult = args[1];
+        outputPath = args[1];
     }
 
     if (args.Length > 2) {
         addLogger = bool.Parse(args[2]);
+    }
+    if (args.Length > 3) {
+        enableFileLogger = bool.Parse(args[3]);
     }
 }
 
@@ -54,13 +58,29 @@ var strategiesToPlay = new List<OpponentPlayStrategy>() {
 };
 
 var timestamp = DateTime.Now.ToString("yyyy.MM.dd-hhmmss.ff");
+string? outputPathFull = null;
+if (!string.IsNullOrEmpty(outputPath)) {
+    if (!Directory.Exists(outputPath)) {
+        Directory.CreateDirectory(outputPath);
+    }
+    // create the timestampe folder now
+    outputPathFull = Path.Combine(outputPath, timestamp);
+    if (!Directory.Exists(outputPathFull)) {
+        Directory.CreateDirectory(outputPathFull);
+    }
+    // configure the file logger
+    if (enableFileLogger) {
+        var logfilepath = Path.Combine(outputPathFull, "game.log");
+        logger.EnableLogToFile(logfilepath);
+    }
+}
 
 foreach (var strategy in strategiesToPlay) {
     logger.LogLine($"Playing {numGamesToPlay} games with strategy '{strategy}'");
-    await PlayGameWithStrategyAsync(strategy, pathToCsvForGameResult, timestamp, logger);
+    await PlayGameWithStrategyAsync(strategy, outputPathFull, logger);
 }
 
-async Task PlayGameWithStrategyAsync(OpponentPlayStrategy opponentPlayStrategy, string? outputFolderPath, string? outputFilePrefix, ILogger logger) {
+async Task PlayGameWithStrategyAsync(OpponentPlayStrategy opponentPlayStrategy, string? outputFolderPath, ILogger logger) {
     try {
         var gameRunner = new GameRunner(logger);
         logger.LogLine("----------------------------------------------------");
@@ -80,17 +100,7 @@ async Task PlayGameWithStrategyAsync(OpponentPlayStrategy opponentPlayStrategy, 
         }
 
         if (!string.IsNullOrEmpty(outputFolderPath)) {
-            // if the folder doesn't exist create it
-            if (!Directory.Exists(outputFolderPath)) {
-                Directory.CreateDirectory(outputFolderPath);
-            }
-            outputFilePrefix = outputFilePrefix ?? DateTime.Now.ToString("yyyy.MM.dd-hhmmss.ff");
-            var newdirpath = Path.Combine(outputFolderPath, outputFilePrefix);
-            if (!Directory.Exists(newdirpath)) {
-                Directory.CreateDirectory(newdirpath);
-            }
-            
-            var fullpathtofile = Path.Combine(newdirpath, $"{opponentPlayStrategy}.csv");
+            var fullpathtofile = Path.Combine(outputFolderPath, $"{opponentPlayStrategy}.csv");
             await CreateCsvFileForResultsAsync(fullpathtofile, gameResults);
         }
         else {
@@ -102,7 +112,7 @@ async Task PlayGameWithStrategyAsync(OpponentPlayStrategy opponentPlayStrategy, 
     }
 }
 
-async Task CreateCsvFileForResultsAsync(string pathToCsv,List<GameResult>results) {
+async Task CreateCsvFileForResultsAsync(string pathToCsv, List<GameResult> results) {
     Debug.Assert(pathToCsv != null);
     Debug.Assert(results != null);
     Debug.Assert(results.Count > 0);
@@ -117,11 +127,11 @@ async Task CreateCsvFileForResultsAsync(string pathToCsv,List<GameResult>results
 string GetCsvStringFor(GameResult gameResult) {
     // "result"|"dealerCards"|"opp-hand"|"split"
     // "DealerWon"|"J♦ 7♥"|"6♥,2♠,5♥,5♦"|false
-    
+
     // for each hand create a seperate row
     // if op hands > 1 it must have split so set split to true
-    var sb = new StringBuilder();    
-    foreach(var hand in gameResult.OpponentHands) {
+    var sb = new StringBuilder();
+    foreach (var hand in gameResult.OpponentHands) {
         sb.AppendLine($"\"{hand.HandResult}\",\"{gameResult.DealerHand}\",\"{hand}\",\"{gameResult.OpponentHands.Count > 1}\",\"{gameResult.OpponentRemaining[0].remaining}\",\"{gameResult.DealerRemainingCash.remaining}\"");
     }
     return sb.ToString().Trim();
