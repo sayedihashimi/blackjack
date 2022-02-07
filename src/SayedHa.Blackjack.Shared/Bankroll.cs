@@ -15,18 +15,21 @@
 
 namespace SayedHa.Blackjack.Shared {
     public class Bankroll {
-        public Bankroll(int initialBankroll) {
+        public Bankroll(int initialBankroll, ILogger logger) {
             InitialBankroll = initialBankroll;
             DollarsRemaining = InitialBankroll;
+            Logger = logger;
         }
+        protected ILogger Logger { get; init; }
         public float DollarsRemaining { get; protected set; }
         public float InitialBankroll { get; protected init; }
-        public static Bankroll CreateNewDefaultBankroll() {
-            return new Bankroll(1000);
+        public static Bankroll CreateNewDefaultBankroll(ILogger logger) {
+            return new Bankroll(1000, logger);
         }
         public List<float> Transactions { get; protected set; }=new List<float>();
 
-        public float AddToDollarsRemaining(float amount) {
+        public float AddToDollarsRemaining(float amount, string participantName) {
+            Logger.LogLine($"Bankroll update for '{participantName}': {amount}");
             Transactions.Add(amount);
             DollarsRemaining += amount;
             return DollarsRemaining;

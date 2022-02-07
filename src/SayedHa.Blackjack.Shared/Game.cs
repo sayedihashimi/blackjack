@@ -28,8 +28,8 @@ namespace SayedHa.Blackjack.Shared {
         public GameStatus Status { get; set; } = GameStatus.InPlay;
 
         public CardDeck Cards { get; internal init; }
-        protected internal Participant Dealer { get; internal init; }
-        protected internal List<Participant> Opponents { get; internal init; }
+        public Participant Dealer { get; protected internal init; }
+        public List<Participant> Opponents { get; protected internal init; }
         public int ShuffleThresholdPercent { get; internal init; }
     }
     public enum GameStatus {
@@ -62,9 +62,7 @@ namespace SayedHa.Blackjack.Shared {
             var dealerPlayer = participantFactory.GetDefaultDealer();
             var opponents = new List<Participant>();
 
-            // TODO: Get from somewhere else
-            var bankRoll = new Bankroll(0);
-
+            var bankRoll = participantFactory.BettingStrategy.Bankroll;
 
             for (var i = 0; i < numOpponents; i++) {
                 opponents.Add(participantFactory.CreateNewOpponent(opponentPlayStrategy, logger));
@@ -89,7 +87,7 @@ namespace SayedHa.Blackjack.Shared {
 
             // TODO: Get from somewhere else
 
-            var bettingStrategy = BettingStrategy.CreateNewDefaultBettingStrategy(Bankroll.CreateNewDefaultBankroll());
+            var bettingStrategy = BettingStrategy.CreateNewDefaultBettingStrategy(Bankroll.CreateNewDefaultBankroll(logger));
 
             for (var i = 0; i < numOpponents; i++) {
                 opponents.Add(participantFactory.CreateNewOpponent(opponentPlayStrategy, logger));

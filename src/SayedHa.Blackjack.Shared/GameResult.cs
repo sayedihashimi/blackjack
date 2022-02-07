@@ -16,14 +16,27 @@ using System.Diagnostics;
 
 namespace SayedHa.Blackjack.Shared {
     public class GameResult {
-        public GameResult(Hand dealerHand, List<Hand> opponentHands) {
+        public GameResult(Hand dealerHand, List<Hand> opponentHands,Participant dealer, List<Participant>opponents) {
             Debug.Assert(dealerHand != null);
             Debug.Assert(opponentHands != null);
 
             DealerHand = dealerHand;
             OpponentHands = opponentHands;
+
+            DealerRemainingCash = (
+                dealer.BettingStrategy.Bankroll.DollarsRemaining,
+                dealer.BettingStrategy.Bankroll.DollarsRemaining - dealer.BettingStrategy.Bankroll.InitialBankroll);
+            OpponentRemaining = new List<(float,float)>();
+            foreach (var op in opponents) {
+                OpponentRemaining.Add((
+                    op.BettingStrategy.Bankroll.DollarsRemaining,
+                    op.BettingStrategy.Bankroll.DollarsRemaining - op.BettingStrategy.Bankroll.InitialBankroll));
+            }
         }
         public Hand DealerHand { get; protected init; }
         public List<Hand> OpponentHands { get; protected init; }
+
+        public (float remaining, float diff) DealerRemainingCash { get; protected init; }
+        public List<(float remaining,float diff)> OpponentRemaining { get;protected init; }
     }
 }

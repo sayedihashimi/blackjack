@@ -21,10 +21,12 @@ namespace SayedHa.Blackjack.Shared {
             Role = role;
             Player = player;
 
+            // TODO: improve this
+            Name = role.ToString();
             BettingStrategy = bettingStrategy;
         }
         public ParticipantRole Role { get; init; }
-
+        public string Name { get; protected init; }
         public BettingStrategy BettingStrategy { get; protected init; }
 
         // needs to be a list because of splits

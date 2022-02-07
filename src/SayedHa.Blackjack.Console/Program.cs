@@ -66,13 +66,17 @@ async Task PlayGameWithStrategyAsync(OpponentPlayStrategy opponentPlayStrategy, 
         logger.LogLine("----------------------------------------------------");
         var gameResults = new List<GameResult>();
 
-        var bettingStrategy = BettingStrategy.CreateNewDefaultBettingStrategy();
-        var pf = new ParticipantFactory(bettingStrategy, opponentPlayStrategy);
+        var bettingStrategy = BettingStrategy.CreateNewDefaultBettingStrategy(logger);
+        var pf = new ParticipantFactory(bettingStrategy, opponentPlayStrategy, logger);
 
         var game = gameRunner.CreateNewGame(numDecks, 1, pf, true);
         for (int i = 0; i < numGamesToPlay; i++) {
-            gameResults.Add(gameRunner.PlayGame(game));
-            logger.LogLine("----------------------------------------------------");
+            var gameResult = gameRunner.PlayGame(game);
+            gameResults.Add(gameResult);
+            logger.LogLine($"Bankroll: dealer {gameResult.DealerRemainingCash.remaining}({gameResult.DealerRemainingCash.diff})");
+            foreach (var opr in gameResult.OpponentRemaining) {
+                logger.LogLine($"Bankroll: op cash: {opr.remaining}({opr.diff})");
+            }
         }
 
         if (!string.IsNullOrEmpty(outputFolderPath)) {

@@ -18,18 +18,22 @@ using System.Net.Sockets;
 namespace SayedHa.Blackjack.Shared {
     public class ParticipantFactory {
 
-        public ParticipantFactory():
-            this(Shared.BettingStrategy.CreateNewDefaultBettingStrategy(), 
-            OpponentPlayStrategy.BasicStrategy) {
-
+        public ParticipantFactory(ILogger logger):
+            this(Shared.BettingStrategy.CreateNewDefaultBettingStrategy(logger), 
+            OpponentPlayStrategy.BasicStrategy,
+            logger) {
         }
-        public ParticipantFactory(BettingStrategy bettingStrategy, OpponentPlayStrategy opponentPlayStrategy) {
+
+        public ParticipantFactory(BettingStrategy bettingStrategy, OpponentPlayStrategy opponentPlayStrategy, ILogger logger) {
             BettingStrategy = bettingStrategy;
             OpponentPlayStrategy = opponentPlayStrategy;
+            Logger = logger;
         }
 
+        protected ILogger Logger {get;init;}
+
         public Participant GetDefaultDealer() {
-            return new Dealer(new StandOnValuePlayer(17, ParticipantRole.Dealer), BettingStrategy.CreateNewDefaultBettingStrategy());
+            return new Dealer(new StandOnValuePlayer(17, ParticipantRole.Dealer), BettingStrategy.CreateNewDefaultBettingStrategy(Logger));
         }
 
         public BettingStrategy BettingStrategy { get; protected init; }

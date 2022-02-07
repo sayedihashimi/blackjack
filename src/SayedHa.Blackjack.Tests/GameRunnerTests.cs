@@ -26,9 +26,9 @@ namespace SayedHa.Blackjack.Tests {
         [Fact]
         public void Test_PlayGame_01() {
             var logger = new Logger();
-            var pf = new ParticipantFactory();
+            var pf = new ParticipantFactory(logger);
 
-            var bankroll = Bankroll.CreateNewDefaultBankroll();
+            var bankroll = Bankroll.CreateNewDefaultBankroll(logger);
 
             var gf = new GameFactory();
             var game = gf.CreateNewGame(new CardDeckFactory().CreateCardDeck(GetSampleDeck01(), logger), 1, pf, pf.OpponentPlayStrategy);
