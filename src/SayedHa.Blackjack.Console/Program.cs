@@ -108,7 +108,7 @@ async Task CreateCsvFileForResultsAsync(string pathToCsv,List<GameResult>results
     Debug.Assert(results.Count > 0);
     // if the file exists overwrite it
     using StreamWriter streamWriter = new StreamWriter(pathToCsv, false);
-    streamWriter.WriteLine("result,dealerCards,opponent-hand,split");
+    streamWriter.WriteLine("result,dealerCards,opponent-hand,split,playerRemaining,dealerRemaining");
     foreach (var result in results) {
         await streamWriter.WriteLineAsync(GetCsvStringFor(result));
     }
@@ -122,7 +122,7 @@ string GetCsvStringFor(GameResult gameResult) {
     // if op hands > 1 it must have split so set split to true
     var sb = new StringBuilder();    
     foreach(var hand in gameResult.OpponentHands) {
-        sb.AppendLine($"\"{hand.HandResult}\",\"{gameResult.DealerHand}\",\"{hand}\",\"{gameResult.OpponentHands.Count > 1}\"");
+        sb.AppendLine($"\"{hand.HandResult}\",\"{gameResult.DealerHand}\",\"{hand}\",\"{gameResult.OpponentHands.Count > 1}\",\"{gameResult.OpponentRemaining[0].remaining}\",\"{gameResult.DealerRemainingCash.remaining}\"");
     }
     return sb.ToString().Trim();
 }
