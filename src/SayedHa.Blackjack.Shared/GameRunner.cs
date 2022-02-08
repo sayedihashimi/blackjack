@@ -266,9 +266,11 @@ namespace SayedHa.Blackjack.Shared {
                     PlayNextAction(hand, dealerHand, participant, cards);
                     break;
                 case HandAction.Double:
-                    hand.ReceiveCard(cards.GetCardAndMoveNext()!);
+                    var card = cards.GetCardAndMoveNext()!;
+                    hand.ReceiveCard(card);
                     hand.Bet *= 2;
                     hand.MarkHandAsClosed();
+                    _logger.LogLine($"    card={card}, hand={hand}, bet={hand.Bet}");
                     break;
                 default:
                     throw new ApplicationException($"unknown value for nextAction:'{nextAction}'");
