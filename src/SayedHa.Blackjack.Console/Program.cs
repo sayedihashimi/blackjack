@@ -39,20 +39,20 @@ if (args != null && args.Length > 0) {
     }
 }
 
-var logger = new Logger(addLogger);
+// var logger = new Logger(addLogger);
 int numDecks = 6;
 
 var strategiesToPlay = new List<OpponentPlayStrategy>() {
     OpponentPlayStrategy.BasicStrategy,
-    OpponentPlayStrategy.StandOn12,
-    OpponentPlayStrategy.StandOn13,
-    OpponentPlayStrategy.StandOn14,
-    OpponentPlayStrategy.StandOn15,
-    OpponentPlayStrategy.StandOn16,
+    //OpponentPlayStrategy.StandOn12,
+    //OpponentPlayStrategy.StandOn13,
+    //OpponentPlayStrategy.StandOn14,
+    //OpponentPlayStrategy.StandOn15,
+    //OpponentPlayStrategy.StandOn16,
     OpponentPlayStrategy.StandOn17,
-    OpponentPlayStrategy.StandOn18,
-    OpponentPlayStrategy.StandOn19,
-    OpponentPlayStrategy.StandOn20,
+    //OpponentPlayStrategy.StandOn18,
+    //OpponentPlayStrategy.StandOn19,
+    //OpponentPlayStrategy.StandOn20,
     OpponentPlayStrategy.AlwaysStand,
     OpponentPlayStrategy.Random
 };
@@ -68,16 +68,23 @@ if (!string.IsNullOrEmpty(outputPath)) {
     if (!Directory.Exists(outputPathFull)) {
         Directory.CreateDirectory(outputPathFull);
     }
-    // configure the file logger
-    if (enableFileLogger) {
-        var logfilepath = Path.Combine(outputPathFull, "game.log");
-        logger.ConfigureFileLogger(logfilepath);
-    }
 }
 
+Console.WriteLine("Players can see the second card dealt to the dealer");
+
 foreach (var strategy in strategiesToPlay) {
+    var logger = new Logger(addLogger);
+    if (enableFileLogger && !string.IsNullOrEmpty(outputPathFull)) {
+        var logfilepath = Path.Combine(outputPathFull, $"game.{strategy}.log");        
+        logger.ConfigureFileLogger(logfilepath);
+    }
+    
     logger.LogLine($"Playing {numGamesToPlay} games with strategy '{strategy}'");
     await PlayGameWithStrategyAsync(strategy, outputPathFull, logger);
+
+    if (enableFileLogger) {
+        logger.CloseFileLogger();
+    }
 }
 
 async Task PlayGameWithStrategyAsync(OpponentPlayStrategy opponentPlayStrategy, string? outputFolderPath, ILogger logger) {
@@ -93,10 +100,11 @@ async Task PlayGameWithStrategyAsync(OpponentPlayStrategy opponentPlayStrategy, 
         for (int i = 0; i < numGamesToPlay; i++) {
             var gameResult = gameRunner.PlayGame(game);
             gameResults.Add(gameResult);
-            logger.LogLine($"Bankroll: dealer {gameResult.DealerRemainingCash.remaining}({gameResult.DealerRemainingCash.diff})");
+            logger.Log($"Bankroll: dealer ${gameResult.DealerRemainingCash.remaining:F0}(${gameResult.DealerRemainingCash.diff:F0})");
             foreach (var opr in gameResult.OpponentRemaining) {
-                logger.LogLine($"Bankroll: op cash: {opr.remaining}({opr.diff})");
+                logger.Log($", op: ${opr.remaining:F0}(${opr.diff:F0}){Environment.NewLine}");
             }
+            logger.LogLine(string.Empty);
         }
 
         if (!string.IsNullOrEmpty(outputFolderPath)) {
@@ -105,6 +113,11 @@ async Task PlayGameWithStrategyAsync(OpponentPlayStrategy opponentPlayStrategy, 
         }
         else {
             logger.LogLine("Not creating csv file because no argument was passed with the path");
+        }
+
+
+        if (enableFileLogger) {
+            logger.CloseFileLogger();
         }
     }
     catch (Exception ex) {

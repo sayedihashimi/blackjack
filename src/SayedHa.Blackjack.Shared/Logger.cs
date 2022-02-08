@@ -14,6 +14,7 @@
 // along with SayedHa.Blackjack.  If not, see <https://www.gnu.org/licenses/>.
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,13 +22,16 @@ using System.Threading.Tasks;
 namespace SayedHa.Blackjack.Shared {
     public interface ILogger {
         void LogLine(string message);
+        void Log(string message);
+        void CloseFileLogger();
+
         bool EnableConsoleLogger { get; set; }
     }
 
     public class Logger : ILogger {
-        public Logger() { }
+        public Logger() {}
 
-        public Logger(bool loggerEnabled) {
+        public Logger(bool loggerEnabled):this() {
             EnableConsoleLogger = loggerEnabled;
         }
         ~Logger() {
@@ -37,29 +41,45 @@ namespace SayedHa.Blackjack.Shared {
             }
         }
         public bool EnableConsoleLogger { get; set; } = true;
-
         public bool EnableFileLogger { get; set; }
-        
         private StreamWriter? _writer;
 
-        public void LogLine(string message) {
+        public void Log(string message) {
             if (EnableConsoleLogger) {
-                Console.WriteLine(message);
+                Console.Write(message);
             }
             if (EnableFileLogger) {
-                _writer!.WriteLine(message);
+                _writer!.Write(message);
             }
         }
+
+        public void LogLine(string message) {
+            Log($"{message}{Environment.NewLine}");
+        }
+        // TODO: Come back later and do the file logger properly.
         public void ConfigureFileLogger(string filepath) {
             _writer = new StreamWriter(filepath);
             EnableFileLogger = true;
+        }
+        public void CloseFileLogger() {
+            _writer?.Flush();
+            _writer?.Dispose();
+            _writer = null;
         }
     }
     public class NullLogger : ILogger {
         public bool EnableConsoleLogger { get; set; } = false;
 
-        public void LogLine(string message) {
+        public void CloseFileLogger() {
             // do nothing
+        }
+
+        public void Log(string message) {
+            // do nothing
+        }
+
+        public void LogLine(string message) {
+            
         }
     }
 }

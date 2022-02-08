@@ -62,11 +62,17 @@ namespace SayedHa.Blackjack.Shared {
         }
         protected int _scoreCached;
 
-        public void ReceiveCard(Card card) {
+        /// <summary>
+        /// Adds the card to the DealtCards
+        /// </summary>
+        /// <returns>Returns the card that was passed in</returns>
+        public Card ReceiveCard(Card card) {
             Debug.Assert(card != null);
-            _logger.LogLine($"  card: {card.ToString()}");
+            // _logger.LogLine($"  card: {card.ToString()}");
             DealtCards.Add(card);
             _scoreCached = ComputeScore();
+
+            return card;
         }
 
         public int GetScore() {

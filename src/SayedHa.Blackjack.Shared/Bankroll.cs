@@ -29,7 +29,7 @@ namespace SayedHa.Blackjack.Shared {
         public List<float> Transactions { get; protected set; }=new List<float>();
 
         public float AddToDollarsRemaining(float amount, string participantName) {
-            Logger.LogLine($"Bankroll update for '{participantName}': {amount}");
+            // Logger.LogLine($"Bankroll update for '{participantName}': {amount}");
             Transactions.Add(amount);
             DollarsRemaining += amount;
             return DollarsRemaining;
