@@ -71,7 +71,7 @@ if (!string.IsNullOrEmpty(outputPath)) {
     // configure the file logger
     if (enableFileLogger) {
         var logfilepath = Path.Combine(outputPathFull, "game.log");
-        logger.EnableLogToFile(logfilepath);
+        logger.ConfigureFileLogger(logfilepath);
     }
 }
 

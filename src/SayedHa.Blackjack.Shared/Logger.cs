@@ -38,7 +38,7 @@ namespace SayedHa.Blackjack.Shared {
         }
         public bool EnableConsoleLogger { get; set; } = true;
 
-        public bool LogToFile { get; set; }
+        public bool EnableFileLogger { get; set; }
         
         private StreamWriter? _writer;
 
@@ -46,13 +46,13 @@ namespace SayedHa.Blackjack.Shared {
             if (EnableConsoleLogger) {
                 Console.WriteLine(message);
             }
-            if (LogToFile) {
+            if (EnableFileLogger) {
                 _writer!.WriteLine(message);
             }
         }
-        public void EnableLogToFile(string filepath) {
+        public void ConfigureFileLogger(string filepath) {
             _writer = new StreamWriter(filepath);
-            LogToFile = true;
+            EnableFileLogger = true;
         }
     }
     public class NullLogger : ILogger {
