@@ -48,7 +48,7 @@ namespace SayedHa.Blackjack.Shared {
         public HandStatus Status { get; protected set; } = HandStatus.InPlay;
         public HandResult HandResult { get; protected set; } = HandResult.InPlay;
 
-        public float Bet { get; init; }
+        public float Bet { get; set; }
 
         private List<Card> _dealtCards = new List<Card>();
         internal List<Card> DealtCards {

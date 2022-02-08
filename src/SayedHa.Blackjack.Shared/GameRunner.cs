@@ -267,6 +267,7 @@ namespace SayedHa.Blackjack.Shared {
                     break;
                 case HandAction.Double:
                     hand.ReceiveCard(cards.GetCardAndMoveNext()!);
+                    hand.Bet *= 2;
                     hand.MarkHandAsClosed();
                     break;
                 default:
