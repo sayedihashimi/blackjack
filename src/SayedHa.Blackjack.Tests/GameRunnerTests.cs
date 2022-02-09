@@ -31,7 +31,12 @@ namespace SayedHa.Blackjack.Tests {
             var bankroll = Bankroll.CreateNewDefaultBankroll(logger);
 
             var gf = new GameFactory();
-            var game = gf.CreateNewGame(new CardDeckFactory().CreateCardDeck(GetSampleDeck01(), logger), 1, pf, pf.OpponentPlayStrategy);
+            var game = gf.CreateNewGame(
+                new CardDeckFactory().CreateCardDeck(GetSampleDeck01(), logger), 
+                1, 
+                pf, 
+                pf.OpponentPlayStrategy,
+                BlackjackSettings.GetBlackjackSettings().ShuffleThresholdPercent);
 
             var gameRunner = new GameRunner(logger);
             var result = gameRunner.PlayGame(game);

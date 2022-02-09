@@ -18,7 +18,12 @@ using System.Diagnostics;
 
 namespace SayedHa.Blackjack.Shared {
     public class Game {
-        public Game(CardDeck cards, Participant dealer, List<Participant> opponents, int shuffleThresholdPercent = KnownValues.DefaultShuffleThresholdPercent) {
+        public Game(
+            CardDeck cards, 
+            Participant dealer, 
+            List<Participant> opponents, 
+            int shuffleThresholdPercent) {
+
             Cards = cards;
             Dealer = dealer;
             Opponents = opponents;
@@ -42,16 +47,16 @@ namespace SayedHa.Blackjack.Shared {
         public Game CreateNewGame(int numDecks,
                 int numOpponents,
                 ParticipantFactory participantFactory,
-                int shuffleThresholdPercent = KnownValues.DefaultShuffleThresholdPercent,
+                int shuffleThresholdPercent,
                 ILogger? logger = null) {
-            return CreateNewGame(numDecks, numOpponents, participantFactory, participantFactory.OpponentPlayStrategy);
+            return CreateNewGame(numDecks, numOpponents, participantFactory, participantFactory.OpponentPlayStrategy,BlackjackSettings.GetBlackjackSettings().ShuffleThresholdPercent);
         }
         public Game CreateNewGame(
                 int numDecks,
                 int numOpponents,
                 ParticipantFactory participantFactory,
                 OpponentPlayStrategy opponentPlayStrategy,
-                int shuffleThresholdPercent = KnownValues.DefaultShuffleThresholdPercent,
+                int shuffleThresholdPercent,
                 ILogger? logger = null) {
 
             logger = logger ?? new NullLogger();
@@ -68,14 +73,14 @@ namespace SayedHa.Blackjack.Shared {
                 opponents.Add(participantFactory.CreateNewOpponent(opponentPlayStrategy, logger));
             }
 
-            return new Game(cards, dealerPlayer, opponents);
+            return new Game(cards, dealerPlayer, opponents, BlackjackSettings.GetBlackjackSettings().ShuffleThresholdPercent);
         }
         public Game CreateNewGame(
                 CardDeck cards,
                 int numOpponents,
                 ParticipantFactory participantFactory,
                 OpponentPlayStrategy opponentPlayStrategy,
-                int shuffleThresholdPercent = KnownValues.DefaultShuffleThresholdPercent,
+                int shuffleThresholdPercent,
                 ILogger? logger = null) {
 
             logger = logger ?? new NullLogger();
@@ -93,7 +98,7 @@ namespace SayedHa.Blackjack.Shared {
                 opponents.Add(participantFactory.CreateNewOpponent(opponentPlayStrategy, logger));
             }
 
-            return new Game(cards, dealerPlayer, opponents);
+            return new Game(cards, dealerPlayer, opponents, BlackjackSettings.GetBlackjackSettings().ShuffleThresholdPercent);
 
             throw new NotImplementedException();
         }

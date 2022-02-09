@@ -43,7 +43,7 @@ namespace SayedHa.Blackjack.Shared.Players {
 
     public class RandomPlayer : Player {
         public override HandAction GetNextAction(Hand hand, DealerHand dealerHand) {
-            if (hand.Status == HandStatus.Closed || hand.GetScore() >= KnownValues.MaxScore) {
+            if (hand.Status == HandStatus.Closed || hand.GetScore() >= BlackjackSettings.GetBlackjackSettings().MaxScore) {
                 return HandAction.Stand;
             }
 

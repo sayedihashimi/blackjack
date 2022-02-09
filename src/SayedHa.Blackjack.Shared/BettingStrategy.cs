@@ -33,7 +33,7 @@ namespace SayedHa.Blackjack.Shared {
     }
 
     public class FixedBettingStrategy : BettingStrategy {
-        public FixedBettingStrategy(Bankroll bankroll) : this(bankroll, BlackjackSettings.GetBlackjackSettings().DefaultBet) { }
+        public FixedBettingStrategy(Bankroll bankroll) : this(bankroll, BlackjackSettings.GetBlackjackSettings().BetAmount) { }
         public FixedBettingStrategy(Bankroll bankroll, int betAmount) :base(bankroll) {
             BetAmount = betAmount;
         }

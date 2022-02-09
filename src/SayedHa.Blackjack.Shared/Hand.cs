@@ -126,7 +126,7 @@ namespace SayedHa.Blackjack.Shared {
                 Debug.Assert(values.Length == 2);
                 Debug.Assert(values[0] > values[1]);
 
-                if (sumSingleValueCards + values[0] <= KnownValues.MaxScore) {
+                if (sumSingleValueCards + values[0] <= BlackjackSettings.GetBlackjackSettings().MaxScore) {
                     sumSingleValueCards += values[0];
                 }
                 else {

@@ -27,7 +27,7 @@ namespace SayedHa.Blackjack.Shared {
         private GameFactory gameFactory = new GameFactory();
 
         public Game CreateNewGame(int numDecks, int numOpponents, ParticipantFactory participantFactory, bool discardFirstCard) {
-            var game = gameFactory.CreateNewGame(numDecks, numOpponents, participantFactory, KnownValues.DefaultShuffleThresholdPercent, _logger);
+            var game = gameFactory.CreateNewGame(numDecks, numOpponents, participantFactory, BlackjackSettings.GetBlackjackSettings().ShuffleThresholdPercent, _logger);
 
             if (discardFirstCard) {
                 // very first action for a new deck is to discard one card.
@@ -112,6 +112,7 @@ namespace SayedHa.Blackjack.Shared {
             //  2) Does player have blackjack? => 3:2 payout to that hand
             //  3) Regular play
 
+            var bjPayoutMultiplier = BlackjackSettings.GetBlackjackSettings().BlackjackPayoutMultplier;
             if (!DoesDealerHaveBlackjack(dealerHand)) {
                 // play each opponent now
                 foreach (var opponent in game.Opponents) {
@@ -142,7 +143,7 @@ namespace SayedHa.Blackjack.Shared {
                         }
                         else if (handScore > dealerScore || dealerScore > 21) {
                             hand.SetHandResult(HandResult.OpponentWon);
-                            float betMultiplier = DoesHandHaveBlackjack(hand) ? 3F / 2F : 1;
+                            float betMultiplier = DoesHandHaveBlackjack(hand) ? bjPayoutMultiplier : 1;
                             var amtToAdd = hand.Bet * betMultiplier;
                             opponent.BettingStrategy.Bankroll.AddToDollarsRemaining(amtToAdd, opponent.Name);
                             game.Dealer.BettingStrategy.Bankroll.AddToDollarsRemaining(amtToAdd* -1F, game.Dealer.Name);
