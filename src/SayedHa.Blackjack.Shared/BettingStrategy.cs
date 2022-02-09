@@ -28,18 +28,18 @@ namespace SayedHa.Blackjack.Shared {
             return CreateNewDefaultBettingStrategy(Bankroll.CreateNewDefaultBankroll(logger));
         }
         public static BettingStrategy CreateNewDefaultBettingStrategy(Bankroll bankroll) {
-            return new FixedBettingStrategy(bankroll, 5);
+            return new FixedBettingStrategy(bankroll);
         }
     }
 
     public class FixedBettingStrategy : BettingStrategy {
-        public FixedBettingStrategy(Bankroll bankroll) : this(bankroll, 5) { }
+        public FixedBettingStrategy(Bankroll bankroll) : this(bankroll, BlackjackSettings.GetBlackjackSettings().DefaultBet) { }
         public FixedBettingStrategy(Bankroll bankroll, int betAmount) :base(bankroll) {
             BetAmount = betAmount;
         }
         public int BetAmount { get; protected set; }
         public override int GetNextBetAmount() {
-            return 5;
+            return BetAmount;
         }
     }
 }

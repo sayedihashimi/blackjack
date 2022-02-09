@@ -23,7 +23,7 @@ using System.Text;
 
 var numGamesToPlay = 10;
 string? outputPath = null;
-bool addLogger = true;
+bool enableConsoleLogger = true;
 bool enableFileLogger = false;
 if (args != null && args.Length > 0) {
     numGamesToPlay = int.Parse(args[0]);
@@ -32,7 +32,7 @@ if (args != null && args.Length > 0) {
     }
 
     if (args.Length > 2) {
-        addLogger = bool.Parse(args[2]);
+        enableConsoleLogger = bool.Parse(args[2]);
     }
     if (args.Length > 3) {
         enableFileLogger = bool.Parse(args[3]);
@@ -70,10 +70,8 @@ if (!string.IsNullOrEmpty(outputPath)) {
     }
 }
 
-Console.WriteLine("Players can see the second card dealt to the dealer");
-
 foreach (var strategy in strategiesToPlay) {
-    var logger = new Logger(addLogger);
+    var logger = new Logger(enableConsoleLogger);
     if (enableFileLogger && !string.IsNullOrEmpty(outputPathFull)) {
         var logfilepath = Path.Combine(outputPathFull, $"game.{strategy}.log");        
         logger.ConfigureFileLogger(logfilepath);
@@ -98,6 +96,7 @@ async Task PlayGameWithStrategyAsync(OpponentPlayStrategy opponentPlayStrategy, 
 
         var game = gameRunner.CreateNewGame(numDecks, 1, pf, true);
         for (int i = 0; i < numGamesToPlay; i++) {
+            logger.LogLine($"Game {i+1}");
             var gameResult = gameRunner.PlayGame(game);
             gameResults.Add(gameResult);
             logger.Log($"Bankroll: dealer ${gameResult.DealerRemainingCash.remaining:F0}(${gameResult.DealerRemainingCash.diff:F0})");

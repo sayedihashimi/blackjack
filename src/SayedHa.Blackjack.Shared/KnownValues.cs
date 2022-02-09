@@ -17,4 +17,23 @@ namespace SayedHa.Blackjack.Shared {
         public const int MaxScore = 21;
         public const int DefaultShuffleThresholdPercent = 20;
     }
+    public class BlackjackSettings {
+        private BlackjackSettings() {
+            DefaultBet = 1;
+            DefaultBankrollAmount = 1000;
+
+            MaxScore = 21;
+            DefaultShuffleThresholdPercent = 20;
+        }
+        private static BlackjackSettings _instance = new BlackjackSettings();
+        public int DefaultBet { get; protected init; }
+        public int MaxScore { get; protected init; }
+        public int DefaultShuffleThresholdPercent { get; protected init; }
+        public int DefaultBankrollAmount { get; protected init; }
+
+        // replace this with DI later
+        public static BlackjackSettings GetBlackjackSettings() {
+            return _instance;
+        }
+    }
 }
