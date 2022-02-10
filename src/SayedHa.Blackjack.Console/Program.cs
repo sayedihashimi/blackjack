@@ -18,6 +18,8 @@ using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Text;
 
+// TODO: this whole class needs to be replaced, just prototyping currently.
+
 // usage
 // [numGamesToPlay] [pathToCsvFileToWriteResults] [enableConsoleLogger] [enableFileLogger]
 
@@ -25,8 +27,10 @@ var numGamesToPlay = 10;
 string? outputPath = null;
 bool enableConsoleLogger = true;
 bool enableFileLogger = false;
+bool multiThreads = true;
 if (args != null && args.Length > 0) {
     numGamesToPlay = int.Parse(args[0]);
+
     if (args.Length > 1) {
         outputPath = args[1];
     }
@@ -36,6 +40,10 @@ if (args != null && args.Length > 0) {
     }
     if (args.Length > 3) {
         enableFileLogger = bool.Parse(args[3]);
+    }
+    // should be last
+    if (args.Length > 4) {
+        multiThreads = bool.Parse(args[4]);
     }
 }
 
@@ -57,13 +65,36 @@ if (!string.IsNullOrEmpty(outputPath)) {
     }
 }
 
-foreach (var strategy in strategiesToPlay) {
+// still not sure which is faster
+if (multiThreads) {
+    var semaphore = new SemaphoreSlim(strategiesToPlay.Count, strategiesToPlay.Count);
+    var tasks = new List<Task>();
+    foreach (var strategy in strategiesToPlay) {
+        await semaphore.WaitAsync();
+        try {
+            var task = Task.Run(async () => { await StartForStrategyAsync(strategy, numGamesToPlay, enableConsoleLogger, enableFileLogger); });
+            tasks.Add(task);
+        }
+        finally {
+            semaphore.Release();
+        }
+    }
+
+    await Task.WhenAll(tasks);
+}
+else {
+    foreach (var strategy in strategiesToPlay) {
+        await StartForStrategyAsync(strategy, numGamesToPlay, enableConsoleLogger, enableFileLogger);
+    }
+}
+
+async Task StartForStrategyAsync(OpponentPlayStrategy strategy, int numGamesToPlay, bool enableConsoleLogger, bool enableFileLogger) {
     var logger = new Logger(enableConsoleLogger);
     if (enableFileLogger && !string.IsNullOrEmpty(outputPathFull)) {
-        var logfilepath = Path.Combine(outputPathFull, $"game.{strategy}.log");        
+        var logfilepath = Path.Combine(outputPathFull, $"game.{strategy}.log");
         logger.ConfigureFileLogger(logfilepath);
     }
-    
+
     logger.LogLine($"Playing {numGamesToPlay} games with strategy '{strategy}'");
     await PlayGameWithStrategyAsync(strategy, outputPathFull, logger);
 

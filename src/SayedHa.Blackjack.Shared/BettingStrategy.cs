@@ -28,7 +28,7 @@ namespace SayedHa.Blackjack.Shared {
             return CreateNewDefaultBettingStrategy(Bankroll.CreateNewDefaultBankroll(logger));
         }
         public static BettingStrategy CreateNewDefaultBettingStrategy(Bankroll bankroll) {
-            return new FixedBettingStrategy(bankroll);
+            return BlackjackSettings.GetBlackjackSettings().CreateBettingStrategy(bankroll);
         }
     }
 
