@@ -22,7 +22,7 @@ namespace SayedHa.Blackjack.Shared {
             BlackjackPayoutMultplier = 3F / 2F;
             NumberOfDecks = 6;
             StrategiesToPlay = GetDefaultStrategiesToPlay();
-            CreateBettingStrategy = (bankroll) => { return new FixedBettingStrategy(bankroll); };
+            CreateBettingStrategy = (bankroll) => { return new _1324BettingStrategy(bankroll); };
 
 
             MaxScore = 21;
@@ -37,16 +37,17 @@ namespace SayedHa.Blackjack.Shared {
         public int NumberOfDecks { get; protected init; }
         public List<OpponentPlayStrategy> StrategiesToPlay { get; protected init; }
 
+        // TODO: Need to come up with a better way to do this that doesn't require a func hopefully.
         public Func<Bankroll,BettingStrategy> CreateBettingStrategy { get; protected init; }
 
         private List<OpponentPlayStrategy> GetDefaultStrategiesToPlay() => new List<OpponentPlayStrategy>() {
             OpponentPlayStrategy.BasicStrategy,
             //OpponentPlayStrategy.StandOn12,
-            OpponentPlayStrategy.StandOn13,
+            //OpponentPlayStrategy.StandOn13,
             OpponentPlayStrategy.StandOn14,
             OpponentPlayStrategy.StandOn15,
             OpponentPlayStrategy.StandOn16,
-            OpponentPlayStrategy.StandOn17,
+            //OpponentPlayStrategy.StandOn17,
             //OpponentPlayStrategy.StandOn18,
             //OpponentPlayStrategy.StandOn19,
             //OpponentPlayStrategy.StandOn20,

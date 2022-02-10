@@ -22,7 +22,7 @@ namespace SayedHa.Blackjack.Shared {
         }
         public Bankroll Bankroll { get; protected set; }
 
-        public abstract int GetNextBetAmount();
+        public abstract int GetNextBetAmount(Game game);
 
         public static BettingStrategy CreateNewDefaultBettingStrategy(ILogger logger) {
             return CreateNewDefaultBettingStrategy(Bankroll.CreateNewDefaultBankroll(logger));
@@ -33,13 +33,60 @@ namespace SayedHa.Blackjack.Shared {
     }
 
     public class FixedBettingStrategy : BettingStrategy {
-        public FixedBettingStrategy(Bankroll bankroll) : this(bankroll, BlackjackSettings.GetBlackjackSettings().BetAmount) { }
-        public FixedBettingStrategy(Bankroll bankroll, int betAmount) :base(bankroll) {
+        public FixedBettingStrategy(Bankroll bankroll, int betAmount) : base(bankroll) {
             BetAmount = betAmount;
         }
+        public FixedBettingStrategy(Bankroll bankroll) : this(bankroll, BlackjackSettings.GetBlackjackSettings().BetAmount) { }
         public int BetAmount { get; protected set; }
-        public override int GetNextBetAmount() {
+        public override int GetNextBetAmount(Game game) {
             return BetAmount;
+        }
+    }
+
+    public class _1324BettingStrategy : BettingStrategy {
+        public _1324BettingStrategy(Bankroll bankroll, int betAmount) : base(bankroll) {
+            BetAmount = betAmount;
+        }
+        public _1324BettingStrategy(Bankroll bankroll) : this(bankroll, BlackjackSettings.GetBlackjackSettings().BetAmount) {
+
+        }
+
+        public int BetAmount { get; protected init; }
+        public override int GetNextBetAmount(Game game) {
+            // we can inspect the Transactions list to get the next amount
+
+            // need to cycle through the last few entires in Transactions
+            int numTransactions = Bankroll.Transactions.Count;
+
+            int numConsecutiveWins = 0;
+
+            for (var i = numTransactions - 1; i >= 0; i--) {
+                var transaction = Bankroll.Transactions[i];
+                if (transaction > 0) {
+                    numConsecutiveWins++;
+                }
+                else {
+                    break;
+                }
+            }
+
+            int betMultiplier = 1;
+            switch (numConsecutiveWins) {
+                case > 3:
+                    betMultiplier = 4;
+                    break;
+                case > 2:
+                    betMultiplier = 2;
+                    break;
+                case > 1:
+                    betMultiplier = 3;
+                    break;
+                default:
+                    betMultiplier = 1;
+                    break;
+            }
+
+            return betMultiplier * BetAmount;
         }
     }
 }

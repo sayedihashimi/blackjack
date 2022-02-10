@@ -81,13 +81,10 @@ namespace SayedHa.Blackjack.Shared {
             // TODO: move index to participant, maybe make a name property or something
             int index = 1;
             foreach (var opponent in game.Opponents) {
-                //_logger.Log($"Dealing to {opponent.Name}: ");
-                int betAmount = opponent.BettingStrategy.GetNextBetAmount();
+                int betAmount = opponent.BettingStrategy.GetNextBetAmount(game);
                 var newhand = new Hand(betAmount, _logger);
                 tempCard = newhand.ReceiveCard(game.Cards.GetCardAndMoveNext()!);
-                //_logger.Log($"{tempCard}, ");
                 tempCard = newhand.ReceiveCard(game.Cards.GetCardAndMoveNext()!);
-                //_logger.Log($"{tempCard}{Environment.NewLine}");
 
                 _logger.LogLine($"Dealing to {opponent.Name}: {newhand}");
                 opponent.Hands.Add(newhand);
@@ -96,19 +93,15 @@ namespace SayedHa.Blackjack.Shared {
             }
 
             // deal two cards to the dealer
-            //_logger.Log("Dealing to Dealer: ");
             var dealerHand = new DealerHand(_logger);
             tempCard = dealerHand.ReceiveCard(game.Cards.GetCardAndMoveNext()!);
-            //_logger.Log($"{tempCard}, ");
             tempCard = dealerHand.ReceiveCard(game.Cards.GetCardAndMoveNext()!);
-            //_logger.Log($"{tempCard}");
-            //_logger.Log($" (2nd card visible){Environment.NewLine}");
 
             _logger.LogLine($"Dealing to Dealer: {dealerHand} (2nd card visible)");
             game.Dealer.Hands.Add(dealerHand);
 
             // TODO: Change how the flow works should be more like:
-            //  1) Does dealer have blackjack? => gane over
+            //  1) Does dealer have blackjack? => game over
             //  2) Does player have blackjack? => 3:2 payout to that hand
             //  3) Regular play
 
