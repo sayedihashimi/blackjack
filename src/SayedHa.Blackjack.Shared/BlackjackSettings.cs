@@ -18,7 +18,7 @@ namespace SayedHa.Blackjack.Shared {
     public class BlackjackSettings {
         private BlackjackSettings() {
             BetAmount = 1;
-            BankrollAmount = 1000;
+            BankrollAmount = 0;
             BlackjackPayoutMultplier = 3F / 2F;
             NumberOfDecks = 6;
             StrategiesToPlay = GetDefaultStrategiesToPlay();
@@ -47,7 +47,7 @@ namespace SayedHa.Blackjack.Shared {
             OpponentPlayStrategy.StandOn14,
             OpponentPlayStrategy.StandOn15,
             OpponentPlayStrategy.StandOn16,
-            //OpponentPlayStrategy.StandOn17,
+            OpponentPlayStrategy.StandOn17,
             //OpponentPlayStrategy.StandOn18,
             //OpponentPlayStrategy.StandOn19,
             //OpponentPlayStrategy.StandOn20,
