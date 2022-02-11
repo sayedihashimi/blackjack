@@ -90,17 +90,11 @@ namespace SayedHa.Blackjack.Shared {
             var dealerPlayer = participantFactory.GetDefaultDealer();
             var opponents = new List<Participant>();
 
-            // TODO: Get from somewhere else
-
-            var bettingStrategy = BettingStrategy.CreateNewDefaultBettingStrategy(Bankroll.CreateNewDefaultBankroll(logger));
-
             for (var i = 0; i < numOpponents; i++) {
                 opponents.Add(participantFactory.CreateNewOpponent(opponentPlayStrategy, logger));
             }
 
             return new Game(cards, dealerPlayer, opponents, BlackjackSettings.GetBlackjackSettings().ShuffleThresholdPercent);
-
-            throw new NotImplementedException();
         }
     }
     public enum OpponentPlayStrategy {

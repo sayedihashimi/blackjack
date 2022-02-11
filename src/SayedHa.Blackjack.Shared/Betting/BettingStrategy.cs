@@ -15,7 +15,7 @@
 
 using System.Diagnostics;
 
-namespace SayedHa.Blackjack.Shared {
+namespace SayedHa.Blackjack.Shared.Betting {
     public abstract class BettingStrategy {
         protected BettingStrategy(Bankroll bankroll) {
             Bankroll = bankroll;

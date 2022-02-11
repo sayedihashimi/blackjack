@@ -12,6 +12,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with SayedHa.Blackjack.  If not, see <https://www.gnu.org/licenses/>.
+using SayedHa.Blackjack.Shared.Betting;
 using SayedHa.Blackjack.Shared.Players;
 using System.Diagnostics;
 

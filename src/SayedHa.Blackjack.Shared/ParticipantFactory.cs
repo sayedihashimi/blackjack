@@ -12,6 +12,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with SayedHa.Blackjack.  If not, see <https://www.gnu.org/licenses/>.
+using SayedHa.Blackjack.Shared.Betting;
 using SayedHa.Blackjack.Shared.Players;
 using System.Net.Sockets;
 
@@ -19,7 +20,7 @@ namespace SayedHa.Blackjack.Shared {
     public class ParticipantFactory {
 
         public ParticipantFactory(ILogger logger):
-            this(Shared.BettingStrategy.CreateNewDefaultBettingStrategy(logger), 
+            this(Betting.BettingStrategy.CreateNewDefaultBettingStrategy(logger), 
             OpponentPlayStrategy.BasicStrategy,
             logger) {
         }
@@ -33,7 +34,7 @@ namespace SayedHa.Blackjack.Shared {
         protected ILogger Logger {get;init;}
 
         public Participant GetDefaultDealer() {
-            return new Dealer(new StandOnValuePlayer(17, ParticipantRole.Dealer), BettingStrategy.CreateNewDefaultBettingStrategy(Logger));
+            return new Dealer(new StandOnValuePlayer(17, ParticipantRole.Dealer), Betting.BettingStrategy.CreateNewDefaultBettingStrategy(Logger));
         }
 
         public BettingStrategy BettingStrategy { get; protected init; }
