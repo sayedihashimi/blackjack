@@ -13,22 +13,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with SayedHa.Blackjack.  If not, see <https://www.gnu.org/licenses/>.
 
-using System.Diagnostics;
-
 namespace SayedHa.Blackjack.Shared.Betting {
-    public abstract class BettingStrategy {
-        protected BettingStrategy(Bankroll bankroll) {
-            Bankroll = bankroll;
+    public class FixedBettingStrategy : BettingStrategy {
+        public FixedBettingStrategy(Bankroll bankroll, int betAmount) : base(bankroll) {
+            BetAmount = betAmount;
         }
-        public Bankroll Bankroll { get; protected set; }
-
-        public abstract int GetNextBetAmount(Game game);
-
-        public static BettingStrategy CreateNewDefaultBettingStrategy(ILogger logger) {
-            return CreateNewDefaultBettingStrategy(Bankroll.CreateNewDefaultBankroll(logger));
-        }
-        public static BettingStrategy CreateNewDefaultBettingStrategy(Bankroll bankroll) {
-            return BlackjackSettings.GetBlackjackSettings().CreateBettingStrategy(bankroll);
+        public FixedBettingStrategy(Bankroll bankroll) : this(bankroll, BlackjackSettings.GetBlackjackSettings().BetAmount) { }
+        public int BetAmount { get; protected set; }
+        public override int GetNextBetAmount(Game game) {
+            return BetAmount;
         }
     }
 }

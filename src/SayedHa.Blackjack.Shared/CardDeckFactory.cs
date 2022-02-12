@@ -31,13 +31,13 @@ namespace SayedHa.Blackjack.Shared {
                 cardList.Shuffle();
             }
 
-            return new CardDeck(logger, cardList.ConvertToLinkedList());
+            return new CardDeck(logger, cardList.ConvertToLinkedList(), numDecks);
         }
-        public CardDeck CreateCardDeck(List<Card> cards, ILogger? logger = null) {
+        public CardDeck CreateCardDeck(List<Card> cards, int numDecks, ILogger? logger = null) {
             Debug.Assert(cards != null && cards.Count > 0);
             logger = logger ?? new NullLogger();
 
-            return new CardDeck(logger, cards.ConvertToLinkedList());
+            return new CardDeck(logger, cards.ConvertToLinkedList(), numDecks);
         }
 
         internal List<Card> GetStandardDeckOfCardsAsList(bool shuffle) {

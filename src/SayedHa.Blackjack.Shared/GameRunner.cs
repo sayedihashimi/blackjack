@@ -41,7 +41,7 @@ namespace SayedHa.Blackjack.Shared {
             Debug.Assert(game != null);
             Debug.Assert(game.Cards != null);
             Debug.Assert(game.Cards.GetNumRemainingCards() > 0);
-
+            
             var cards = game.Cards;
 
             // if the discarded # of cards exceeds specified amount, shuffle the cards
@@ -49,6 +49,7 @@ namespace SayedHa.Blackjack.Shared {
             if (percentRemainingCards * 100 <= game.ShuffleThresholdPercent) {
                 _logger.LogLine("**** shuffling cards");
                 game.Cards.ShuffleCards();
+                _logger.LogLine($"cards: [{game.Cards}]");
                 // discard the first card after every shuffle
                 _ = game.Cards.GetCardAndMoveNext();
             }
@@ -66,10 +67,6 @@ namespace SayedHa.Blackjack.Shared {
             // check to see if the deck needs to be shuffled or not
             ShuffleCardsIfNeeded(game);
 
-            // TODO: Move this somewhere else, it's being called too much
-            // very first action for a new deck is to discard one card.
-            _ = game.Cards.GetCardAndMoveNext();
-
             if (game == null || game.Cards == null) {
                 throw new ApplicationException();
             }
@@ -86,7 +83,7 @@ namespace SayedHa.Blackjack.Shared {
                 tempCard = newhand.ReceiveCard(game.Cards.GetCardAndMoveNext()!);
                 tempCard = newhand.ReceiveCard(game.Cards.GetCardAndMoveNext()!);
 
-                _logger.LogLine($"Dealing to {opponent.Name}: {newhand}");
+                _logger.LogLine($"Dealing to {opponent.Name}: {newhand}, bet = ${betAmount:F0}");
                 opponent.Hands.Add(newhand);
 
                 index++;

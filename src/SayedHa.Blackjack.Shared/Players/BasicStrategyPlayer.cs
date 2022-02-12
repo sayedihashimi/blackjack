@@ -29,8 +29,10 @@ namespace SayedHa.Blackjack.Shared.Players {
         }
         private ILogger _logger = new NullLogger();
         public override HandAction GetNextAction(Hand hand, DealerHand dealerHand) {
+            bool isDoubleEnabled = BlackjackSettings.GetBlackjackSettings().DoubleDownEnabled;
+            bool isSplitEnabled = BlackjackSettings.GetBlackjackSettings().SplitEnabled;
             // if only two cards, first check to see if the action should be split
-            if(hand.DealtCards.Count == 2) {
+            if(isSplitEnabled && hand.DealtCards.Count == 2) {
                 if (ShouldSplitWith(hand.DealtCards[0].Number, hand.DealtCards[1].Number, dealerHand.DealersVisibleCard!.Number)) {
                     return HandAction.Split;
                 }
@@ -100,7 +102,7 @@ namespace SayedHa.Blackjack.Shared.Players {
 
                 // "Always double down on 11, always"
                 case (11, _):
-                    return HandAction.Double;
+                    return isDoubleEnabled ? HandAction.Double : HandAction.Hit;
 
                 case (10, CardNumber.Ten):
                 case (10, CardNumber.Jack):
@@ -109,13 +111,13 @@ namespace SayedHa.Blackjack.Shared.Players {
                 case (10, CardNumber.Ace):
                     return HandAction.Hit;
                 case (10, _):
-                    return HandAction.Double;
+                    return isDoubleEnabled ? HandAction.Double : HandAction.Hit;
 
                 case (9, CardNumber.Three):
                 case (9, CardNumber.Four):
                 case (9, CardNumber.Five):
                 case (9, CardNumber.Six):
-                    return HandAction.Double;
+                    return isDoubleEnabled ? HandAction.Double : HandAction.Hit;
                 case (9, _):
                     return HandAction.Hit;
 
@@ -203,6 +205,8 @@ namespace SayedHa.Blackjack.Shared.Players {
         }
         protected (bool hasAce, HandAction nextAction) IfContainsAceReturnNextAction(Card card1, Card card2, Card dealerVisibleCard) {
             var cardsContainAce = IfContainsAceReturnOtherCard(card1, card2);
+            var isDoubleEnabled = BlackjackSettings.GetBlackjackSettings().DoubleDownEnabled;
+            var isSplitEnabled = BlackjackSettings.GetBlackjackSettings().SplitEnabled;
             if (cardsContainAce.hasAce) {
                 var otherCard = cardsContainAce.otherCard!;
                 switch (otherCard.Number, dealerVisibleCard.Number) {
@@ -229,7 +233,7 @@ namespace SayedHa.Blackjack.Shared.Players {
                     case (CardNumber.Eight, CardNumber.Ace):
                         return (true, HandAction.Stand);
                     case (CardNumber.Eight, CardNumber.Six):
-                        return (true, HandAction.Double);
+                        return (true, isDoubleEnabled ? HandAction.Double : HandAction.Hit);
 
                     // Ace + 7:
                     //  Double 2 - 6, stand otherwise
@@ -238,7 +242,7 @@ namespace SayedHa.Blackjack.Shared.Players {
                     case (CardNumber.Seven, CardNumber.Four):
                     case (CardNumber.Seven, CardNumber.Five):
                     case (CardNumber.Seven, CardNumber.Six):
-                        return (true, HandAction.Double);
+                        return (true, isDoubleEnabled ? HandAction.Double : HandAction.Hit);
                     case (CardNumber.Seven, _):
                         return (true, HandAction.Stand);
 
@@ -248,7 +252,7 @@ namespace SayedHa.Blackjack.Shared.Players {
                     case (CardNumber.Six, CardNumber.Four):
                     case (CardNumber.Six, CardNumber.Five):
                     case (CardNumber.Six, CardNumber.Six):
-                        return (true, HandAction.Double);
+                        return (true, isDoubleEnabled ? HandAction.Double : HandAction.Hit);
                     case (CardNumber.Six, _):
                         return (true, HandAction.Hit);
 
@@ -257,7 +261,7 @@ namespace SayedHa.Blackjack.Shared.Players {
                     case (CardNumber.Five, CardNumber.Four):
                     case (CardNumber.Five, CardNumber.Five):
                     case (CardNumber.Five, CardNumber.Six):
-                        return (true, HandAction.Double);
+                        return (true, isDoubleEnabled ? HandAction.Double : HandAction.Hit);
                     case (CardNumber.Five, _):
                         return (true, HandAction.Hit);
 
@@ -266,7 +270,7 @@ namespace SayedHa.Blackjack.Shared.Players {
                     case (CardNumber.Four, CardNumber.Four):
                     case (CardNumber.Four, CardNumber.Five):
                     case (CardNumber.Four, CardNumber.Six):
-                        return (true, HandAction.Double);
+                        return (true, isDoubleEnabled ? HandAction.Double : HandAction.Hit);
                     case (CardNumber.Four, _):
                         return (true, HandAction.Hit);
 
@@ -274,7 +278,7 @@ namespace SayedHa.Blackjack.Shared.Players {
                     //  Double if 5,6 otherwise Hit
                     case (CardNumber.Three, CardNumber.Five):
                     case (CardNumber.Three, CardNumber.Six):
-                        return (true, HandAction.Double);
+                        return (true, isDoubleEnabled ? HandAction.Double : HandAction.Hit);
                     case (CardNumber.Three, _):
                         return (true, HandAction.Hit);
 
@@ -282,7 +286,7 @@ namespace SayedHa.Blackjack.Shared.Players {
                     //  Double if 5,6 otherwise Hit
                     case (CardNumber.Two, CardNumber.Five):
                     case (CardNumber.Two, CardNumber.Six):
-                        return (true, HandAction.Double);
+                        return (true, isDoubleEnabled ? HandAction.Double : HandAction.Hit);
                     case (CardNumber.Two, _):
                         return (true, HandAction.Hit);
 
@@ -292,7 +296,7 @@ namespace SayedHa.Blackjack.Shared.Players {
                         break;
                 }                
             }
-            return (false, HandAction.Split);
+            return (false, isDoubleEnabled ? HandAction.Split : HandAction.Hit);
         }
     }
 }

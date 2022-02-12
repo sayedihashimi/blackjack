@@ -17,10 +17,18 @@ using System.Text;
 
 namespace SayedHa.Blackjack.Shared {
     public class CardDeck {
+        public CardDeck(ILogger logger, LinkedList<Card>? cards, int numDecks) {
+            _logger = logger;
+            Cards = cards;
+            CurrentCard = Cards != null ? Cards.First : null;
+            NumDecks = numDecks;
+        }
+
         private ILogger _logger;
         internal LinkedList<Card>? Cards { get; set; }
         internal LinkedListNode<Card>? CurrentCard { get; set; }
         public List<Card> DiscardedCards { get; internal set; } = new List<Card>();
+        public int NumDecks { get; protected init; }
 
         public List<Card> GetRemainingCardsAsList() {
             var remainingCards = new List<Card> ();
@@ -34,11 +42,6 @@ namespace SayedHa.Blackjack.Shared {
             return remainingCards;
         }
 
-        public CardDeck(ILogger logger,LinkedList<Card>? cards) {
-            _logger = logger;
-            Cards = cards;
-            CurrentCard = Cards != null ? Cards.First : null;
-        }
         public void ShuffleCards() {
             // clear the discarded cards
             // rebuild the linkedlist
@@ -81,8 +84,10 @@ namespace SayedHa.Blackjack.Shared {
             }
             var sb = new StringBuilder();
             foreach(var card in Cards) {
-                sb.AppendLine(card.ToString());
+                sb.Append(card.ToString());
+                sb.Append(" ");
             }
+            sb.Append(Environment.NewLine);
             return sb.ToString();
         }
     }

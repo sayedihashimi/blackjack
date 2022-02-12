@@ -29,10 +29,10 @@ namespace SayedHa.Blackjack.Tests {
             var pf = new ParticipantFactory(logger);
 
             var bankroll = Bankroll.CreateNewDefaultBankroll(logger);
-
+            int numDecks = 1;
             var gf = new GameFactory();
             var game = gf.CreateNewGame(
-                new CardDeckFactory().CreateCardDeck(GetSampleDeck01(), logger), 
+                new CardDeckFactory().CreateCardDeck(GetSampleDeck01(), numDecks, logger), 
                 1, 
                 pf, 
                 pf.OpponentPlayStrategy,

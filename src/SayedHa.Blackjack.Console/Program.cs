@@ -22,7 +22,7 @@ using System.Text;
 // TODO: this whole class needs to be replaced, just prototyping currently.
 
 // usage
-// [numGamesToPlay] [pathToCsvFileToWriteResults] [enableConsoleLogger] [enableFileLogger]
+// [numGamesToPlay] [pathToCsvFileToWriteResults] [enableConsoleLogger] [enableFileLogger] [enableMultiThread]
 
 var numGamesToPlay = 10;
 string? outputPath = null;
@@ -49,7 +49,7 @@ if (args != null && args.Length > 0) {
 }
 
 // var logger = new Logger(addLogger);
-int numDecks = 6;
+int numDecks = BlackjackSettings.GetBlackjackSettings().NumberOfDecks;
 
 var strategiesToPlay = BlackjackSettings.GetBlackjackSettings().StrategiesToPlay;
 
@@ -114,6 +114,7 @@ async Task PlayGameWithStrategyAsync(OpponentPlayStrategy opponentPlayStrategy, 
         var pf = new ParticipantFactory(bettingStrategy, opponentPlayStrategy, logger);
 
         var game = gameRunner.CreateNewGame(numDecks, 1, pf, true);
+        logger.LogLine($"cards: [{game.Cards}]");
         for (int i = 0; i < numGamesToPlay; i++) {
             logger.LogLine($"Game {i+1}");
             var gameResult = gameRunner.PlayGame(game);
@@ -122,7 +123,6 @@ async Task PlayGameWithStrategyAsync(OpponentPlayStrategy opponentPlayStrategy, 
             foreach (var opr in gameResult.OpponentRemaining) {
                 logger.Log($", op: ${opr.remaining:F0}(${opr.diff:F0}){Environment.NewLine}");
             }
-            logger.LogLine(string.Empty);
         }
 
         if (!string.IsNullOrEmpty(outputFolderPath)) {
