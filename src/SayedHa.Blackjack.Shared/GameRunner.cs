@@ -166,6 +166,10 @@ namespace SayedHa.Blackjack.Shared {
             var allHands = new List<Hand>();
             foreach (var op in game.Opponents) {
                 allHands.AddRange(op.Hands);
+
+                foreach(var hand in op.Hands) {
+                    op.AllHands.AddLast(hand);
+                }
             }
 
             return new GameResult(game.Dealer.Hands[0], allHands,game.Dealer, game.Opponents);

@@ -147,7 +147,7 @@ namespace SayedHa.Blackjack.Shared {
                 }
             }
             sb.Append(']');
-            sb.Append($" Score={GetScore()}");
+            sb.Append($" Score={GetScore()}. Result={HandResult}");
             
             return sb.ToString().Trim();
         }

@@ -133,14 +133,71 @@ async Task PlayGameWithStrategyAsync(OpponentPlayStrategy opponentPlayStrategy, 
             logger.LogLine("Not creating csv file because no argument was passed with the path");
         }
 
+        var summaryString = GetSummaryString(numGamesToPlay, game);
 
         if (enableFileLogger) {
+            logger.LogLine(summaryString);
             logger.CloseFileLogger();
         }
+
+        Console.WriteLine(summaryString);
+
     }
     catch (Exception ex) {
         logger.LogLine(ex.ToString());
     }
+}
+
+string GetSummaryString(int numGames,Game game) {
+    var sb = new StringBuilder();
+
+    sb.AppendLine($"Num games: {numGames}");
+    var conWins = GetNumConsecutiveWins((Opponent)game.Opponents[0]);
+    sb.AppendLine($"Max consecutive wins, opponent={conWins.maxOpponentConWins},dealer={conWins.maxDealerConWins}");
+    sb.AppendLine($"Bankroll: dealer {game.Dealer.BettingStrategy.Bankroll.DollarsRemaining}, op: {game.Opponents[0].BettingStrategy.Bankroll.DollarsRemaining}");
+
+    return sb.ToString();
+}
+(int maxOpponentConWins, int maxDealerConWins) GetNumConsecutiveWins(Opponent opponent) {
+    Debug.Assert(opponent != null);
+    var maxNumOpponentConWins = 0;
+    var maxNumDealerConWins = 0;
+
+    var currentNumOpponentConWins = 0;
+    var currentNumDealerConWins = 0;
+
+    var currentNode = opponent.AllHands.First;
+    while (currentNode != null) {
+        switch (currentNode.Value.HandResult) {
+            case HandResult.DealerWon:
+                currentNumDealerConWins++;
+                // reset opponentwin
+                maxNumOpponentConWins = currentNumOpponentConWins > maxNumOpponentConWins ? currentNumOpponentConWins : maxNumOpponentConWins;
+                currentNumOpponentConWins = 0;
+                break;
+            case HandResult.OpponentWon:
+                currentNumOpponentConWins++;
+                // reset dealer con wins
+                if (currentNumDealerConWins > maxNumDealerConWins) {
+                    maxNumDealerConWins = currentNumDealerConWins;
+                }
+                currentNumDealerConWins = currentNumDealerConWins > maxNumDealerConWins?currentNumDealerConWins : maxNumDealerConWins;
+                currentNumDealerConWins = 0;
+                break;
+            default:
+                break;
+        }
+        currentNode = currentNode.Next;
+    }
+
+    if (currentNumOpponentConWins > maxNumOpponentConWins) {
+        maxNumOpponentConWins = currentNumOpponentConWins;
+    }
+    if (currentNumDealerConWins > maxNumDealerConWins) {
+        maxNumDealerConWins = currentNumDealerConWins;
+    }
+
+    return (maxNumOpponentConWins, maxNumDealerConWins);
 }
 
 async Task CreateCsvFileForResultsAsync(string pathToCsv, List<GameResult> results) {

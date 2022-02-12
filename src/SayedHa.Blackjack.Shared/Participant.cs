@@ -30,8 +30,13 @@ namespace SayedHa.Blackjack.Shared {
         public string Name { get; protected init; }
         public BettingStrategy BettingStrategy { get; protected init; }
 
-        // needs to be a list because of splits
+        /// <summary>
+        /// This is the current hand(s) in play
+        /// It needs to be a list because a split can create multiple hands
+        /// </summary>
         public List<Hand> Hands { get; set; } = new List<Hand>();
+        public LinkedList<Hand>AllHands { get; set; } = new LinkedList<Hand>();
+
 
         /// <summary>
         /// This determines the next action for the players hand(s).

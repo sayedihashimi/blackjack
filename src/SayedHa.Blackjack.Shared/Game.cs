@@ -94,6 +94,8 @@ namespace SayedHa.Blackjack.Shared {
                 opponents.Add(participantFactory.CreateNewOpponent(opponentPlayStrategy, logger));
             }
 
+            // discard the first card - TODO: make into setting to enable/disable
+            cards.GetCardAndMoveNext();
             return new Game(cards, dealerPlayer, opponents, BlackjackSettings.GetBlackjackSettings().ShuffleThresholdPercent);
         }
     }
