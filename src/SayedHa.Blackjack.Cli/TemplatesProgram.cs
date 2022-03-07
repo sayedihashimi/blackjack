@@ -29,7 +29,7 @@ namespace SayedHa.Blackjack.Cli {
         public Task<int> Execute(string[] args) {
             _parser = new CommandLineBuilder()
                         .AddCommand(
-                            new analyze(GetFromServices<IReporter>()).CreateCommand())
+                            new AnalyzeCommand(GetFromServices<IReporter>()).CreateCommand())
                         .UseDefaults()
                         .Build();
 

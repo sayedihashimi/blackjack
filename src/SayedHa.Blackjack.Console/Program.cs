@@ -22,7 +22,7 @@ using System.Text;
 // TODO: this whole class needs to be replaced, just prototyping currently.
 
 // usage
-// [numGamesToPlay] [pathToCsvFileToWriteResults] [enableConsoleLogger] [enableFileLogger] [enableMultiThread]
+// [numGamesToPlay] [outputPath] [enableConsoleLogger] [enableFileLogger] [enableMultiThread]
 
 var numGamesToPlay = 10;
 string? outputPath = null;

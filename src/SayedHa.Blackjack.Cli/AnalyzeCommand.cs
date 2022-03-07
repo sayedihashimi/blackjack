@@ -16,30 +16,77 @@ using System.CommandLine;
 using System.CommandLine.Invocation;
 
 namespace SayedHa.Blackjack.Cli {
-    public class analyze : CommandBase {
+    public class AnalyzeCommand : CommandBase {
         private IReporter _reporter;
-        public analyze(IReporter reporter) {
+        public AnalyzeCommand(IReporter reporter) {
             _reporter = reporter;
         }
         public override Command CreateCommand() =>
             new Command(name: "analyze", description: "will perform analysis with the specified parameters") {
-                CommandHandler.Create<string, bool>(async (numGamesToPlay, verbose) => {
+                CommandHandler.Create<int,string, bool, bool>(async (numGamesToPlay, outputPath, enableConsoleLogger, verbose) => {
                     _reporter.EnableVerbose = verbose;
                     _reporter.WriteLine(VsAscii);
                     _reporter.WriteLine(string.Empty);
                     _reporter.WriteLine($"numGamesToPlay: {numGamesToPlay}");
+                    _reporter.WriteLine($"outputPath: {outputPath}");
+                    _reporter.WriteLine($"enableConsoleLogger: {enableConsoleLogger}");
                     _reporter.WriteLine($"verbose: {verbose}");
                     _reporter.WriteVerbose("verbose message here");
                     // added here to avoid async/await warning
                     await Task.Delay(1000);
                 }),
-                OptionPackages(),
+                OptionNumGamesToPlay(),
+                OptionOutputPath(),
+                OptionEnableConsoleLogger(),
                 OptionVerbose(),
             };
-        protected Option OptionPackages() =>
-            new Option(new string[] { "--numGamesToPlay" }, "number of games to play") {
+        // usage
+        // [numGamesToPlay] [outputPath] [enableConsoleLogger] [enableFileLogger] [enableMultiThread]
+
+        protected Option OptionNumGamesToPlay() {
+            var opt = new Option(new string[] { "--numGamesToPlay" }, "number of games to play") {
                 Argument = new Argument<string>(name: "numGamesToPlay")
             };
+            opt.Argument.SetDefaultValue("10");
+            return opt;
+        }
+
+        protected Option OptionOutputPath() =>
+            new Option(new string[] { "--outputPath" }, "output path, folder path for where files will be written") {
+                Argument = new Argument<string>(name: "outputPath")
+            };
+
+        protected Option OptionEnableConsoleLogger() {
+            var opt = new Option(new string[] { "--enableConsoleLogger" }) {
+                Argument = new Argument<bool>(name: "enableConsoleLogger")
+            };
+            opt.Argument.SetDefaultValue(true);
+            return opt;
+        }
+
+        protected Option OptionEnableFileLogger() {
+            var opt =  new Option(new string[] { "--enableFileLogger" }, "enable file logger") {
+                Argument = new Argument<bool>(name: "enableFileLogger")
+            };
+            opt.Argument.SetDefaultValue("true");
+            return opt;
+        }
+
+        protected Option OptionEnableMultiThread() {
+            var opt = new Option(new string[] { "--enableMultiThread" }, "enable multi threading") {
+                Argument = new Argument<bool>(name: "enableMultiThread")
+            };
+            opt.Argument.SetDefaultValue(false);
+            return opt;
+        }
+
+        protected void Foo() {
+            var op = new Option(new string[] { "--enableMultiThread" }, "enable multi threading") {
+                Argument = new Argument<string>(name: "enableMultiThread")
+            };
+
+            
+        }
 
         private string VsAscii = @"                                                                                
                                                                                 

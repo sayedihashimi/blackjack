@@ -2,7 +2,7 @@
   "profiles": {
     "SayedHa.Blackjack.Cli": {
       "commandName": "Project",
-      "commandLineArgs": "analyze --numGamesToPlay 1234526 --verbose"
+      "commandLineArgs": "analyze --verbose"
     }
   }
 }
