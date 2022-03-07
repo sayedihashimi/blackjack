@@ -3,11 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.2.32127.420
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SayedHa.Blackjack.Console", "SayedHa.Blackjack.Console\SayedHa.Blackjack.Console.csproj", "{F1371977-B0E1-4AE7-8A1B-3B79DB80D57E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SayedHa.Blackjack.Console", "SayedHa.Blackjack.Console\SayedHa.Blackjack.Console.csproj", "{F1371977-B0E1-4AE7-8A1B-3B79DB80D57E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SayedHa.Blackjack.Shared", "SayedHa.Blackjack.Shared\SayedHa.Blackjack.Shared.csproj", "{C2F7D3FD-8A06-4CA2-A774-EFE445DB42A9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SayedHa.Blackjack.Shared", "SayedHa.Blackjack.Shared\SayedHa.Blackjack.Shared.csproj", "{C2F7D3FD-8A06-4CA2-A774-EFE445DB42A9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SayedHa.Blackjack.Tests", "SayedHa.Blackjack.Tests\SayedHa.Blackjack.Tests.csproj", "{9C46C191-FE2C-4543-9EA9-F7F10A1832D1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SayedHa.Blackjack.Tests", "SayedHa.Blackjack.Tests\SayedHa.Blackjack.Tests.csproj", "{9C46C191-FE2C-4543-9EA9-F7F10A1832D1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SayedHa.Blackjack.Cli", "SayedHa.Blackjack.Cli\SayedHa.Blackjack.Cli.csproj", "{327A419F-A4DB-444B-A24B-A426303E3BAF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{9C46C191-FE2C-4543-9EA9-F7F10A1832D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9C46C191-FE2C-4543-9EA9-F7F10A1832D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9C46C191-FE2C-4543-9EA9-F7F10A1832D1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{327A419F-A4DB-444B-A24B-A426303E3BAF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{327A419F-A4DB-444B-A24B-A426303E3BAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{327A419F-A4DB-444B-A24B-A426303E3BAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{327A419F-A4DB-444B-A24B-A426303E3BAF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
