@@ -25,7 +25,6 @@ namespace SayedHa.Blackjack.Cli {
             new Command(name: "analyze", description: "will perform analysis with the specified parameters") {
                 CommandHandler.Create<int,string, bool, bool>(async (numGamesToPlay, outputPath, enableConsoleLogger, verbose) => {
                     _reporter.EnableVerbose = verbose;
-                    _reporter.WriteLine(VsAscii);
                     _reporter.WriteLine(string.Empty);
                     _reporter.WriteLine($"numGamesToPlay: {numGamesToPlay}");
                     _reporter.WriteLine($"outputPath: {outputPath}");
@@ -57,7 +56,7 @@ namespace SayedHa.Blackjack.Cli {
             };
 
         protected Option OptionEnableConsoleLogger() {
-            var opt = new Option(new string[] { "--enableConsoleLogger" }) {
+            var opt = new Option(new string[] { "--enableConsoleLogger" }, "Option to enable or disable the console logger.") {
                 Argument = new Argument<bool>(name: "enableConsoleLogger")
             };
             opt.Argument.SetDefaultValue(true);
@@ -65,7 +64,7 @@ namespace SayedHa.Blackjack.Cli {
         }
 
         protected Option OptionEnableFileLogger() {
-            var opt =  new Option(new string[] { "--enableFileLogger" }, "enable file logger") {
+            var opt =  new Option(new string[] { "--enableFileLogger" }, "Option to enable file logger, the outputPath parameter must be passed for log files") {
                 Argument = new Argument<bool>(name: "enableFileLogger")
             };
             opt.Argument.SetDefaultValue("true");
@@ -73,52 +72,11 @@ namespace SayedHa.Blackjack.Cli {
         }
 
         protected Option OptionEnableMultiThread() {
-            var opt = new Option(new string[] { "--enableMultiThread" }, "enable multi threading") {
+            var opt = new Option(new string[] { "--enableMultiThread" }, "Option to enable multi threading. When running many different strategies multi-threading may improve the perf.") {
                 Argument = new Argument<bool>(name: "enableMultiThread")
             };
             opt.Argument.SetDefaultValue(false);
             return opt;
         }
-
-        protected void Foo() {
-            var op = new Option(new string[] { "--enableMultiThread" }, "enable multi threading") {
-                Argument = new Argument<string>(name: "enableMultiThread")
-            };
-
-            
-        }
-
-        private string VsAscii = @"                                                                                
-                                                                                
-                                                    ******(*                    
-                                                  ********/%%%#,                
-                                                **********/%%%%%%%(.            
-                                             .************/%%%%%%%%%%#/         
-               ,(((((/                     .**************/%%%%%%%%%%%%%%#*     
-            *(((((((((((*                ,****************/%%%%%%%%%%%%%%%%%#   
-         /(((((((((((((((((.           ,******************/%%%%%%%%%%%%%%%%%#   
-     ,(((((((((((((((((((((((*       *********************/%%%%%%%%%%%%%%%%%#   
-   /****,*((((((((((((((((((((((   ***********************/%%%%%%%%%%%%%%%%%#   
-   /********((((((((((((((((((((((/***********************/%%%%%%%%%%%%%%%%%#   
-   /*********,(((((((((((((((((((((((********************,*##################   
-   /***********,/((((((((((((((((((((((/***************   *##################   
-   /************. /(((((((((((((((((((((((**********,     *##################   
-   /************.   /((((((((((((((((((((((((*****        *##################   
-   /************.     *((((((((((((((((((((((((/          *##################   
-   /************.  .*****(((((((((((((((((((((((((*       *##################   
-   /************. *********(((((((((((((((((((((((((/     *##################   
-   /*************************/(((((((((((((((((((((((((*  *##################   
-   /*********,*****************/(((((((((((((((((((((((((/*##################   
-   /*****************************/(((((((((((((((((((((((//##################   
-   /***************************,   *(((((((((((((((((((((//##################   
-      ,**********************.       *(((((((((((((((((((//##################   
-         .****************,            .(((((((((((((((((//##################   
-             ***********                 .((((((((((((((///##################   
-                ,****.                     ./(((((((((((///###############*     
-                                              /(((((((((///###########/         
-                                                *(((((((///#######(.            
-                                                  *((((((//####,                
-                                                    .((((/(/                    
-                                                                                ";
     }
 }

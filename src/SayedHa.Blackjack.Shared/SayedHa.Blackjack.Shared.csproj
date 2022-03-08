@@ -10,4 +10,7 @@
 			<_Parameter1>SayedHa.Blackjack.Tests</_Parameter1>
 		</AssemblyAttribute>
 	</ItemGroup>
+	<ItemGroup>
+	  <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+	</ItemGroup>
 </Project>

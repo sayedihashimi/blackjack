@@ -1,0 +1,15 @@
+{
+  "BetAmount": 1,
+  "BankrollAmount": 0,
+  "BlackjackPayoutMultplier": 1.5,
+  "NumberOfDecks": 6,
+  "ShuffleThresholdPercent": 20,
+  "SplitEnabled": "true",
+  "DoubleDownEnabled": "true",
+  "StrategiesToPlay": [ "BasicStrategy", "StandOn15", "StandOn16" ],
+  "BettingStrategy": {
+    "type": "BasicHiLoStrategy",
+    "betUnitValue": 1,
+    "maxBetSpread": 12
+  }
+}
