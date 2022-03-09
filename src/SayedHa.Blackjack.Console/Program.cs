@@ -73,7 +73,7 @@ if (multiThreads) {
     foreach (var strategy in strategiesToPlay) {
         await semaphore.WaitAsync();
         try {
-            var task = Task.Run(async () => { await StartForStrategyAsync(strategy, numGamesToPlay, enableConsoleLogger, enableFileLogger); });
+            var task = Task.Run(async () => { await StartForStrategyAsync(strategy, numGamesToPlay, enableConsoleLogger, enableFileLogger, outputPathFull); });
             tasks.Add(task);
         }
         finally {
@@ -85,11 +85,11 @@ if (multiThreads) {
 }
 else {
     foreach (var strategy in strategiesToPlay) {
-        await StartForStrategyAsync(strategy, numGamesToPlay, enableConsoleLogger, enableFileLogger);
+        await StartForStrategyAsync(strategy, numGamesToPlay, enableConsoleLogger, enableFileLogger, outputPathFull);
     }
 }
 
-async Task StartForStrategyAsync(OpponentPlayStrategy strategy, int numGamesToPlay, bool enableConsoleLogger, bool enableFileLogger) {
+async Task StartForStrategyAsync(OpponentPlayStrategy strategy, int numGamesToPlay, bool enableConsoleLogger, bool enableFileLogger, string? outputPathFull) {
     var logger = new Logger(enableConsoleLogger);
     if (enableFileLogger && !string.IsNullOrEmpty(outputPathFull)) {
         var logfilepath = Path.Combine(outputPathFull, $"game.{strategy}.log");

@@ -20,14 +20,14 @@ using System.Reflection.Metadata;
 namespace SayedHa.Blackjack.Shared {
     public class BlackjackSettings {
         private BlackjackSettings() {
-            BetAmount = 2;
-            BankrollAmount = 10000;
+            BetAmount = 1;
+            BankrollAmount = 0;
             BlackjackPayoutMultplier = 3F / 2F;
-            NumberOfDecks = 8;
+            NumberOfDecks = 6;
             StrategiesToPlay = GetDefaultStrategiesToPlay();
 
             // CreateBettingStrategy = (bankroll) => { return new FixedBettingStrategy(bankroll); };
-            CreateBettingStrategy = (bankroll) => { return new BasicHiLoStrategy(bankroll, 1, 10); };
+            CreateBettingStrategy = (bankroll) => { return new BasicHiLoStrategy(bankroll, 1, 12); };
 
             DoubleDownEnabled = true;
             SplitEnabled = true;
@@ -35,6 +35,7 @@ namespace SayedHa.Blackjack.Shared {
             MaxScore = 21;
             ShuffleThresholdPercent = 25;
         }
+        private static object _instanceLock = new object();
         private static BlackjackSettings _instance = new BlackjackSettings();
         public int BetAmount { get; protected init; }
         public int MaxScore { get; protected init; }
@@ -76,23 +77,6 @@ namespace SayedHa.Blackjack.Shared {
             }
 
             return LoadFromJson(await File.ReadAllTextAsync(filepath));
-
-            //JObject json = JObject.Parse(await File.ReadAllTextAsync(filepath));
-            //var defaultSettings = new BlackjackSettings();
-            //var strategies = GetStrategiesFromJson(json);
-            //var settings = new BlackjackSettings {
-            //    BetAmount = json.Property("BetAmount") != null ? (int)json["BetAmount"]! : defaultSettings.BetAmount,
-            //    BankrollAmount = json.Property("BankrollAmount") != null ? (int)json["BankrollAmount"]! : defaultSettings.BankrollAmount,
-            //    BlackjackPayoutMultplier = json.Property("BlackjackPayoutMultplier") != null ? (float)json["BlackjackPayoutMultplier"]! : defaultSettings.BlackjackPayoutMultplier,
-            //    NumberOfDecks = json.Property("NumberOfDecks") != null ? (int)json["NumberOfDecks"]! : defaultSettings.NumberOfDecks,
-            //    ShuffleThresholdPercent = json.Property("ShuffleThresholdPercent") != null ? (int)json["ShuffleThresholdPercent"]! : defaultSettings.ShuffleThresholdPercent,
-            //    SplitEnabled = json.Property("SplitEnabled") != null ? (bool)json["SplitEnabled"]! : defaultSettings.SplitEnabled,
-            //    DoubleDownEnabled = json.Property("DoubleDownEnabled") != null ? (bool)json["DoubleDownEnabled"]! : defaultSettings.DoubleDownEnabled,
-            //    StrategiesToPlay = json!.Property("StrategiesToPlay") != null ? GetStrategiesFromJson(json)! : defaultSettings.StrategiesToPlay,
-            //    CreateBettingStrategy = json.Property("BettingStrategy") != null ? GetBettingStrategyFromJson(json):defaultSettings.CreateBettingStrategy
-            //};
-
-            //return settings;
         }
 
         public static BlackjackSettings LoadFromJson(string jsonString) {
@@ -210,6 +194,15 @@ namespace SayedHa.Blackjack.Shared {
             return result;
         }
 
+        public static void SetBlackjackSettings(BlackjackSettings settings) {
+            if (settings == null) {
+                throw new ArgumentNullException(nameof(settings));
+            }
+
+            lock (_instanceLock) {
+                _instance = settings;
+            }
+        }
         // replace this with DI later
         public static BlackjackSettings GetBlackjackSettings() {
             return _instance;

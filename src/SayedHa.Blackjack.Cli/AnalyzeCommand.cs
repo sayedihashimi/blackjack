@@ -12,6 +12,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with SayedHa.Blackjack.  If not, see <https://www.gnu.org/licenses/>.
+using SayedHa.Blackjack.Shared;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 
@@ -23,24 +24,43 @@ namespace SayedHa.Blackjack.Cli {
         }
         public override Command CreateCommand() =>
             new Command(name: "analyze", description: "will perform analysis with the specified parameters") {
-                CommandHandler.Create<int,string, bool, bool>(async (numGamesToPlay, outputPath, enableConsoleLogger, verbose) => {
+                CommandHandler.Create<int,string, bool,bool, bool,string,bool>(async (numGamesToPlay, outputPath, enableConsoleLogger,enableFilelogger,enableMultiThread, blackjackPlayerSettingsFilepath, verbose) => {
                     _reporter.EnableVerbose = verbose;
-                    _reporter.WriteLine(string.Empty);
-                    _reporter.WriteLine($"numGamesToPlay: {numGamesToPlay}");
-                    _reporter.WriteLine($"outputPath: {outputPath}");
-                    _reporter.WriteLine($"enableConsoleLogger: {enableConsoleLogger}");
-                    _reporter.WriteLine($"verbose: {verbose}");
-                    _reporter.WriteVerbose("verbose message here");
-                    // added here to avoid async/await warning
-                    await Task.Delay(1000);
+
+                    if(EnableVerbose) {
+                        _reporter.WriteLine(string.Empty);
+                        _reporter.WriteLine($"numGamesToPlay: {numGamesToPlay}");
+                        _reporter.WriteLine($"outputPath: {outputPath}");
+                        _reporter.WriteLine($"enableConsoleLogger: {enableConsoleLogger}");
+                        _reporter.WriteLine($"enableFilelogger: {enableFilelogger}");
+                        _reporter.WriteLine($"enableMultiThread: {enableMultiThread}");
+                        _reporter.WriteLine($"blackjackPlayerSettingsFilepath: {blackjackPlayerSettingsFilepath}");
+                        _reporter.WriteLine($"verbose: {verbose}");
+                        _reporter.WriteVerbose("verbose message here");
+                        _reporter.WriteLine(string.Empty);
+                    }
+
+                    var analyzer = new Analyzer {
+                        NumGamesToPlay = numGamesToPlay,
+                        OutputPath = outputPath,
+                        EnableConsoleLogger = enableConsoleLogger,
+                        EnableFileLogger = enableFilelogger,
+                        EnableMultiThread = enableMultiThread,
+                        PathToBlackjackSettingsFile = blackjackPlayerSettingsFilepath
+                    };
+                    await analyzer.AnalyzeAsync();
+
                 }),
                 OptionNumGamesToPlay(),
                 OptionOutputPath(),
                 OptionEnableConsoleLogger(),
+                OptionEnableFileLogger(),
+                OptionEnableMultiThread(),
+                OptionBlackjackPlayerSettingsFilePath(),
                 OptionVerbose(),
             };
         // usage
-        // [numGamesToPlay] [outputPath] [enableConsoleLogger] [enableFileLogger] [enableMultiThread]
+        // [numGamesToPlay] [outputPath] [enableConsoleLogger] [enableFileLogger] [enableMultiThread] [blackjackPlayerSettingsFilepath] [verbose]
 
         protected Option OptionNumGamesToPlay() {
             var opt = new Option(new string[] { "--numGamesToPlay" }, "number of games to play") {
@@ -78,5 +98,41 @@ namespace SayedHa.Blackjack.Cli {
             opt.Argument.SetDefaultValue(false);
             return opt;
         }
+
+        protected Option OptionBlackjackPlayerSettingsFilePath() {
+            var opt = new Option<string>(new string[] { "--blackjackPlayerSettingsFilepath" }, "Path to json file with settings for the blackjack player") {
+                Argument = new Argument<string>(name: "blackjackPlayerSettingsFilepath")
+            };
+            return opt;
+        }
+
+        //protected Option OptionBetAmount() {
+        //    var opt = new Option(new string[] { "--betAmount" }, "Base bet amount in dollars") {
+        //        Argument = new Argument<int>(name: "betAmount")
+        //    };
+        //    opt.Argument.SetDefaultValue(1);
+        //    return opt;
+        //}
+        //protected Option OptionBankrollAmount() {
+        //    var opt = new Option(new string[] { "--bankrollAmount" }, "Total amount that the player has in total") {
+        //        Argument = new Argument<int>(name: "bankrollAmount")
+        //    };
+        //    opt.Argument.SetDefaultValue(0);
+        //    return opt;
+        //}
+        //protected Option OptionBlackjackPayoutMultplier() {
+        //    var opt = new Option(new string[] { "--blackjackPayoutMultplier" }, "Payout multiplier when player has blackjack") {
+        //        Argument = new Argument<float>(name: "blackjackPayoutMultplier")
+        //    };
+        //    opt.Argument.SetDefaultValue(1.5);
+        //    return opt;
+        //}
+        //protected Option OptionNumberOfDecks() {
+        //    var opt = new Option(new string[] { "--numberOfDecks" }, "Number of decks to play wiht") {
+        //        Argument = new Argument<int>(name: "numberOfDecks")
+        //    };
+        //    opt.Argument.SetDefaultValue(6);
+        //    return opt;
+        //}
     }
 }

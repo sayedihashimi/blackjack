@@ -13,6 +13,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with SayedHa.Blackjack.  If not, see <https://www.gnu.org/licenses/>.
 using Microsoft.Extensions.DependencyInjection;
+using SayedHa.Blackjack.Shared;
 using System.CommandLine;
 using System.CommandLine.Builder;
 using System.CommandLine.Parsing;
@@ -38,7 +39,7 @@ namespace SayedHa.Blackjack.Cli {
         private void RegisterServices() {
             _services = new ServiceCollection();
             _serviceProvider = _services
-                                .AddSingleton<IReporter, Reporter>()
+                                .AddSingleton<IReporter, ConsoleReporter>()
                                 .BuildServiceProvider();
         }
         private TType GetFromServices<TType>() {
