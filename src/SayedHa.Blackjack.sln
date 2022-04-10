@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SayedHa.Blackjack.Shared", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SayedHa.Blackjack.Tests", "SayedHa.Blackjack.Tests\SayedHa.Blackjack.Tests.csproj", "{9C46C191-FE2C-4543-9EA9-F7F10A1832D1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SayedHa.Blackjack.Cli", "SayedHa.Blackjack.Cli\SayedHa.Blackjack.Cli.csproj", "{327A419F-A4DB-444B-A24B-A426303E3BAF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SayedHa.Blackjack.Cli", "SayedHa.Blackjack.Cli\SayedHa.Blackjack.Cli.csproj", "{327A419F-A4DB-444B-A24B-A426303E3BAF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SayedHa.Roulette.Console", "SayedHa.Roulette.Console\SayedHa.Roulette.Console.csproj", "{23B4C9ED-B653-4A3C-97C0-EABDC0A1F84C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{327A419F-A4DB-444B-A24B-A426303E3BAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{327A419F-A4DB-444B-A24B-A426303E3BAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{327A419F-A4DB-444B-A24B-A426303E3BAF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{23B4C9ED-B653-4A3C-97C0-EABDC0A1F84C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{23B4C9ED-B653-4A3C-97C0-EABDC0A1F84C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{23B4C9ED-B653-4A3C-97C0-EABDC0A1F84C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{23B4C9ED-B653-4A3C-97C0-EABDC0A1F84C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
