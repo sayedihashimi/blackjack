@@ -89,12 +89,14 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             var board = BuildBoard(settings);
             var numCells = board.Cells.Count();
 
-            var numberOfSpins = 1000;
+            var numberOfSpins = settings.NumberOfSpins;
             for (int i = 0; i < numberOfSpins; i++) {
                 // generate a random GameCell
                 var spinValueIndex = GetRandomNum(numCells);
                 var spinValue = board.Cells[spinValueIndex];
-                Console.WriteLine($"{spinValue}");
+                if (settings.EnableConsoleLogger) {
+                    Console.WriteLine($"{spinValue}");
+                }
             }
         }
         private Random _random = new Random();
