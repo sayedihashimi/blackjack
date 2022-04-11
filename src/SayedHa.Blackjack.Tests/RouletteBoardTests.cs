@@ -26,13 +26,6 @@ namespace SayedHa.Blackjack.Tests {
             // last two are green
             Assert.Equal(GameCellColor.Green, board.Cells[^1].Color);
             Assert.Equal(GameCellColor.Green, board.Cells[^2].Color);
-
-
-            RoulettePlayer rPlayer = new RoulettePlayer();
-            rPlayer.Play(new GameSettings());
-
-            Console.WriteLine("finished");
-
         }
     }
 }

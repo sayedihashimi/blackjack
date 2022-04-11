@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -83,24 +84,103 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         public List<GameCell> Cells { get; set; }
     }
 
+    /// <summary>
+    /// GameRecorders are responsbile for capturing the results of the game.
+    /// If the game results are to be persisted anywhere, the game recorder
+    /// should be the one persisting the data as well.
+    /// </summary>
+    public interface IGameRecorder:IDisposable {
+        public Task RecordSpinAsync(GameCell cell);
+    }
+
+    public abstract class GameRecorderBase : IGameRecorder {
+        protected virtual void Dispose(bool disposing) {
+
+        }
+        public void Dispose() {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+
+        public abstract Task RecordSpinAsync(GameCell cell);
+    }
+
+    public class ConsoleGameRecorder : GameRecorderBase {
+        public bool Enabled { get; set; } = true;
+
+        public override async Task RecordSpinAsync(GameCell cell) {
+            RecordSpin(cell);
+        }
+        public void RecordSpin(GameCell cell) {
+            if (Enabled) {
+                Console.WriteLine(cell.ToString());
+            }
+        }
+    }
+    public class CsvGameRecorder : IGameRecorder {
+        public CsvGameRecorder(string csvFilepath) {
+            Debug.Assert(!string.IsNullOrEmpty(csvFilepath));
+            CsvFilePath = csvFilepath;
+        }
+        protected string CsvFilePath { get; init; }
+        protected StreamWriter StreamWriter { get; set; }
+        private bool _isInitalized = false;
+        private bool disposedValue;
+
+        protected async Task InitalizeAsync() {
+            _isInitalized = true;
+            StreamWriter = new StreamWriter(CsvFilePath, false);
+            await WriteHeaderAsync();
+        }
+        protected async Task WriteHeaderAsync() {
+            await StreamWriter.WriteLineAsync("text,color");
+        }
+        protected async Task WriteLineForAsync(GameCell cell) {
+            if (!_isInitalized) {
+                await InitalizeAsync();
+            }
+            await StreamWriter.WriteLineAsync($"{cell.Text},{cell.Color}");
+        }
+        public async Task RecordSpinAsync(GameCell cell) {
+            await WriteLineForAsync(cell);
+        }
+
+        protected virtual void Dispose(bool disposing) {
+            if (!disposedValue) {
+                if (disposing && StreamWriter is not null) {
+                    StreamWriter.Flush();
+                    StreamWriter.Close();
+                }
+                disposedValue = true;
+            }
+        }
+
+        public void Dispose() {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+    }
+
     public class RoulettePlayer {
-        public void Play(GameSettings settings) {
+        public async Task PlayAsync(GameSettings settings,List<IGameRecorder>recorders) {
             // first build the board
             var board = BuildBoard(settings);
-            var numCells = board.Cells.Count();
+            var numCells = board.Cells.Count;
 
             var numberOfSpins = settings.NumberOfSpins;
             for (int i = 0; i < numberOfSpins; i++) {
-                // generate a random GameCell
-                var spinValueIndex = GetRandomNum(numCells);
-                var spinValue = board.Cells[spinValueIndex];
-                if (settings.EnableConsoleLogger) {
-                    Console.WriteLine($"{spinValue}");
+                var spinValue = GetRandomCellFrom(board);
+                foreach (var recorder in recorders) {
+                    await recorder.RecordSpinAsync(spinValue);
                 }
             }
         }
         private Random _random = new Random();
         // TODO: does this need to be improved?
+        protected GameCell GetRandomCellFrom(Board board) =>
+            board.Cells[GetRandomNum(board.Cells.Count)];
         public int GetRandomNum(int max) => 
             _random.Next(max);
 
