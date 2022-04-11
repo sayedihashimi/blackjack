@@ -3,8 +3,8 @@ using System.Diagnostics;
 
 RoulettePlayer player = new RoulettePlayer();
 var settings = new GameSettings {
-    EnableConsoleLogger = true,
-    NumberOfSpins = 100
+    EnableConsoleLogger = false,
+    NumberOfSpins = 100000000
 };
 
 var recorders = new List<IGameRecorder>();
@@ -14,7 +14,10 @@ if (settings.EnableConsoleLogger) {
 
 var timestamp = DateTime.Now.ToString("yyyy.MM.dd-hhmmss.ff");
 var csvRecorder = new CsvGameRecorder($@"C:\temp\roulette\r-{timestamp}.csv");
-recorders.Add(csvRecorder);
+var csvWithStatsRecorder = new CsvWithStatsGameRecorder($@"C:\temp\roulette\r-{timestamp}-stats.csv");
+
+recorders.Add(new CsvGameRecorder($@"C:\temp\roulette\r-{timestamp}.csv"));
+recorders.Add(new CsvWithStatsGameRecorder($@"C:\temp\roulette\r-{timestamp}-stats.csv"));
 
 var watch = Stopwatch.StartNew();
 await player.PlayAsync(settings, recorders);
@@ -24,4 +27,4 @@ foreach (var recorder in recorders) {
     recorder.Dispose();
 }
 
-Console.WriteLine($"num spins: {settings.NumberOfSpins:N0}\ntime: {watch.Elapsed.TotalSeconds}");
+Console.WriteLine($@"num spins: {settings.NumberOfSpins:N0} time: {watch.Elapsed.TotalSeconds} filename:'timestamp'");

@@ -67,7 +67,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             };
         }
     }
-    
+
     public enum GameCellColor {
         Red,
         Black,
@@ -89,7 +89,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
     /// If the game results are to be persisted anywhere, the game recorder
     /// should be the one persisting the data as well.
     /// </summary>
-    public interface IGameRecorder:IDisposable {
+    public interface IGameRecorder : IDisposable {
         public Task RecordSpinAsync(GameCell cell);
     }
 
@@ -125,24 +125,24 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         }
         protected string CsvFilePath { get; init; }
         protected StreamWriter StreamWriter { get; set; }
-        private bool _isInitalized = false;
+        protected bool isInitalized = false;
         private bool disposedValue;
 
         protected async Task InitalizeAsync() {
-            _isInitalized = true;
+            isInitalized = true;
             StreamWriter = new StreamWriter(CsvFilePath, false);
             await WriteHeaderAsync();
         }
-        protected async Task WriteHeaderAsync() {
+        protected virtual async Task WriteHeaderAsync() {
             await StreamWriter.WriteLineAsync("text,color");
         }
-        protected async Task WriteLineForAsync(GameCell cell) {
-            if (!_isInitalized) {
+        protected virtual async Task WriteLineForAsync(GameCell cell) {
+            if (!isInitalized) {
                 await InitalizeAsync();
             }
             await StreamWriter.WriteLineAsync($"{cell.Text},{cell.Color}");
         }
-        public async Task RecordSpinAsync(GameCell cell) {
+        public virtual async Task RecordSpinAsync(GameCell cell) {
             await WriteLineForAsync(cell);
         }
 
@@ -162,6 +162,50 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             GC.SuppressFinalize(this);
         }
     }
+
+    // some stats that we want to gather
+    //  spins since last red/black/green
+    public class CsvWithStatsGameRecorder : CsvGameRecorder {
+        public CsvWithStatsGameRecorder(string csvFilePath) : base(csvFilePath) {
+        }
+
+        protected int SpinsSinceLastBlack { get; set; }
+        protected int SpinsSinceLastRed { get; set; }
+        protected int SpinsSinceLastGreen { get; set; }
+
+        protected override async Task WriteHeaderAsync() {
+            await StreamWriter.WriteLineAsync("text,color,sinceLastRed,sinceLastBlack,sinceLastGreen");
+        }
+        protected override async Task WriteLineForAsync(GameCell cell) {
+            if (!isInitalized) {
+                await InitalizeAsync();
+            }
+            await StreamWriter.WriteLineAsync($"{cell.Text},{cell.Color},{SpinsSinceLastRed},{SpinsSinceLastBlack},{SpinsSinceLastGreen}");
+        }
+        public override async Task RecordSpinAsync(GameCell cell) {
+            switch (cell.Color) {
+                case GameCellColor.Black:
+                    SpinsSinceLastBlack = 0;
+                    SpinsSinceLastGreen++;
+                    SpinsSinceLastRed++;
+                    break;
+                case GameCellColor.Red:
+                    SpinsSinceLastRed = 0;
+                    SpinsSinceLastBlack++;
+                    SpinsSinceLastGreen++;
+                    break;
+                case GameCellColor.Green:
+                    SpinsSinceLastGreen = 0;
+                    SpinsSinceLastRed++;
+                    SpinsSinceLastGreen++;
+                    break;
+                default: throw new ArgumentOutOfRangeException(nameof(cell.Color));
+            }
+
+            await WriteLineForAsync(cell);
+        }
+    }
+
 
     public class RoulettePlayer {
         public async Task PlayAsync(GameSettings settings,List<IGameRecorder>recorders) {
