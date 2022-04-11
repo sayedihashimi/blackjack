@@ -46,7 +46,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         /// </summary>
         public int Value { get; init; }
         public GameCellColor Color { get; init; }
-        public string Text { get; init; }
+        public string? Text { get; init; }
 
         public override string ToString() {
             return $"{Text} {Color}";
@@ -73,15 +73,15 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         Black,
         Green
     }
-    public class GameRoll {
-        public GameCell CellHit { get; set; }
-    }
+    //public class GameRoll {
+    //    public GameCell CellHit { get; set; }
+    //}
     public class GameRecord {
         public LinkedList<GameCell>? CellsHit { get; set; } = new LinkedList<GameCell>();
     }
 
     public class Board {
-        public List<GameCell> Cells { get; set; }
+        public List<GameCell>? Cells { get; set; }
     }
 
     /// <summary>
@@ -124,7 +124,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             CsvFilePath = csvFilepath;
         }
         protected string CsvFilePath { get; init; }
-        protected StreamWriter StreamWriter { get; set; }
+        protected StreamWriter? StreamWriter { get; set; }
         protected bool isInitalized = false;
         private bool disposedValue;
 
@@ -134,13 +134,13 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             await WriteHeaderAsync();
         }
         protected virtual async Task WriteHeaderAsync() {
-            await StreamWriter.WriteLineAsync("text,color");
+            await StreamWriter!.WriteLineAsync("text,color");
         }
         protected virtual async Task WriteLineForAsync(GameCell cell) {
             if (!isInitalized) {
                 await InitalizeAsync();
             }
-            await StreamWriter.WriteLineAsync($"{cell.Text},{cell.Color}");
+            await StreamWriter!.WriteLineAsync($"{cell.Text},{cell.Color}");
         }
         public virtual async Task RecordSpinAsync(GameCell cell) {
             await WriteLineForAsync(cell);
@@ -173,14 +173,18 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         protected int SpinsSinceLastRed { get; set; }
         protected int SpinsSinceLastGreen { get; set; }
 
+        protected int ConsecutiveBlack { get; set; }
+        protected int ConsecutiveRed { get; set; }
+        protected int ConsecutiveGreen { get; set; }
+
         protected override async Task WriteHeaderAsync() {
-            await StreamWriter.WriteLineAsync("text,color,sinceLastRed,sinceLastBlack,sinceLastGreen");
+            await StreamWriter!.WriteLineAsync("text,color,sinceLastRed,sinceLastBlack,sinceLastGreen,consecRed,consecBlack,consecGreen");
         }
         protected override async Task WriteLineForAsync(GameCell cell) {
             if (!isInitalized) {
                 await InitalizeAsync();
             }
-            await StreamWriter.WriteLineAsync($"{cell.Text},{cell.Color},{SpinsSinceLastRed},{SpinsSinceLastBlack},{SpinsSinceLastGreen}");
+            await StreamWriter!.WriteLineAsync($"{cell.Text},{cell.Color},{SpinsSinceLastRed},{SpinsSinceLastBlack},{SpinsSinceLastGreen},{ConsecutiveRed},{ConsecutiveBlack},{ConsecutiveGreen}");
         }
         public override async Task RecordSpinAsync(GameCell cell) {
             switch (cell.Color) {
@@ -188,16 +192,25 @@ namespace SayedHa.Blackjack.Shared.Roulette {
                     SpinsSinceLastBlack = 0;
                     SpinsSinceLastGreen++;
                     SpinsSinceLastRed++;
+                    ConsecutiveBlack++;
+                    ConsecutiveRed = 0;
+                    ConsecutiveGreen = 0;
                     break;
                 case GameCellColor.Red:
                     SpinsSinceLastRed = 0;
                     SpinsSinceLastBlack++;
                     SpinsSinceLastGreen++;
+                    ConsecutiveRed++;
+                    ConsecutiveBlack = 0;
+                    ConsecutiveGreen = 0;
                     break;
                 case GameCellColor.Green:
                     SpinsSinceLastGreen = 0;
                     SpinsSinceLastRed++;
                     SpinsSinceLastGreen++;
+                    ConsecutiveGreen++;
+                    ConsecutiveBlack = 0;
+                    ConsecutiveRed = 0;
                     break;
                 default: throw new ArgumentOutOfRangeException(nameof(cell.Color));
             }
@@ -211,7 +224,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         public async Task PlayAsync(GameSettings settings,List<IGameRecorder>recorders) {
             // first build the board
             var board = BuildBoard(settings);
-            var numCells = board.Cells.Count;
+            var numCells = board.Cells!.Count;
 
             var numberOfSpins = settings.NumberOfSpins;
             for (int i = 0; i < numberOfSpins; i++) {
@@ -224,7 +237,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         private Random _random = new Random();
         // TODO: does this need to be improved?
         protected GameCell GetRandomCellFrom(Board board) =>
-            board.Cells[GetRandomNum(board.Cells.Count)];
+            board.Cells![GetRandomNum(board.Cells!.Count)];
         public int GetRandomNum(int max) => 
             _random.Next(max);
 

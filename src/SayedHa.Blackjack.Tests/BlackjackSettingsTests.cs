@@ -28,12 +28,7 @@ namespace SayedHa.Blackjack.Tests {
             Assert.NotNull(result.CreateBettingStrategy);
         }
 
-        private string _testFile01;
         private async Task<string> GetTestFile01ContentsAsync() {
-            if (!string.IsNullOrEmpty(_testFile01)) {
-                return _testFile01;
-            }
-
             var ass = Assembly.GetExecutingAssembly();
             var info = ass.GetManifestResourceNames();
 

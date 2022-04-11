@@ -16,7 +16,7 @@ namespace SayedHa.Blackjack.Tests {
 
             Assert.NotNull(board);
             Assert.NotNull(board.Cells);
-            Assert.Equal(38, board.Cells.Count);
+            Assert.Equal(38, board.Cells!.Count);
             // 1 is red
             Assert.Equal(GameCellColor.Red, board.Cells[0].Color);
             // 2 is black

@@ -107,7 +107,7 @@ namespace SayedHa.Blackjack.Shared {
                 return null!;
             }
 
-            Func<Bankroll, BettingStrategy> result = null;
+            Func<Bankroll, BettingStrategy>? result = null;
             var name = ((string)json!["BettingStrategy"]!["type"]!).ToLowerInvariant();
             var nameLower = name.ToLowerInvariant();
             switch (nameLower) {

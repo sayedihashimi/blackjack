@@ -1,10 +1,16 @@
 ﻿using SayedHa.Blackjack.Shared.Roulette;
 using System.Diagnostics;
 
+int numSpins = 100;
+
+if(args.Length == 1) {
+    numSpins = int.Parse(args[0]);
+}
+
 RoulettePlayer player = new RoulettePlayer();
 var settings = new GameSettings {
     EnableConsoleLogger = false,
-    NumberOfSpins = 100000000
+    NumberOfSpins = numSpins
 };
 
 var recorders = new List<IGameRecorder>();
@@ -27,4 +33,4 @@ foreach (var recorder in recorders) {
     recorder.Dispose();
 }
 
-Console.WriteLine($@"num spins: {settings.NumberOfSpins:N0} time: {watch.Elapsed.TotalSeconds} filename:'timestamp'");
+Console.WriteLine($"num spins: {settings.NumberOfSpins:N0}\ntime: {watch.Elapsed.TotalSeconds}\nfilename: 'r-{timestamp}*.csv'");
