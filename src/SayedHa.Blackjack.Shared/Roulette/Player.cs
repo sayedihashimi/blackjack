@@ -51,7 +51,57 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         public override string ToString() {
             return $"{Text} {Color}";
         }
+        private List<GameCellGroup> _groups;
+        public List<GameCellGroup> CellGroups {
+            get {
+                if (_groups is null) {
+                    _groups = GetGroups(this);
+                }
+                return _groups;
+            }
+        }
 
+        public bool IsInGroup(GameCellGroup group) =>
+            CellGroups.Contains(group);
+
+
+        protected List<GameCellGroup> GetGroups(GameCell cell) {
+            var result = new List<GameCellGroup>();
+            if (cell.Value == int.MaxValue || cell.Value == int.MinValue) {
+                return result;
+            }
+
+            // first twelve
+            if (cell.Value >= 1 && cell.Value <= 12)
+                result.Add(GameCellGroup.First12);
+            if (cell.Value >= 13 && cell.Value <= 24)
+                result.Add(GameCellGroup.Second12);
+            if (cell.Value >= 25 && cell.Value <= 36)
+                result.Add(GameCellGroup.Third12);
+
+            // 1st and 2nd 18
+            if (cell.Value >= 1 && cell.Value <= 18)
+                result.Add(GameCellGroup.First18);
+            if (cell.Value >= 19 && cell.Value <= 36)
+                result.Add(GameCellGroup.Second18);
+
+            // columns
+            switch (cell.Value % 3) {
+                case 1:
+                    result.Add(GameCellGroup.FirstColumn);
+                    break;
+                case 2:
+                    result.Add(GameCellGroup.SecondColumn);
+                    break;
+                case 0:
+                    result.Add(GameCellGroup.ThirdColumn);
+                    break;
+                default: throw new ArgumentOutOfRangeException(cell.Value.ToString());
+
+            }
+
+            return result;
+        }
         public class GameCellFactory {
             public GameCell NewGreenCell(int id, string text) => new GameCell {
                 Id = id,
@@ -73,6 +123,17 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         Black,
         Green
     }
+    public enum GameCellGroup {
+        First12,
+        Second12,
+        Third12,
+        First18,
+        Second18,
+        FirstColumn,
+        SecondColumn,
+        ThirdColumn
+    }
+
     //public class GameRoll {
     //    public GameCell CellHit { get; set; }
     //}
@@ -167,6 +228,24 @@ namespace SayedHa.Blackjack.Shared.Roulette {
     //  spins since last red/black/green
     public class CsvWithStatsGameRecorder : CsvGameRecorder {
         public CsvWithStatsGameRecorder(string csvFilePath) : base(csvFilePath) {
+            groupDictionarySpinsSince = new Dictionary<GameCellGroup, int>();
+            groupDictionaryConsecutive = new Dictionary<GameCellGroup, int>();
+
+            foreach (GameCellGroup group in (GameCellGroup[])Enum.GetValues(typeof(GameCellGroup))) {
+                groupDictionarySpinsSince.Add(group, 0);
+                groupDictionaryConsecutive.Add(group, 0);
+            }
+
+            groupOuputOrder = new List<GameCellGroup> {
+                GameCellGroup.First12,
+                GameCellGroup.Second12,
+                GameCellGroup.Third12,
+                GameCellGroup.First18,
+                GameCellGroup.Second18,
+                GameCellGroup.FirstColumn,
+                GameCellGroup.SecondColumn,
+                GameCellGroup.ThirdColumn
+            };
         }
 
         protected int SpinsSinceLastBlack { get; set; }
@@ -177,14 +256,44 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         protected int ConsecutiveRed { get; set; }
         protected int ConsecutiveGreen { get; set; }
 
+        Dictionary<GameCellGroup, int> groupDictionarySpinsSince { get; init; }
+        Dictionary<GameCellGroup, int> groupDictionaryConsecutive { get; init; }
+        List<GameCellGroup> groupOuputOrder { get; init;
+        }
         protected override async Task WriteHeaderAsync() {
-            await StreamWriter!.WriteLineAsync("text,color,sinceLastRed,sinceLastBlack,sinceLastGreen,consecRed,consecBlack,consecGreen");
+            await StreamWriter!.WriteAsync("text,color,sinceLastRed,sinceLastBlack,sinceLastGreen,consecRed,consecBlack,consecGreen,groups,");
+            for (int i = 0; i < groupOuputOrder.Count; i++) {
+                var group = groupOuputOrder[i];
+                await StreamWriter!.WriteAsync($"sinceLast{group},consec{group}");
+                if (i < groupOuputOrder.Count - 1) {
+                    await StreamWriter.WriteAsync(",");
+                }
+            }
+            await StreamWriter!.WriteAsync("\n");
         }
         protected override async Task WriteLineForAsync(GameCell cell) {
             if (!isInitalized) {
                 await InitalizeAsync();
             }
-            await StreamWriter!.WriteLineAsync($"{cell.Text},{cell.Color},{SpinsSinceLastRed},{SpinsSinceLastBlack},{SpinsSinceLastGreen},{ConsecutiveRed},{ConsecutiveBlack},{ConsecutiveGreen}");
+            var groupStr = string.Join("|", cell.CellGroups);
+            if (string.IsNullOrEmpty(groupStr)) {
+                groupStr = "(none)";
+            }
+
+            var groupNames = ((GameCellGroup[])Enum.GetValues(typeof(GameCellGroup))).ToList();
+            // sort names so that they are consistent in the 
+            groupNames.Sort();
+
+            await StreamWriter!.WriteAsync($"{cell.Text},{cell.Color},{SpinsSinceLastRed},{SpinsSinceLastBlack},{SpinsSinceLastGreen},{ConsecutiveRed},{ConsecutiveBlack},{ConsecutiveGreen},{groupStr},");
+            // write out the groups
+            for (int i = 0; i < groupOuputOrder.Count; i++) {
+                var group = groupOuputOrder[i];
+                await StreamWriter!.WriteAsync($"{groupDictionarySpinsSince[group]},{groupDictionaryConsecutive[group]}");
+                if (i < groupOuputOrder.Count - 1) {
+                    await StreamWriter.WriteAsync(",");
+                }
+            }
+            await StreamWriter!.WriteAsync("\n");
         }
         public override async Task RecordSpinAsync(GameCell cell) {
             switch (cell.Color) {
@@ -215,13 +324,25 @@ namespace SayedHa.Blackjack.Shared.Roulette {
                 default: throw new ArgumentOutOfRangeException(nameof(cell.Color));
             }
 
+            // group analysis here
+            foreach (GameCellGroup group in (GameCellGroup[])Enum.GetValues(typeof(GameCellGroup))) {
+                // check to see if the current cell is in this group
+                if (cell.IsInGroup(group)) {
+                    groupDictionarySpinsSince[group] = 0;
+                    groupDictionaryConsecutive[group]++;
+                }
+                else {
+                    groupDictionarySpinsSince[group]++;
+                    groupDictionaryConsecutive[group] = 0;
+                }
+            }
+
             await WriteLineForAsync(cell);
         }
     }
 
-
     public class RoulettePlayer {
-        public async Task PlayAsync(GameSettings settings,List<IGameRecorder>recorders) {
+        public async Task PlayAsync(GameSettings settings, List<IGameRecorder> recorders) {
             // first build the board
             var board = BuildBoard(settings);
             var numCells = board.Cells!.Count;
@@ -238,14 +359,14 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         // TODO: does this need to be improved?
         protected GameCell GetRandomCellFrom(Board board) =>
             board.Cells![GetRandomNum(board.Cells!.Count)];
-        public int GetRandomNum(int max) => 
+        public int GetRandomNum(int max) =>
             _random.Next(max);
 
         protected internal Board BuildBoard(GameSettings settings) {
             var factory = new GameCell.GameCellFactory();
             var cells = new List<GameCell>();
             // build a list of GameCells starting with 1 - 36 alternating red and black, then add special cells
-            
+
             // 1 is red
             var currentColor = GameCellColor.Red;
             for (int i = 1; i <= 36; i++) {
@@ -256,7 +377,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             int currentId = 37;
             // add special cells as specified in settings
             if (settings is not null && settings.SpecialCells is not null && settings.SpecialCells.Length > 0) {
-                foreach(var special in settings.SpecialCells) {
+                foreach (var special in settings.SpecialCells) {
                     cells.Add(factory.NewGreenCell(currentId++, special));
                 }
             }

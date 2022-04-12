@@ -19,11 +19,13 @@ if (settings.EnableConsoleLogger) {
 }
 
 var timestamp = DateTime.Now.ToString("yyyy.MM.dd-hhmmss.ff");
-var csvRecorder = new CsvGameRecorder($@"C:\temp\roulette\r-{timestamp}.csv");
-var csvWithStatsRecorder = new CsvWithStatsGameRecorder($@"C:\temp\roulette\r-{timestamp}-stats.csv");
+var filename = $@"C:\temp\roulette\r-{numSpins}-{timestamp}.csv";
+var statsFilename = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-stats.csv";
+var csvRecorder = new CsvGameRecorder(filename);
+var csvWithStatsRecorder = new CsvWithStatsGameRecorder(statsFilename);
 
-recorders.Add(new CsvGameRecorder($@"C:\temp\roulette\r-{timestamp}.csv"));
-recorders.Add(new CsvWithStatsGameRecorder($@"C:\temp\roulette\r-{timestamp}-stats.csv"));
+recorders.Add(new CsvGameRecorder(filename));
+recorders.Add(new CsvWithStatsGameRecorder(statsFilename));
 
 var watch = Stopwatch.StartNew();
 await player.PlayAsync(settings, recorders);
@@ -33,4 +35,4 @@ foreach (var recorder in recorders) {
     recorder.Dispose();
 }
 
-Console.WriteLine($"num spins: {settings.NumberOfSpins:N0}\ntime: {watch.Elapsed.TotalSeconds}\nfilename: 'r-{timestamp}*.csv'");
+Console.WriteLine($"num spins: {settings.NumberOfSpins:N0}\ntime: {watch.Elapsed.TotalSeconds}\nfilenames: '{filename}','{statsFilename}'");
