@@ -2,6 +2,8 @@
 using System.Diagnostics;
 
 int numSpins = 100;
+bool enableCsvFileOutput = false;
+bool enableSummaryFileOutput = true;
 
 if(args.Length == 1) {
     numSpins = int.Parse(args[0]);
@@ -21,15 +23,25 @@ if (settings.EnableConsoleLogger) {
 var timestamp = DateTime.Now.ToString("yyyy.MM.dd-hhmmss.ff");
 var filename = $@"C:\temp\roulette\r-{numSpins}-{timestamp}.csv";
 var statsFilename = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-stats.csv";
+var summaryFilename = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-summary.csv"; ;
 var csvRecorder = new CsvGameRecorder(filename);
 var csvWithStatsRecorder = new CsvWithStatsGameRecorder(statsFilename);
 
-recorders.Add(new CsvGameRecorder(filename));
-recorders.Add(new CsvWithStatsGameRecorder(statsFilename));
+csvWithStatsRecorder.EnableWriteCsvFile = enableCsvFileOutput;
+
+if (enableCsvFileOutput) {
+    recorders.Add(csvRecorder);
+}
+
+recorders.Add(csvWithStatsRecorder);
 
 var watch = Stopwatch.StartNew();
 await player.PlayAsync(settings, recorders);
 watch.Stop();
+
+if (enableSummaryFileOutput) {
+    await csvWithStatsRecorder.CreateSummaryFileAsync(summaryFilename);
+}
 
 foreach (var recorder in recorders) {
     recorder.Dispose();

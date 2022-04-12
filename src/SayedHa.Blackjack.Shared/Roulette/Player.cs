@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SayedHa.Blackjack.Shared.Betting;
 using SayedHa.Blackjack.Shared.Extensions;
 
 namespace SayedHa.Blackjack.Shared.Roulette {
@@ -67,37 +68,49 @@ namespace SayedHa.Blackjack.Shared.Roulette {
 
         protected List<GameCellGroup> GetGroups(GameCell cell) {
             var result = new List<GameCellGroup>();
-            if (cell.Value == int.MaxValue || cell.Value == int.MinValue) {
-                return result;
+
+            if(cell.Value != int.MaxValue && cell.Value != int.MinValue) {
+                // first twelve
+                if (cell.Value >= 1 && cell.Value <= 12)
+                    result.Add(GameCellGroup.First12);
+                if (cell.Value >= 13 && cell.Value <= 24)
+                    result.Add(GameCellGroup.Second12);
+                if (cell.Value >= 25 && cell.Value <= 36)
+                    result.Add(GameCellGroup.Third12);
+
+                // 1st and 2nd 18
+                if (cell.Value >= 1 && cell.Value <= 18)
+                    result.Add(GameCellGroup.First18);
+                if (cell.Value >= 19 && cell.Value <= 36)
+                    result.Add(GameCellGroup.Second18);
+
+                // columns
+                switch (cell.Value % 3) {
+                    case 1:
+                        result.Add(GameCellGroup.FirstColumn);
+                        break;
+                    case 2:
+                        result.Add(GameCellGroup.SecondColumn);
+                        break;
+                    case 0:
+                        result.Add(GameCellGroup.ThirdColumn);
+                        break;
+                    default: throw new ArgumentOutOfRangeException(cell.Value.ToString());
+                }
             }
 
-            // first twelve
-            if (cell.Value >= 1 && cell.Value <= 12)
-                result.Add(GameCellGroup.First12);
-            if (cell.Value >= 13 && cell.Value <= 24)
-                result.Add(GameCellGroup.Second12);
-            if (cell.Value >= 25 && cell.Value <= 36)
-                result.Add(GameCellGroup.Third12);
-
-            // 1st and 2nd 18
-            if (cell.Value >= 1 && cell.Value <= 18)
-                result.Add(GameCellGroup.First18);
-            if (cell.Value >= 19 && cell.Value <= 36)
-                result.Add(GameCellGroup.Second18);
-
-            // columns
-            switch (cell.Value % 3) {
-                case 1:
-                    result.Add(GameCellGroup.FirstColumn);
+            // colors
+            switch (cell.Color) {
+                case GameCellColor.Red:
+                    result.Add(GameCellGroup.Red);
                     break;
-                case 2:
-                    result.Add(GameCellGroup.SecondColumn);
+                case GameCellColor.Black:
+                    result.Add(GameCellGroup.Black);
                     break;
-                case 0:
-                    result.Add(GameCellGroup.ThirdColumn);
+                case GameCellColor.Green:
+                    result.Add(GameCellGroup.Green);
                     break;
-                default: throw new ArgumentOutOfRangeException(cell.Value.ToString());
-
+                default: throw new ArgumentOutOfRangeException(cell.Color.ToString());
             }
 
             return result;
@@ -124,6 +137,9 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         Green
     }
     public enum GameCellGroup {
+        Red,
+        Black,
+        Green,
         First12,
         Second12,
         Third12,
@@ -137,9 +153,9 @@ namespace SayedHa.Blackjack.Shared.Roulette {
     //public class GameRoll {
     //    public GameCell CellHit { get; set; }
     //}
-    public class GameRecord {
-        public LinkedList<GameCell>? CellsHit { get; set; } = new LinkedList<GameCell>();
-    }
+    //public class GameRecord {
+    //    public LinkedList<GameCell>? CellsHit { get; set; } = new LinkedList<GameCell>();
+    //}
 
     public class Board {
         public List<GameCell>? Cells { get; set; }
@@ -228,15 +244,26 @@ namespace SayedHa.Blackjack.Shared.Roulette {
     //  spins since last red/black/green
     public class CsvWithStatsGameRecorder : CsvGameRecorder {
         public CsvWithStatsGameRecorder(string csvFilePath) : base(csvFilePath) {
-            groupDictionarySpinsSince = new Dictionary<GameCellGroup, int>();
-            groupDictionaryConsecutive = new Dictionary<GameCellGroup, int>();
+            groupSpinsSince = new Dictionary<GameCellGroup, int>();
+            groupConsecutive = new Dictionary<GameCellGroup, int>();
+            groupSpinsSinceSum = new Dictionary<GameCellGroup, long>();
+            groupConsecutiveSum = new Dictionary<GameCellGroup, long>();
+            maxSpinsSince = new Dictionary<GameCellGroup, int>();
+            maxConsecutive = new Dictionary<GameCellGroup, int>();
 
             foreach (GameCellGroup group in (GameCellGroup[])Enum.GetValues(typeof(GameCellGroup))) {
-                groupDictionarySpinsSince.Add(group, 0);
-                groupDictionaryConsecutive.Add(group, 0);
+                groupSpinsSince.Add(group, 0);
+                groupConsecutive.Add(group, 0);
+                groupSpinsSinceSum.Add(group, 0);
+                groupConsecutiveSum.Add(group, 0);
+                maxSpinsSince.Add(group, 0);
+                maxConsecutive.Add(group, 0);
             }
 
             groupOuputOrder = new List<GameCellGroup> {
+                GameCellGroup.Black,
+                GameCellGroup.Red,
+                GameCellGroup.Green,
                 GameCellGroup.First12,
                 GameCellGroup.Second12,
                 GameCellGroup.Third12,
@@ -256,11 +283,21 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         protected int ConsecutiveRed { get; set; }
         protected int ConsecutiveGreen { get; set; }
 
-        Dictionary<GameCellGroup, int> groupDictionarySpinsSince { get; init; }
-        Dictionary<GameCellGroup, int> groupDictionaryConsecutive { get; init; }
-        List<GameCellGroup> groupOuputOrder { get; init;
-        }
+        Dictionary<GameCellGroup, int> groupSpinsSince { get; init; }
+        Dictionary<GameCellGroup, int> groupConsecutive { get; init; }
+        Dictionary<GameCellGroup, long> groupSpinsSinceSum { get; init; }
+        Dictionary<GameCellGroup, long> groupConsecutiveSum { get; init; }
+        Dictionary<GameCellGroup, int> maxSpinsSince { get; init; }
+        Dictionary<GameCellGroup, int> maxConsecutive { get; init; }
+
+        public bool EnableWriteCsvFile { get; set; } = true;
+
+        List<GameCellGroup> groupOuputOrder { get; init; }
         protected override async Task WriteHeaderAsync() {
+            if (!EnableWriteCsvFile) {
+                return;
+            }
+
             await StreamWriter!.WriteAsync("text,color,sinceLastRed,sinceLastBlack,sinceLastGreen,consecRed,consecBlack,consecGreen,groups,");
             for (int i = 0; i < groupOuputOrder.Count; i++) {
                 var group = groupOuputOrder[i];
@@ -272,6 +309,10 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             await StreamWriter!.WriteAsync("\n");
         }
         protected override async Task WriteLineForAsync(GameCell cell) {
+            if (!EnableWriteCsvFile) {
+                return;
+            }
+
             if (!isInitalized) {
                 await InitalizeAsync();
             }
@@ -280,64 +321,91 @@ namespace SayedHa.Blackjack.Shared.Roulette {
                 groupStr = "(none)";
             }
 
-            var groupNames = ((GameCellGroup[])Enum.GetValues(typeof(GameCellGroup))).ToList();
-            // sort names so that they are consistent in the 
-            groupNames.Sort();
-
             await StreamWriter!.WriteAsync($"{cell.Text},{cell.Color},{SpinsSinceLastRed},{SpinsSinceLastBlack},{SpinsSinceLastGreen},{ConsecutiveRed},{ConsecutiveBlack},{ConsecutiveGreen},{groupStr},");
             // write out the groups
             for (int i = 0; i < groupOuputOrder.Count; i++) {
                 var group = groupOuputOrder[i];
-                await StreamWriter!.WriteAsync($"{groupDictionarySpinsSince[group]},{groupDictionaryConsecutive[group]}");
+                await StreamWriter!.WriteAsync($"{groupSpinsSince[group]},{groupConsecutive[group]}");
                 if (i < groupOuputOrder.Count - 1) {
                     await StreamWriter.WriteAsync(",");
                 }
             }
             await StreamWriter!.WriteAsync("\n");
         }
+        private long _numberOfSpins = 0;
+        private object _spinsLock = new object();
         public override async Task RecordSpinAsync(GameCell cell) {
-            switch (cell.Color) {
-                case GameCellColor.Black:
-                    SpinsSinceLastBlack = 0;
-                    SpinsSinceLastGreen++;
-                    SpinsSinceLastRed++;
-                    ConsecutiveBlack++;
-                    ConsecutiveRed = 0;
-                    ConsecutiveGreen = 0;
-                    break;
-                case GameCellColor.Red:
-                    SpinsSinceLastRed = 0;
-                    SpinsSinceLastBlack++;
-                    SpinsSinceLastGreen++;
-                    ConsecutiveRed++;
-                    ConsecutiveBlack = 0;
-                    ConsecutiveGreen = 0;
-                    break;
-                case GameCellColor.Green:
-                    SpinsSinceLastGreen = 0;
-                    SpinsSinceLastRed++;
-                    SpinsSinceLastGreen++;
-                    ConsecutiveGreen++;
-                    ConsecutiveBlack = 0;
-                    ConsecutiveRed = 0;
-                    break;
-                default: throw new ArgumentOutOfRangeException(nameof(cell.Color));
+            _numberOfSpins++;
+            lock (_spinsLock) {
+                switch (cell.Color) {
+                    case GameCellColor.Black:
+                        SpinsSinceLastBlack = 0;
+                        SpinsSinceLastGreen++;
+                        SpinsSinceLastRed++;
+                        ConsecutiveBlack++;
+                        ConsecutiveRed = 0;
+                        ConsecutiveGreen = 0;
+                        break;
+                    case GameCellColor.Red:
+                        SpinsSinceLastRed = 0;
+                        SpinsSinceLastBlack++;
+                        SpinsSinceLastGreen++;
+                        ConsecutiveRed++;
+                        ConsecutiveBlack = 0;
+                        ConsecutiveGreen = 0;
+                        break;
+                    case GameCellColor.Green:
+                        SpinsSinceLastGreen = 0;
+                        SpinsSinceLastRed++;
+                        SpinsSinceLastGreen++;
+                        ConsecutiveGreen++;
+                        ConsecutiveBlack = 0;
+                        ConsecutiveRed = 0;
+                        break;
+                    default: throw new ArgumentOutOfRangeException(nameof(cell.Color));
+                }
             }
 
             // group analysis here
             foreach (GameCellGroup group in (GameCellGroup[])Enum.GetValues(typeof(GameCellGroup))) {
                 // check to see if the current cell is in this group
                 if (cell.IsInGroup(group)) {
-                    groupDictionarySpinsSince[group] = 0;
-                    groupDictionaryConsecutive[group]++;
+                    lock (_spinsLock) {
+                        groupSpinsSince[group] = 0;
+                        groupConsecutive[group]++;
+                    }
                 }
                 else {
-                    groupDictionarySpinsSince[group]++;
-                    groupDictionaryConsecutive[group] = 0;
+                    lock (_spinsLock) {
+                        groupSpinsSince[group]++;
+                        groupConsecutive[group] = 0;
+                    }
+                }
+
+                groupSpinsSinceSum[group] += groupSpinsSince[group];
+                groupConsecutiveSum[group] += groupConsecutiveSum[group];
+
+                if (groupSpinsSince[group] > maxSpinsSince[group]) {
+                    maxSpinsSince[group] = groupSpinsSince[group];
+                }
+                if (groupConsecutive[group] > maxConsecutive[group]) {
+                    maxConsecutive[group] = groupConsecutive[group];
                 }
             }
 
             await WriteLineForAsync(cell);
+        }
+
+        public async Task CreateSummaryFileAsync(string filepath) {
+            using var writer = new StreamWriter(filepath, false);
+            foreach(var group in groupOuputOrder) {
+                await writer.WriteLineAsync($"--- {group} ---");
+                double avgLastSince = (double)groupSpinsSinceSum[group] / _numberOfSpins;
+                await writer.WriteLineAsync($"last since - avg: {avgLastSince}");
+                await writer.WriteLineAsync($"last since - max: {maxSpinsSince[group]}");
+                await writer.WriteLineAsync($"max consecutive:  {maxConsecutive[group]}");
+                await writer.WriteLineAsync("");
+            }
         }
     }
 
