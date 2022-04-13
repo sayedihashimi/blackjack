@@ -8,12 +8,6 @@ using SayedHa.Blackjack.Shared.Betting;
 using SayedHa.Blackjack.Shared.Extensions;
 
 namespace SayedHa.Blackjack.Shared.Roulette {
-    public interface IPlayer {
-        public void PlaceBets();
-        public void SpinWheel();
-        public void IdentifyWinningAndLosingBets();
-    }
-
     public class GameCell {
         private GameCell() { }
         /// <summary>
@@ -159,6 +153,29 @@ namespace SayedHa.Blackjack.Shared.Roulette {
 
     public class Board {
         public List<GameCell>? Cells { get; set; }
+
+        public static Board BuildBoard(GameSettings settings) {
+            var factory = new GameCell.GameCellFactory();
+            var cells = new List<GameCell>();
+            // build a list of GameCells starting with 1 - 36 alternating red and black, then add special cells
+
+            // 1 is red
+            var currentColor = GameCellColor.Red;
+            for (int i = 1; i <= 36; i++) {
+                cells.Add(factory.NewCell(i, i, currentColor));
+                currentColor = currentColor == GameCellColor.Black ? GameCellColor.Red : GameCellColor.Black;
+            }
+
+            int currentId = 37;
+            // add special cells as specified in settings
+            if (settings is not null && settings.SpecialCells is not null && settings.SpecialCells.Length > 0) {
+                foreach (var special in settings.SpecialCells) {
+                    cells.Add(factory.NewGreenCell(currentId++, special));
+                }
+            }
+
+            return new Board { Cells = cells };
+        }
     }
 
     /// <summary>
@@ -267,11 +284,11 @@ namespace SayedHa.Blackjack.Shared.Roulette {
                 GameCellGroup.First12,
                 GameCellGroup.Second12,
                 GameCellGroup.Third12,
-                GameCellGroup.First18,
-                GameCellGroup.Second18,
                 GameCellGroup.FirstColumn,
                 GameCellGroup.SecondColumn,
-                GameCellGroup.ThirdColumn
+                GameCellGroup.ThirdColumn,
+                GameCellGroup.First18,
+                GameCellGroup.Second18
             };
         }
 
@@ -398,21 +415,58 @@ namespace SayedHa.Blackjack.Shared.Roulette {
 
         public async Task CreateSummaryFileAsync(string filepath) {
             using var writer = new StreamWriter(filepath, false);
-            foreach(var group in groupOuputOrder) {
-                await writer.WriteLineAsync($"--- {group} ---");
-                double avgLastSince = (double)groupSpinsSinceSum[group] / _numberOfSpins;
-                await writer.WriteLineAsync($"last since - avg: {avgLastSince}");
-                await writer.WriteLineAsync($"last since - max: {maxSpinsSince[group]}");
-                await writer.WriteLineAsync($"max consecutive:  {maxConsecutive[group]}");
+            //foreach(var group in groupOuputOrder) {
+            //    await writer.WriteLineAsync($"--- {group} ---");
+            //    double avgLastSince = (double)groupSpinsSinceSum[group] / _numberOfSpins;
+            //    await writer.WriteLineAsync($"last since - avg: {avgLastSince:F}");
+            //    await writer.WriteLineAsync($"last since - max: {maxSpinsSince[group]}");
+            //    await writer.WriteLineAsync($"max consecutive:  {maxConsecutive[group]}");
+            //    await writer.WriteLineAsync("");
+            //}
+
+            await writer.WriteLineAsync($"Number of spins: {_numberOfSpins:N0}\n");
+            var nextThree = groupOuputOrder.Take(3);
+            int index = 0;
+            while(nextThree != null && nextThree.Count() > 0) {
+                foreach (var group in nextThree) {
+                    await writer.WriteAsync($"------ {group} ------".PadRight(30));
+                }
                 await writer.WriteLineAsync("");
+                foreach (var group in nextThree) {
+                    double avgLastSince = (double)groupSpinsSinceSum[group] / _numberOfSpins;
+                    await writer.WriteAsync($"last since - avg: {avgLastSince:F}".PadRight(30));
+                }
+                await writer.WriteLineAsync("");
+                foreach (var group in nextThree) {
+                    await writer.WriteAsync($"last since - max: {maxSpinsSince[group]}".PadRight(30));
+                }
+                await writer.WriteLineAsync("");
+                foreach (var group in nextThree) {
+                    await writer.WriteAsync($"max consecutive:  {maxConsecutive[group]}".PadRight(30));
+                }
+
+                await writer.WriteLineAsync("");
+                await writer.WriteLineAsync("");
+
+                index += 3;
+                nextThree = groupOuputOrder.Skip(index).Take(3);
             }
         }
     }
 
     public class RoulettePlayer {
         public async Task PlayAsync(GameSettings settings, List<IGameRecorder> recorders) {
+            Debug.Assert(settings != null);
+            Debug.Assert(recorders != null);
             // first build the board
-            var board = BuildBoard(settings);
+            var board = Board.BuildBoard(settings);
+            await PlayAsync(board, settings, recorders);
+        }
+        public async Task PlayAsync(Board board, GameSettings settings, List<IGameRecorder> recorders) {
+            Debug.Assert(board != null);
+            Debug.Assert(settings != null);
+            Debug.Assert(recorders != null);
+
             var numCells = board.Cells!.Count;
 
             var numberOfSpins = settings.NumberOfSpins;
@@ -423,34 +477,12 @@ namespace SayedHa.Blackjack.Shared.Roulette {
                 }
             }
         }
+
         private Random _random = new Random();
         // TODO: does this need to be improved?
         protected GameCell GetRandomCellFrom(Board board) =>
             board.Cells![GetRandomNum(board.Cells!.Count)];
         public int GetRandomNum(int max) =>
             _random.Next(max);
-
-        protected internal Board BuildBoard(GameSettings settings) {
-            var factory = new GameCell.GameCellFactory();
-            var cells = new List<GameCell>();
-            // build a list of GameCells starting with 1 - 36 alternating red and black, then add special cells
-
-            // 1 is red
-            var currentColor = GameCellColor.Red;
-            for (int i = 1; i <= 36; i++) {
-                cells.Add(factory.NewCell(i, i, currentColor));
-                currentColor = currentColor == GameCellColor.Black ? GameCellColor.Red : GameCellColor.Black;
-            }
-
-            int currentId = 37;
-            // add special cells as specified in settings
-            if (settings is not null && settings.SpecialCells is not null && settings.SpecialCells.Length > 0) {
-                foreach (var special in settings.SpecialCells) {
-                    cells.Add(factory.NewGreenCell(currentId++, special));
-                }
-            }
-
-            return new Board { Cells = cells };
-        }
     }
 }

@@ -36,7 +36,8 @@ if (enableCsvFileOutput) {
 recorders.Add(csvWithStatsRecorder);
 
 var watch = Stopwatch.StartNew();
-await player.PlayAsync(settings, recorders);
+var board = Board.BuildBoard(settings);
+await player.PlayAsync(board, settings, recorders);
 watch.Stop();
 
 if (enableSummaryFileOutput) {
