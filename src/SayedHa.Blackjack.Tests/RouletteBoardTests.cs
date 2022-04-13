@@ -12,7 +12,7 @@ namespace SayedHa.Blackjack.Tests {
         public void CreateBoard_Default() {
             var player = new RoulettePlayer();
 
-            var board = player.BuildBoard(new GameSettings());
+            var board = Board.BuildBoard(new GameSettings());
 
             Assert.NotNull(board);
             Assert.NotNull(board.Cells);
