@@ -5,8 +5,7 @@
         /// When creating a green 
         /// </summary>
         /// <param name="value">ignored if color is Green</param>
-        public GameCell(int id, int value, GameCellColor color) {
-            Id = id;
+        public GameCell(int value, GameCellColor color) {
             Value = value;
             Color = color;
 
@@ -17,15 +16,10 @@
         /// <summary>
         /// Use this to create the Green cells
         /// </summary>
-        public GameCell(int id, GameCellColor color, string text) {
+        public GameCell(GameCellColor color, string text) {
             Text = text;
         }
 
-        /// <summary>
-        /// This is a unique ID, it will be used to index the array of all the cells
-        /// Doesn't need to be any special value, just unqiue to each cell
-        /// </summary>
-        public int Id { get; init; }
         /// <summary>
         /// Numeric value 1 - 36.
         /// If the cell is Green this value will be set to int.MinValue
@@ -99,20 +93,31 @@
 
             return result;
         }
+
+        public override bool Equals(object? obj) {
+            return obj is GameCell cell &&
+                   Value == cell.Value &&
+                   Color == cell.Color &&
+                   Text == cell.Text;
+        }
+
+        public override int GetHashCode() {
+            return HashCode.Combine(Value, Color, Text);
+        }
+
         public class GameCellFactory {
-            public GameCell NewGreenCell(int id, string text) => new GameCell {
-                Id = id,
+            public GameCell NewGreenCell(string text) => new GameCell {
                 Value = int.MinValue,
                 Text = text,
                 Color = GameCellColor.Green
             };
-            public GameCell NewCell(int id, int value, GameCellColor color) => new GameCell {
-                Id = id,
+            public GameCell NewCell(int value, GameCellColor color) => new GameCell {
                 Value = value,
                 Text = value.ToString(),
                 Color = color
             };
         }
+
     }
     public enum GameCellColor {
         Red,
