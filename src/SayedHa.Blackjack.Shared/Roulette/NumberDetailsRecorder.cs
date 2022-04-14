@@ -71,24 +71,32 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         }
 
         public async Task WriteReport(string filepath) {
-            using var writer = new StreamWriter(filepath, true);
-            await writer.WriteLineAsync($"Number of spin: {_numberOfSpins}\n");
+            using var writer = new StreamWriter(filepath, false);
+            using var csvWriter = new StreamWriter($"{filepath}.csv", false);
+
+            await writer.WriteLineAsync($"Number of spin: {_numberOfSpins:N0}\n");
             await writer.WriteLineAsync("Number details ".PadRight(60,'-'));
             await writer.WriteLineAsync(string.Empty);
 
-            await writer.WriteLineAsync($"Number of black and red swaps: {NumRedBlackSwaps}");
+            await writer.WriteLineAsync($"Number of black and red swaps: {NumRedBlackSwaps:N0}");
             await writer.WriteLineAsync(string.Empty);
 
+            await csvWriter.WriteLineAsync($"cell,numHits,maxSinceLast,maxConsecutive,numBackToBack,numThreeInARow");
             foreach (var key in CellNumberDetailsMap.Keys) {
                 var item = CellNumberDetailsMap[key];
                 await writer.WriteLineAsync($"---- {key.Text} ---".PadRight(11,'-'));
-                await writer.WriteLineAsync($"Number of hits:                  {item.NumberOfTimesHit}");
-                await writer.WriteLineAsync($"Max # spins since last hit:      {item.MaxNumSpinsSinceLastHit}");
-                await writer.WriteLineAsync($"Max # of consecutive hits:       {item.MaxConsecutiveHits}");
-                await writer.WriteLineAsync($"Number of times back-to-back:    {item.NumberOfTimesBackToBack}");
-                await writer.WriteLineAsync($"Number of times three in a row:  {item.NumberOfTimesThreeInARow}");
+                await writer.WriteLineAsync($"Number of hits:                  {item.NumberOfTimesHit:N0}");
+                await writer.WriteLineAsync($"Max # spins since last hit:      {item.MaxNumSpinsSinceLastHit:N0}");
+                await writer.WriteLineAsync($"Max # of consecutive hits:       {item.MaxConsecutiveHits:N0}");
+                await writer.WriteLineAsync($"Number of times back-to-back:    {item.NumberOfTimesBackToBack:N0}");
+                await writer.WriteLineAsync($"Number of times three in a row:  {item.NumberOfTimesThreeInARow:N0}");
                 await writer.WriteLineAsync(string.Empty);
+
+                await csvWriter.WriteLineAsync($"{key.Text},{item.NumberOfTimesHit},{item.MaxNumSpinsSinceLastHit},{item.MaxConsecutiveHits},{item.NumberOfTimesBackToBack},{item.NumberOfTimesThreeInARow}");
             }
+
+            await writer.FlushAsync();
+            await csvWriter.FlushAsync();
         }
     }
 
@@ -105,5 +113,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         public int NumberOfTimesThreeInARow { get; set; }
         public int SpinsSinceLastHit { get; internal set; }
         public int ConsecutiveHits { get; internal set; }
+
+        // public void
     }
 }
