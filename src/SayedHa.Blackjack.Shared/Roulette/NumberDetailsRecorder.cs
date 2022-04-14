@@ -65,7 +65,10 @@ namespace SayedHa.Blackjack.Shared.Roulette {
                 }
             }
 
-            if(_numberOfSpins > 1 && cell.Color != GameCellColor.Green && cell.Color != _lastColor) {
+            if(_numberOfSpins > 1 && 
+                cell.Color != GameCellColor.Green && 
+                _lastColor != GameCellColor.Green &&
+                cell.Color != _lastColor) {
                 NumRedBlackSwaps++;
             }
         }
