@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "SayedHa.Roulette.Console": {
+      "commandName": "Project",
+      "commandLineArgs": "1000"
+    }
+  }
+}

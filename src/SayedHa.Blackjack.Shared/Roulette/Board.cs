@@ -14,9 +14,8 @@
                 currentColor = currentColor == GameCellColor.Black ? GameCellColor.Red : GameCellColor.Black;
             }
 
-            int currentId = 37;
             // add special cells as specified in settings
-            if (settings is not null && settings.SpecialCells is not null && settings.SpecialCells.Length > 0) {
+            if (settings?.SpecialCells?.Length > 0) {
                 foreach (var special in settings.SpecialCells) {
                     cells.Add(factory.NewGreenCell(special));
                 }

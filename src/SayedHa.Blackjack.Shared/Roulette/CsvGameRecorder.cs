@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 
 namespace SayedHa.Blackjack.Shared.Roulette {
-    public class CsvGameRecorder : IGameRecorder {
+    public class CsvGameRecorder : GameRecorderBase {
         public CsvGameRecorder(string csvFilepath) {
             Debug.Assert(!string.IsNullOrEmpty(csvFilepath));
             CsvFilePath = csvFilepath;
@@ -25,7 +25,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             }
             await StreamWriter!.WriteLineAsync($"{cell.Text},{cell.Color}");
         }
-        public virtual async Task RecordSpinAsync(GameCell cell) {
+        public override async Task RecordSpinAsync(GameCell cell) {
             await WriteLineForAsync(cell);
         }
 

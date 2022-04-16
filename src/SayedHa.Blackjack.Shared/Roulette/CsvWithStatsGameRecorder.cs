@@ -1,4 +1,18 @@
 ﻿namespace SayedHa.Blackjack.Shared.Roulette {
+
+    public class EnumHelper {
+        private EnumHelper() {
+            _allGameCellGroup = ((GameCellGroup[])Enum.GetValues(typeof(GameCellGroup))).ToArray();
+        }
+
+        public GameCellGroup[] GetAllGameCellGroup() => _allGameCellGroup;
+
+        private static EnumHelper _instance = new EnumHelper();
+        private readonly GameCellGroup[] _allGameCellGroup;
+
+        public static EnumHelper GetHelper() => _instance;
+    }
+
     // some stats that we want to gather
     //  spins since last red/black/green
     public class CsvWithStatsGameRecorder : CsvGameRecorder {
@@ -10,7 +24,7 @@
             maxSpinsSince = new Dictionary<GameCellGroup, int>();
             maxConsecutive = new Dictionary<GameCellGroup, int>();
 
-            foreach (GameCellGroup group in (GameCellGroup[])Enum.GetValues(typeof(GameCellGroup))) {
+            foreach (GameCellGroup group in EnumHelper.GetHelper().GetAllGameCellGroup()) {
                 groupSpinsSince.Add(group, 0);
                 groupConsecutive.Add(group, 0);
                 groupSpinsSinceSum.Add(group, 0);
@@ -126,7 +140,7 @@
             }
 
             // group analysis here
-            foreach (GameCellGroup group in (GameCellGroup[])Enum.GetValues(typeof(GameCellGroup))) {
+            foreach (GameCellGroup group in EnumHelper.GetHelper().GetAllGameCellGroup()) {
                 // check to see if the current cell is in this group
                 if (cell.IsInGroup(group)) {
                     lock (_spinsLock) {

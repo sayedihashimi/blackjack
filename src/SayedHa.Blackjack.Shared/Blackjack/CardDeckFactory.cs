@@ -14,6 +14,7 @@
 // along with SayedHa.Blackjack.  If not, see <https://www.gnu.org/licenses/>.
 using SayedHa.Blackjack.Shared.Extensions;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace SayedHa.Blackjack.Shared {
     public class CardDeckFactory {
@@ -42,8 +43,8 @@ namespace SayedHa.Blackjack.Shared {
 
         internal List<Card> GetStandardDeckOfCardsAsList(bool shuffle) {
             var cards = new List<Card>();
-            foreach (CardSuit suit in (CardSuit[])Enum.GetValues(typeof(CardSuit))) {
-                foreach (CardNumber value in (CardNumber[])Enum.GetValues(typeof(CardNumber))) {
+            foreach (CardSuit suit in GetAllSuits()) {
+                foreach (CardNumber value in GetAllCardNumbers()) {
                     cards.Add(new Card {
                         Suit = suit,
                         Number = value
@@ -56,6 +57,20 @@ namespace SayedHa.Blackjack.Shared {
             }
 
             return cards;
+        }
+        private static CardSuit[]? _allSuits;
+        public static CardSuit[] GetAllSuits() {
+            if (_allSuits is null) {
+                _allSuits = (CardSuit[])Enum.GetValues(typeof(CardSuit));
+            }
+            return _allSuits;
+        }
+        private static CardNumber[]? _allCardNumbers;
+        public static CardNumber[] GetAllCardNumbers() {
+            if(_allCardNumbers is null) {
+                _allCardNumbers = (CardNumber[])Enum.GetValues(typeof(CardNumber));
+            }
+            return _allCardNumbers;
         }
     }
 }

@@ -8,24 +8,25 @@ namespace SayedHa.Blackjack.Shared.Roulette {
     /// <summary>
     /// This will keep track of individual numbers.
     /// </summary>
-    public class NumberDetailsRecorder : IGameRecorder {
+    public class NumberDetailsRecorder : GameRecorderBase {
         public NumberDetailsRecorder(GameSettings gameSettings) {
             if(gameSettings == null) {
                throw new ArgumentNullException(nameof(gameSettings));
             }
             GameSettings = gameSettings;
-            LastFewSpins = new EnumerableDropOutStack<GameCell>(3);
-            CellNumberDetailsMap = new Dictionary<GameCell, NumberDetails>();
+            // CellNumberDetailsMap = new Dictionary<GameCell, NumberDetails>();
+            CellNumberList = new List<NumberDetails>();
 
             var board = Board.BuildBoard(gameSettings);
             foreach (var cell in board.Cells!) {
-                CellNumberDetailsMap.Add(cell,new NumberDetails(cell));
+                // CellNumberDetailsMap.Add(cell,new NumberDetails(cell));
+                CellNumberList.Add(new NumberDetails(cell));
             }
         }
 
-        public Dictionary<GameCell,NumberDetails> CellNumberDetailsMap { get; set; }
+        // public Dictionary<GameCell,NumberDetails> CellNumberDetailsMap { get; set; }
+        public List<NumberDetails> CellNumberList { get; private init; }
         protected GameSettings GameSettings { get; set; }
-        protected EnumerableDropOutStack<GameCell> LastFewSpins { get; set; }
         public void Dispose() {
             // nothing to do here
         }
@@ -35,10 +36,13 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         private long _numberOfSpins = 0;
 
         private GameCellColor _lastColor;
-        public async Task RecordSpinAsync(GameCell cell) {
+        public override async Task RecordSpinAsync(GameCell cell) {
             _numberOfSpins++;
-            foreach (var key in CellNumberDetailsMap.Keys) {
-                var item = CellNumberDetailsMap[key];
+            foreach(var item in CellNumberList) {
+                var key = item.Cell;
+            //}
+            //foreach (var key in CellNumberDetailsMap.Keys) {
+            //    var item = CellNumberDetailsMap[key];
                 if (cell.Equals(key)) {
                     item.NumberOfTimesHit++;
                     item.ConsecutiveHits++;
@@ -85,8 +89,11 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             await writer.WriteLineAsync(string.Empty);
 
             await csvWriter.WriteLineAsync($"cell,numHits,maxSinceLast,maxConsecutive,numBackToBack,numThreeInARow");
-            foreach (var key in CellNumberDetailsMap.Keys) {
-                var item = CellNumberDetailsMap[key];
+            foreach(var item in CellNumberList) {
+                var key = item.Cell;
+            //}
+            //foreach (var key in CellNumberDetailsMap.Keys) {
+            //    var item = CellNumberDetailsMap[key];
                 await writer.WriteLineAsync($"---- {key.Text} ---".PadRight(11,'-'));
                 await writer.WriteLineAsync($"Number of hits:                  {item.NumberOfTimesHit:N0}");
                 await writer.WriteLineAsync($"Max # spins since last hit:      {item.MaxNumSpinsSinceLastHit:N0}");
@@ -95,7 +102,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
                 await writer.WriteLineAsync($"Number of times three in a row:  {item.NumberOfTimesThreeInARow:N0}");
                 await writer.WriteLineAsync(string.Empty);
 
-                await csvWriter.WriteLineAsync($"{key.Text},{item.NumberOfTimesHit},{item.MaxNumSpinsSinceLastHit},{item.MaxConsecutiveHits},{item.NumberOfTimesBackToBack},{item.NumberOfTimesThreeInARow}");
+                await csvWriter.WriteLineAsync($"'{key.Text}',{item.NumberOfTimesHit},{item.MaxNumSpinsSinceLastHit},{item.MaxConsecutiveHits},{item.NumberOfTimesBackToBack},{item.NumberOfTimesThreeInARow}");
             }
 
             await writer.FlushAsync();

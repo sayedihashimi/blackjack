@@ -6,6 +6,7 @@
     /// </summary>
     public interface IGameRecorder : IDisposable {
         public Task RecordSpinAsync(GameCell cell);
+        public Task GameCompleted();
     }
     public abstract class GameRecorderBase : IGameRecorder {
         protected virtual void Dispose(bool disposing) {
@@ -18,5 +19,8 @@
         }
 
         public abstract Task RecordSpinAsync(GameCell cell);
+
+        public virtual async Task GameCompleted() {
+        }
     }
 }

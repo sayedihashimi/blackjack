@@ -5,6 +5,7 @@ int numSpins = 100;
 bool enableCsvFileOutput = false;
 bool enableSummaryFileOutput = true;
 bool enableNumberDetails = true;
+bool enableMartingale = true;
 
 if(args.Length == 1) {
     numSpins = int.Parse(args[0]);
@@ -30,12 +31,20 @@ var csvWithStatsRecorder = new CsvWithStatsGameRecorder(statsFilename);
 var numberDetailsRecorder = new NumberDetailsRecorder(settings);
 var numberDetailsFilename = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-number-details.txt";
 csvWithStatsRecorder.EnableWriteCsvFile = enableCsvFileOutput;
+var martingaleRedFilepath = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-martingale-red.txt"; ;
+var martingaleRed = new MartingaleBettingRecorder(martingaleRedFilepath, GameCellColor.Red, 1, 1000);
+var martingaleBlackFilepath = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-martingale-black.txt"; ;
+var martingaleBlack = new MartingaleBettingRecorder(martingaleBlackFilepath, GameCellColor.Red, 1, 1000);
 
 if (enableCsvFileOutput) {
     recorders.Add(csvRecorder);
 }
 if (enableNumberDetails) {
     recorders.Add(numberDetailsRecorder);
+}
+if (enableMartingale) {
+    recorders.Add(martingaleBlack);
+    recorders.Add(martingaleRed);
 }
 // csv with stats always needs to be added for the summary
 recorders.Add(csvWithStatsRecorder);
@@ -51,7 +60,9 @@ if (enableSummaryFileOutput) {
 if (enableNumberDetails) {
     await numberDetailsRecorder.WriteReport(numberDetailsFilename);
 }
+
 foreach (var recorder in recorders) {
+    await recorder.GameCompleted();
     recorder.Dispose();
 }
 
