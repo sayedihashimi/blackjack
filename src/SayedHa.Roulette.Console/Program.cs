@@ -32,9 +32,11 @@ var numberDetailsRecorder = new NumberDetailsRecorder(settings);
 var numberDetailsFilename = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-number-details.txt";
 csvWithStatsRecorder.EnableWriteCsvFile = enableCsvFileOutput;
 var martingaleRedFilepath = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-martingale-red.txt"; ;
-var martingaleRed = new MartingaleBettingRecorder(martingaleRedFilepath, GameCellColor.Red, 1, 1000);
+var martingaleRed = new MartingaleBettingRecorder(martingaleRedFilepath, null, GameCellColor.Red, 1, 1000);
 var martingaleBlackFilepath = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-martingale-black.txt"; ;
-var martingaleBlack = new MartingaleBettingRecorder(martingaleBlackFilepath, GameCellColor.Red, 1, 1000);
+var martingaleBlackDetailsFilepath = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-martingale-black-details.csv";
+var martingaleBlack = new MartingaleBettingRecorder(martingaleBlackFilepath, martingaleBlackDetailsFilepath, GameCellColor.Black, 1, 1000);
+martingaleBlack.EnableCsvWriter = true;
 
 if (enableCsvFileOutput) {
     recorders.Add(csvRecorder);

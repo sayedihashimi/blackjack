@@ -12,7 +12,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
     /// Once you do, you go back to $1 and start over.'
     /// </summary>
     public class MartingaleBettingRecorder : GameRecorderBase {
-        public MartingaleBettingRecorder(string filepath, GameCellColor selectedColor, int initialBet, long initialDollarAmount) {
+        public MartingaleBettingRecorder(string filepath, string csvFilepath, GameCellColor selectedColor, int initialBet, long initialDollarAmount) {
             InitialBet = initialBet;
             CurrentBet = InitialBet;
             SelectedColor = selectedColor;
@@ -20,8 +20,15 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             Filepath = filepath;
             InitialDollarAmount = initialDollarAmount;
             CurrentDollarAmount = InitialDollarAmount;
+            CsvFilepath = csvFilepath;
+            if (!string.IsNullOrEmpty(CsvFilepath)) {
+                EnableCsvWriter = true;
+            }
+
+            EnableCsvWriter = string.IsNullOrEmpty(CsvFilepath) == false;
         }
         private bool disposedValue;
+        public bool EnableCsvWriter { get; set; } = false;
         protected string Filepath { get; set; }
         protected int InitialBet { get; init; } = 1;
         protected int BetMultiplier { get; init; } = 2;
@@ -41,14 +48,46 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         protected GameCellColor SelectedColor { get; init; }
         protected long SpinWhenLostAllMoney { get; set; }
         protected long CurrentNumSpins { get; set; }
+
+        protected bool IsInitalized { get; set; } = false;
+        protected string CsvFilepath { get; set; }
+        protected StreamWriter? CsvWriter { get; set; }
+        public async Task InitalizeAsync() {
+            IsInitalized = true;
+            if (string.IsNullOrEmpty(CsvFilepath)) {
+                throw new ArgumentNullException(nameof(CsvFilepath));
+            }
+            CsvWriter = new StreamWriter(CsvFilepath, false);
+            await WriterHeaderAsync();
+        }
+        public async Task WriterHeaderAsync() {
+            await CsvWriter!.WriteLineAsync("'spin number','spin value',bankroll,bet,winorloss");
+        }
+        public async Task WriteCsvLineAsync(GameCell currentSpin,long startDollarAmount, long startBet, WinOrLoss winOrLoss) {
+            if (!IsInitalized) {
+                await InitalizeAsync();
+            }
+            await CsvWriter!.WriteLineAsync($"{CurrentNumSpins},{currentSpin.Text},{startDollarAmount},{startBet},{winOrLoss}");
+        }
+        public enum WinOrLoss {
+            Win,
+            Loss
+        }
         public override async Task RecordSpinAsync(GameCell cell) {
             CurrentNumSpins++;
             // if you win, repeat the bet
             // if you lose, double the bet
             // once you win, reset bet amount to the initial bet amount
 
+            // collect the values that we need to write the csv line
+            long startDollarAmount = CurrentDollarAmount;
+            long startBet = CurrentBet;
+            bool didWin = false;
+            var winOrLoss = WinOrLoss.Loss;
             if (cell.Color == SelectedColor) {
                 // won the bet
+                winOrLoss = WinOrLoss.Win;
+                didWin = true;
                 // reset the bet amount back to the initial bet
                 CurrentDollarAmount += CurrentBet;
 
@@ -63,6 +102,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             }
             else {
                 // lost the bet
+                winOrLoss = WinOrLoss.Loss;
                 // double the bet
                 CurrentDollarAmount -= CurrentBet;
                 if(SpinWhenLostAllMoney == 0 && CurrentDollarAmount < 0) {
@@ -80,6 +120,10 @@ namespace SayedHa.Blackjack.Shared.Roulette {
 
             if(MaxBet < CurrentBet) {
                 MaxBet = CurrentBet;
+            }
+
+            if (EnableCsvWriter) {
+                await WriteCsvLineAsync(cell, startDollarAmount, startBet,winOrLoss);
             }
         }
         // write the summary file now
