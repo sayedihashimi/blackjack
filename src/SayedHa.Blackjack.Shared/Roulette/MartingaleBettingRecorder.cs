@@ -49,6 +49,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         protected long CurrentDollarAmount { get; set; } = 0;
         protected long DollarAmountOnLastWin { get; set; }
         protected long MaximumDollarAmount { get; set; }
+        public long MinimumDollarAmount { get; set; }
         protected GameCellColor SelectedColor { get; init; }
         protected long SpinWhenLostAllMoney { get; set; }
         protected long CurrentNumSpins { get; set; }
@@ -56,6 +57,8 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         protected bool IsInitalized { get; set; } = false;
         protected string CsvFilepath { get; set; }
         protected StreamWriter? CsvWriter { get; set; }
+        
+
         public async Task InitalizeAsync() {
             IsInitalized = true;
             if (string.IsNullOrEmpty(CsvFilepath)) {
@@ -124,6 +127,9 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             if(MaximumDollarAmount < CurrentDollarAmount) {
                 MaximumDollarAmount = CurrentDollarAmount;
             }
+            if(MinimumDollarAmount > CurrentDollarAmount) {
+                MinimumDollarAmount = CurrentDollarAmount;
+            }
 
             if(MaxBet < CurrentBet) {
                 MaxBet = CurrentBet;
@@ -151,6 +157,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             await writer.WriteLineAsync($"  initial bankroll:                  ${InitialDollarAmount:N0}");
             await writer.WriteLineAsync($"  current bankroll:                  ${CurrentDollarAmount:N0}");
             await writer.WriteLineAsync($"  max bankroll:                      ${MaximumDollarAmount:N0}");
+            await writer.WriteLineAsync($"  min bankroll:                      ${MinimumDollarAmount:N0}");
             await writer.WriteLineAsync($"  max bet won:                       ${MaxAmountWon:N0}");
             await writer.WriteLineAsync($"  max bet lost:                      ${MaxAmountLost:N0}");
             await writer.WriteLineAsync($"  maximum bet played:                ${MaxBet:N0}");

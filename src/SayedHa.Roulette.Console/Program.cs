@@ -41,10 +41,18 @@ var martingaleBlackFilepath = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-marti
 var martingaleBlackDetailsFilepath = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-martingale-black-details.csv";
 var martingaleBlack = new MartingaleBettingRecorder(martingaleBlackFilepath, martingaleBlackDetailsFilepath, GameCellColor.Black, 1, 1000);
 martingaleBlack.EnableCsvWriter = true;
+
 var greenFilepath = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-greens.txt";
 var greenCsvFilepath = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-greens.csv";
 var greenRecorder = new GreenMethodRecorder(greenFilepath, greenCsvFilepath, minimumBet, initialBankroll);
 
+var greenAgroFilepath = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-greens-agro.txt";
+var greenAgroCsvFilepath = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-greens-agro.csv";
+var greenAgroRecorder = new GreenAgressiveMethodRecorder(greenAgroFilepath, greenAgroCsvFilepath, minimumBet, initialBankroll);
+
+
+
+// GreenAgressiveMethodRecorder
 if (enableCsvFileOutput) {
     recorders.Add(csvRecorder);
 }
@@ -57,6 +65,7 @@ if (enableMartingale) {
 }
 if (enableGreen) {
     recorders.Add(greenRecorder);
+    recorders.Add(greenAgroRecorder);
 }
 // csv with stats always needs to be added for the summary
 recorders.Add(csvWithStatsRecorder);
