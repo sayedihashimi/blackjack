@@ -2,10 +2,14 @@
 using System.Diagnostics;
 
 int numSpins = 100;
-bool enableCsvFileOutput = false;
+bool enableCsvFileOutput = true;
 bool enableSummaryFileOutput = true;
 bool enableNumberDetails = true;
 bool enableMartingale = true;
+bool enableGreen = true;
+
+int minimumBet = 25;
+int initialBankroll = 5000;
 
 if(args.Length == 1) {
     numSpins = int.Parse(args[0]);
@@ -37,6 +41,9 @@ var martingaleBlackFilepath = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-marti
 var martingaleBlackDetailsFilepath = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-martingale-black-details.csv";
 var martingaleBlack = new MartingaleBettingRecorder(martingaleBlackFilepath, martingaleBlackDetailsFilepath, GameCellColor.Black, 1, 1000);
 martingaleBlack.EnableCsvWriter = true;
+var greenFilepath = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-greens.txt";
+var greenCsvFilepath = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-greens.csv";
+var greenRecorder = new GreenMethodRecorder(greenFilepath, greenCsvFilepath, minimumBet, initialBankroll);
 
 if (enableCsvFileOutput) {
     recorders.Add(csvRecorder);
@@ -47,6 +54,9 @@ if (enableNumberDetails) {
 if (enableMartingale) {
     recorders.Add(martingaleBlack);
     recorders.Add(martingaleRed);
+}
+if (enableGreen) {
+    recorders.Add(greenRecorder);
 }
 // csv with stats always needs to be added for the summary
 recorders.Add(csvWithStatsRecorder);

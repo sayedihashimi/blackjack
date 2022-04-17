@@ -29,6 +29,12 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             await WriteLineForAsync(cell);
         }
 
+        public override async Task GameCompleted() {
+            if(StreamWriter != null) {
+                await StreamWriter.FlushAsync();
+            }
+        }
+
         protected virtual void Dispose(bool disposing) {
             if (!disposedValue) {
                 if (disposing && StreamWriter is not null) {
