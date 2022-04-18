@@ -41,9 +41,6 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             _numberOfSpins++;
             foreach(var item in CellNumberList) {
                 var key = item.Cell;
-            //}
-            //foreach (var key in CellNumberDetailsMap.Keys) {
-            //    var item = CellNumberDetailsMap[key];
                 if (cell.Equals(key)) {
                     item.NumberOfTimesHit++;
                     item.ConsecutiveHits++;

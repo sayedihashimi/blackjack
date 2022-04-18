@@ -68,7 +68,7 @@
 
         List<GameCellGroup> groupOuputOrder { get; init; }
         protected override async Task WriteHeaderAsync() {
-            if (!EnableWriteCsvFile) {
+            if (!EnableWriteCsvFile || !EnableFileOutput) {
                 return;
             }
 
@@ -83,7 +83,7 @@
             await StreamWriter!.WriteAsync("\n");
         }
         protected override async Task WriteLineForAsync(GameCell cell) {
-            if (!EnableWriteCsvFile) {
+            if (!EnableWriteCsvFile || !EnableFileOutput) {
                 return;
             }
 
@@ -171,6 +171,8 @@
         }
 
         public async Task CreateSummaryFileAsync() {
+            if(!EnableFileOutput) { return; }
+
             using var writer = new StreamWriter(CsvSummaryFilepath, false);
             //foreach(var group in groupOuputOrder) {
             //    await writer.WriteLineAsync($"--- {group} ---");

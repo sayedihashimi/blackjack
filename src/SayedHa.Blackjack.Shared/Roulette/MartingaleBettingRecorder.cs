@@ -60,6 +60,8 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         
 
         public async Task InitalizeAsync() {
+            if(!EnableFileOutput) { return; }
+
             IsInitalized = true;
             if (string.IsNullOrEmpty(CsvFilepath)) {
                 throw new ArgumentNullException(nameof(CsvFilepath));
@@ -68,9 +70,11 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             await WriterHeaderAsync();
         }
         public async Task WriterHeaderAsync() {
+            if (!EnableFileOutput) { return; }
             await CsvWriter!.WriteLineAsync("'spin number','spin value',bankroll,bet,winorloss,payout");
         }
         public async Task WriteCsvLineAsync(GameCell currentSpin,long startDollarAmount, long startBet, WinOrLoss winOrLoss,long payout) {
+            if (!EnableFileOutput) { return; }
             if (!IsInitalized) {
                 await InitalizeAsync();
             }
@@ -154,6 +158,8 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         protected virtual string GetMethodDisplayName() => "Martingale betting method";
         // write the summary file now
         public override async Task GameCompleted() {
+            if (!EnableFileOutput) { return; }
+
             var writer = new StreamWriter(Filepath, true);
 
             await writer.WriteLineAsync($"{GetMethodDisplayName()} ".PadRight(60));

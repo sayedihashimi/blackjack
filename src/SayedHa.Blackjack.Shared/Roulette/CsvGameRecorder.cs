@@ -12,14 +12,19 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         private bool disposedValue;
 
         protected async Task InitalizeAsync() {
+            if (!EnableFileOutput) { return; }
+
             isInitalized = true;
             StreamWriter = new StreamWriter(CsvFilePath, false);
             await WriteHeaderAsync();
         }
         protected virtual async Task WriteHeaderAsync() {
+            if (!EnableFileOutput) { return; }
+
             await StreamWriter!.WriteLineAsync("text,color");
         }
         protected virtual async Task WriteLineForAsync(GameCell cell) {
+            if (!EnableFileOutput) { return; }
             if (!isInitalized) {
                 await InitalizeAsync();
             }
