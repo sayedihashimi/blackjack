@@ -11,6 +11,8 @@ bool enableGreen = true;
 int minimumBet = 25;
 int initialBankroll = 5000;
 
+var rouletteType = RouletteType.European;
+
 if(args.Length == 1) {
     numSpins = int.Parse(args[0]);
 }
@@ -20,6 +22,9 @@ var settings = new GameSettings {
     EnableConsoleLogger = false,
     NumberOfSpins = numSpins
 };
+
+// need to change this to support custom if needed later
+settings.SetRouletteType(rouletteType);
 
 var recorders = new List<IGameRecorder>();
 if (settings.EnableConsoleLogger) {
