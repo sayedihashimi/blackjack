@@ -66,6 +66,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             if(winOrLoss == WinOrLoss.Win) {
                 MaxAmountWon = MaxAmountWon > CurrentBet ? MaxAmountWon : CurrentBet;
                 CurrentNumConsecutiveWins++;
+                MaxNumConsecutiveWins = CurrentNumConsecutiveWins > MaxNumConsecutiveWins ? CurrentNumConsecutiveWins : MaxNumConsecutiveWins;
                 CurrentNumConsecutiveLosses = 0;
             }
             else {
@@ -74,6 +75,9 @@ namespace SayedHa.Blackjack.Shared.Roulette {
                 CurrentNumConsecutiveWins = 0;
             }
 
+            if (SpinWhenLostAllMoney == 0 && CurrentDollarAmount < 0) {
+                SpinWhenLostAllMoney = CurrentNumSpins;
+            }
             if (MaximumDollarAmount < CurrentDollarAmount) {
                 MaximumDollarAmount = CurrentDollarAmount;
             }
