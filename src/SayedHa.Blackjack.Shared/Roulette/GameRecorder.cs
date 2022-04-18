@@ -5,10 +5,13 @@
     /// should be the one persisting the data as well.
     /// </summary>
     public interface IGameRecorder : IDisposable {
+        public bool EnableFileOutput { get; set; }
         public Task RecordSpinAsync(GameCell cell);
         public Task GameCompleted();
     }
     public abstract class GameRecorderBase : IGameRecorder {
+        public bool EnableFileOutput { get; set; } = true;
+
         protected virtual void Dispose(bool disposing) {
 
         }

@@ -9,11 +9,12 @@ namespace SayedHa.Blackjack.Shared.Roulette {
     /// This will keep track of individual numbers.
     /// </summary>
     public class NumberDetailsRecorder : GameRecorderBase {
-        public NumberDetailsRecorder(GameSettings gameSettings) {
+        public NumberDetailsRecorder(GameSettings gameSettings,string filepath) {
             if(gameSettings == null) {
                throw new ArgumentNullException(nameof(gameSettings));
             }
             GameSettings = gameSettings;
+            Filepath = filepath;
             // CellNumberDetailsMap = new Dictionary<GameCell, NumberDetails>();
             CellNumberList = new List<NumberDetails>();
 
@@ -76,12 +77,17 @@ namespace SayedHa.Blackjack.Shared.Roulette {
                 NumRedBlackSwaps++;
             }
         }
+        public string Filepath { get; set; }
 
-        public async Task WriteReport(string filepath) {
-            using var writer = new StreamWriter(filepath, false);
-            using var csvWriter = new StreamWriter($"{filepath}.csv", false);
+        public async Task WriteReport() {
+            if(!EnableFileOutput || string.IsNullOrEmpty(this.Filepath)) {
+                return;
+            }
 
-            await writer.WriteLineAsync($"Number of spin: {_numberOfSpins:N0}\n");
+            using var writer = new StreamWriter(Filepath, false);
+            using var csvWriter = new StreamWriter($"{Filepath}.csv", false);
+
+            await writer.WriteLineAsync($"Number of spins: {_numberOfSpins:N0}\n");
             await writer.WriteLineAsync("Number details ".PadRight(60,'-'));
             await writer.WriteLineAsync(string.Empty);
 
@@ -91,9 +97,6 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             await csvWriter.WriteLineAsync($"cell,numHits,maxSinceLast,maxConsecutive,numBackToBack,numThreeInARow");
             foreach(var item in CellNumberList) {
                 var key = item.Cell;
-            //}
-            //foreach (var key in CellNumberDetailsMap.Keys) {
-            //    var item = CellNumberDetailsMap[key];
                 await writer.WriteLineAsync($"---- {key.Text} ---".PadRight(11,'-'));
                 await writer.WriteLineAsync($"Number of hits:                  {item.NumberOfTimesHit:N0}");
                 await writer.WriteLineAsync($"Max # spins since last hit:      {item.MaxNumSpinsSinceLastHit:N0}");
@@ -107,6 +110,9 @@ namespace SayedHa.Blackjack.Shared.Roulette {
 
             await writer.FlushAsync();
             await csvWriter.FlushAsync();
+        }
+        public override async Task GameCompleted() {
+            await WriteReport();
         }
     }
 

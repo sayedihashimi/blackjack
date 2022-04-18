@@ -16,7 +16,8 @@
     // some stats that we want to gather
     //  spins since last red/black/green
     public class CsvWithStatsGameRecorder : CsvGameRecorder {
-        public CsvWithStatsGameRecorder(string csvFilePath) : base(csvFilePath) {
+        public CsvWithStatsGameRecorder(string csvFilePath, string csvSummaryFilepath) : base(csvFilePath) {
+            CsvSummaryFilepath = csvSummaryFilepath;
             groupSpinsSince = new Dictionary<GameCellGroup, int>();
             groupConsecutive = new Dictionary<GameCellGroup, int>();
             groupSpinsSinceSum = new Dictionary<GameCellGroup, long>();
@@ -47,7 +48,7 @@
                 GameCellGroup.Second18
             };
         }
-
+        public string CsvSummaryFilepath { get; protected set; }
         protected int SpinsSinceLastBlack { get; set; }
         protected int SpinsSinceLastRed { get; set; }
         protected int SpinsSinceLastGreen { get; set; }
@@ -169,8 +170,8 @@
             await WriteLineForAsync(cell);
         }
 
-        public async Task CreateSummaryFileAsync(string filepath) {
-            using var writer = new StreamWriter(filepath, false);
+        public async Task CreateSummaryFileAsync() {
+            using var writer = new StreamWriter(CsvSummaryFilepath, false);
             //foreach(var group in groupOuputOrder) {
             //    await writer.WriteLineAsync($"--- {group} ---");
             //    double avgLastSince = (double)groupSpinsSinceSum[group] / _numberOfSpins;
@@ -207,6 +208,9 @@
                 index += 3;
                 nextThree = groupOuputOrder.Skip(index).Take(3);
             }
+        }
+        public override async Task GameCompleted() {
+            await CreateSummaryFileAsync();
         }
     }
 }

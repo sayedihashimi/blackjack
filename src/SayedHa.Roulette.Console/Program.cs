@@ -35,11 +35,12 @@ if (settings.EnableConsoleLogger) {
 var timestamp = DateTime.Now.ToString("yyyy.MM.dd-hhmmss.ff");
 var filename = $@"C:\temp\roulette\r-{numSpins}-{timestamp}.csv";
 var statsFilename = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-stats.csv";
-var summaryFilename = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-summary.txt"; ;
+var csvSummaryFilename = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-summary.txt"; ;
 var csvRecorder = new CsvGameRecorder(filename);
-var csvWithStatsRecorder = new CsvWithStatsGameRecorder(statsFilename);
-var numberDetailsRecorder = new NumberDetailsRecorder(settings);
+var csvWithStatsRecorder = new CsvWithStatsGameRecorder(statsFilename,csvSummaryFilename);
+
 var numberDetailsFilename = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-number-details.txt";
+var numberDetailsRecorder = new NumberDetailsRecorder(settings, numberDetailsFilename);
 csvWithStatsRecorder.EnableWriteCsvFile = enableCsvFileOutput;
 var martingaleRedFilepath = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-martingale-red.txt";
 var martingaleRed = new MartingaleBettingRecorder(martingaleRedFilepath, null, GameCellColor.Red, 1, 1000);
@@ -61,8 +62,6 @@ var bondFilepath = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-bondmartingale.t
 var bondDetailsFilepath = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-bondmartingale-details.csv";
 var bondMartingale = new BondMartingaleBettingRecorder(bondFilepath,bondDetailsFilepath,minimumBet, initialBankroll);
 
-
-// GreenAgressiveMethodRecorder
 if (enableCsvFileOutput) {
     recorders.Add(csvRecorder);
 }
@@ -81,7 +80,6 @@ if (enableBondMartingale) {
     recorders.Add(bondMartingale);
 }
 
-
 // csv with stats always needs to be added for the summary
 recorders.Add(csvWithStatsRecorder);
 
@@ -89,13 +87,6 @@ var watch = Stopwatch.StartNew();
 var board = Board.BuildBoard(settings);
 await player.PlayAsync(board, settings, recorders);
 watch.Stop();
-
-if (enableSummaryFileOutput) {
-    await csvWithStatsRecorder.CreateSummaryFileAsync(summaryFilename);
-}
-if (enableNumberDetails) {
-    await numberDetailsRecorder.WriteReport(numberDetailsFilename);
-}
 
 foreach (var recorder in recorders) {
     await recorder.GameCompleted();
