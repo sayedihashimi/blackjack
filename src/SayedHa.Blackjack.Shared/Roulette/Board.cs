@@ -16,8 +16,9 @@
 
             // add special cells as specified in settings
             if (settings?.SpecialCells?.Length > 0) {
+                int currentValue = 37;
                 foreach (var special in settings.SpecialCells) {
-                    cells.Add(factory.NewGreenCell(special));
+                    cells.Add(factory.NewCell(currentValue++, special, GameCellColor.Green));
                 }
             }
 
