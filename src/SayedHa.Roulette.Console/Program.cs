@@ -7,8 +7,9 @@ bool enableSummaryFileOutput = true;
 bool enableNumberDetails = true;
 bool enableMartingale = true;
 bool enableGreen = true;
+bool enableBondMartingale = true;
 
-int minimumBet = 25;
+int minimumBet = 20;
 int initialBankroll = 5000;
 
 var rouletteType = RouletteType.European;
@@ -40,9 +41,9 @@ var csvWithStatsRecorder = new CsvWithStatsGameRecorder(statsFilename);
 var numberDetailsRecorder = new NumberDetailsRecorder(settings);
 var numberDetailsFilename = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-number-details.txt";
 csvWithStatsRecorder.EnableWriteCsvFile = enableCsvFileOutput;
-var martingaleRedFilepath = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-martingale-red.txt"; ;
+var martingaleRedFilepath = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-martingale-red.txt";
 var martingaleRed = new MartingaleBettingRecorder(martingaleRedFilepath, null, GameCellColor.Red, 1, 1000);
-var martingaleBlackFilepath = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-martingale-black.txt"; ;
+var martingaleBlackFilepath = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-martingale-black.txt";
 var martingaleBlackDetailsFilepath = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-martingale-black-details.csv";
 var martingaleBlack = new MartingaleBettingRecorder(martingaleBlackFilepath, martingaleBlackDetailsFilepath, GameCellColor.Black, 1, 1000);
 martingaleBlack.EnableCsvWriter = true;
@@ -55,6 +56,10 @@ var greenAgroFilepath = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-greens-agro
 var greenAgroCsvFilepath = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-greens-agro.csv";
 var greenAgroRecorder = new GreenAgressiveMethodRecorder(greenAgroFilepath, greenAgroCsvFilepath, minimumBet, initialBankroll);
 
+
+var bondFilepath = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-bondmartingale.txt";
+var bondDetailsFilepath = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-bondmartingale-details.csv";
+var bondMartingale = new BondMartingaleBettingRecorder(bondFilepath,bondDetailsFilepath,minimumBet, initialBankroll);
 
 
 // GreenAgressiveMethodRecorder
@@ -72,6 +77,11 @@ if (enableGreen) {
     recorders.Add(greenRecorder);
     recorders.Add(greenAgroRecorder);
 }
+if (enableBondMartingale) {
+    recorders.Add(bondMartingale);
+}
+
+
 // csv with stats always needs to be added for the summary
 recorders.Add(csvWithStatsRecorder);
 

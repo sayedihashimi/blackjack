@@ -2,25 +2,6 @@
     public class GameCell {
         private GameCell() { }
         /// <summary>
-        /// When creating a green 
-        /// </summary>
-        /// <param name="value">ignored if color is Green</param>
-        public GameCell(int value, GameCellColor color) {
-            Value = value;
-            Color = color;
-
-            if (color is GameCellColor.Green) {
-                Value = int.MinValue;
-            }
-        }
-        /// <summary>
-        /// Use this to create the Green cells
-        /// </summary>
-        public GameCell(GameCellColor color, string text) {
-            Text = text;
-        }
-
-        /// <summary>
         /// Numeric value 1 - 36.
         /// If the cell is Green this value will be set to int.MinValue
         /// </summary>
@@ -47,7 +28,7 @@
         protected List<GameCellGroup> GetGroups(GameCell cell) {
             var result = new List<GameCellGroup>();
 
-            if(cell.Value != int.MaxValue && cell.Value != int.MinValue) {
+            if( cell.Color != GameCellColor.Green && cell.Value != int.MaxValue && cell.Value != int.MinValue) {
                 // first twelve
                 if (cell.Value >= 1 && cell.Value <= 12)
                     result.Add(GameCellGroup.First12);
@@ -106,14 +87,14 @@
         }
 
         public class GameCellFactory {
-            public GameCell NewGreenCell(string text) => new GameCell {
-                Value = int.MinValue,
-                Text = text,
-                Color = GameCellColor.Green
-            };
             public GameCell NewCell(int value, GameCellColor color) => new GameCell {
                 Value = value,
                 Text = value.ToString(),
+                Color = color
+            };
+            public GameCell NewCell(int value,string text, GameCellColor color) => new GameCell {
+                Value = value,
+                Text = text,
                 Color = color
             };
         }

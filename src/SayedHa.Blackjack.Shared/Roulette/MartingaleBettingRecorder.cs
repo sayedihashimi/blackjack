@@ -68,13 +68,13 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             await WriterHeaderAsync();
         }
         public async Task WriterHeaderAsync() {
-            await CsvWriter!.WriteLineAsync("'spin number','spin value',bankroll,bet,winorloss");
+            await CsvWriter!.WriteLineAsync("'spin number','spin value',bankroll,bet,winorloss,payout");
         }
-        public async Task WriteCsvLineAsync(GameCell currentSpin,long startDollarAmount, long startBet, WinOrLoss winOrLoss) {
+        public async Task WriteCsvLineAsync(GameCell currentSpin,long startDollarAmount, long startBet, WinOrLoss winOrLoss,long payout) {
             if (!IsInitalized) {
                 await InitalizeAsync();
             }
-            await CsvWriter!.WriteLineAsync($"{CurrentNumSpins},{currentSpin.Text},{startDollarAmount},{startBet},{winOrLoss}");
+            await CsvWriter!.WriteLineAsync($"{CurrentNumSpins},{currentSpin.Text},{startDollarAmount},{startBet},{winOrLoss},{payout}");
         }
 
         public override async Task RecordSpinAsync(GameCell cell) {
@@ -87,12 +87,14 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             long startDollarAmount = CurrentDollarAmount;
             long startBet = CurrentBet;
             var winOrLoss = WinOrLoss.Loss;
+            var payout = (long)0;
             if (cell.Color == SelectedColor) {
                 // won the bet
                 winOrLoss = WinOrLoss.Win;
                 // reset the bet amount back to the initial bet
                 // CurrentDollarAmount += CurrentBet;
-                CurrentDollarAmount += GetPayoutForWin(CurrentBet);
+                payout = GetPayoutForWin(CurrentBet);
+                CurrentDollarAmount += payout;
                 DollarAmountOnLastWin = CurrentDollarAmount;
 
                 MaxAmountWon = MaxAmountWon > CurrentBet ? MaxAmountWon : CurrentBet;
@@ -107,6 +109,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             else {
                 // lost the bet
                 winOrLoss = WinOrLoss.Loss;
+                payout = 0;
                 // double the bet
                 CurrentDollarAmount -= CurrentBet;
                 if(SpinWhenLostAllMoney == 0 && CurrentDollarAmount < 0) {
@@ -124,6 +127,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
 
             CurrentBet = GetNextBetAmount(winOrLoss, CurrentBet, InitialDollarAmount, startDollarAmount);
 
+            // TODO: Should refactor this becuase this needs to be copied to most sub-classes
             if(MaximumDollarAmount < CurrentDollarAmount) {
                 MaximumDollarAmount = CurrentDollarAmount;
             }
@@ -136,7 +140,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             }
 
             if (EnableCsvWriter) {
-                await WriteCsvLineAsync(cell, startDollarAmount, startBet,winOrLoss);
+                await WriteCsvLineAsync(cell, startDollarAmount, startBet,winOrLoss,payout);
             }
         }
         protected virtual long GetPayoutForWin(long currentBet) => currentBet;
