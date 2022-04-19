@@ -34,18 +34,13 @@ if (settings.EnableConsoleLogger) {
 
 var timestamp = DateTime.Now.ToString("yyyy.MM.dd-hhmmss.ff");
 var outputPath = $@"C:\temp\roulette";
+var filenamePrefix = $"r-{numSpins}-{timestamp}-";
 
-var csvGameFilename = Path.Combine(outputPath, $"r-{numSpins}-{timestamp}.csv");
-var statsFilename = Path.Combine(outputPath, $"r-{numSpins}-{timestamp}-stats.csv");
-var csvSummaryFilename = Path.Combine(outputPath, $"r-{numSpins}-{timestamp}-summary.txt");
 var csvRecorder = new CsvGameRecorder(outputPath, $"r-{numSpins}-{timestamp}-");
-
-
 var csvWithStatsRecorder = new CsvWithStatsGameRecorder(outputPath, $"r-{numSpins}-{timestamp}-");
 csvWithStatsRecorder.EnableWriteCsvFile = enableCsvFileOutput;
 
-var numberDetailsFilename = Path.Combine(outputPath, $"r-{numSpins}-{timestamp}-number-details.txt");
-var numberDetailsRecorder = new NumberDetailsRecorder(settings, numberDetailsFilename);
+var numberDetailsRecorder = new NumberDetailsRecorder(settings, outputPath,filenamePrefix);
 
 var martingaleRedFilepath = Path.Combine(outputPath, $"r-{numSpins}-{timestamp}-martingale-red.txt");
 var martingaleRed = new MartingaleBettingRecorder(martingaleRedFilepath, null, GameCellColor.Red, 1, 1000);
@@ -98,4 +93,4 @@ foreach (var recorder in recorders) {
     recorder.Dispose();
 }
 
-Console.WriteLine($"num spins: {settings.NumberOfSpins:N0}\ntime: {watch.Elapsed.TotalSeconds}\nfilenames: '{csvGameFilename}','{statsFilename}'");
+Console.WriteLine($"num spins: {settings.NumberOfSpins:N0}\ntime: {watch.Elapsed.TotalSeconds}\nfilenames: '{filenamePrefix}*'");

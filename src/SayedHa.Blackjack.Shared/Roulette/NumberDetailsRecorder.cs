@@ -9,12 +9,12 @@ namespace SayedHa.Blackjack.Shared.Roulette {
     /// This will keep track of individual numbers.
     /// </summary>
     public class NumberDetailsRecorder : GameRecorderBase {
-        public NumberDetailsRecorder(GameSettings gameSettings,string filepath) {
+        public NumberDetailsRecorder(GameSettings gameSettings,string outputPath) {
+            OutputPath = outputPath;
             if(gameSettings == null) {
                throw new ArgumentNullException(nameof(gameSettings));
             }
             GameSettings = gameSettings;
-            Filepath = filepath;
             // CellNumberDetailsMap = new Dictionary<GameCell, NumberDetails>();
             CellNumberList = new List<NumberDetails>();
 
@@ -24,7 +24,9 @@ namespace SayedHa.Blackjack.Shared.Roulette {
                 CellNumberList.Add(new NumberDetails(cell));
             }
         }
-
+        public NumberDetailsRecorder(GameSettings gameSettings, string outputPath, string filenamePrefix) :this(gameSettings,outputPath) {
+            FilenamePrefix = filenamePrefix;
+        }
         // public Dictionary<GameCell,NumberDetails> CellNumberDetailsMap { get; set; }
         public List<NumberDetails> CellNumberList { get; private init; }
         protected GameSettings GameSettings { get; set; }
@@ -74,15 +76,16 @@ namespace SayedHa.Blackjack.Shared.Roulette {
                 NumRedBlackSwaps++;
             }
         }
-        public string Filepath { get; set; }
+        public string GetFilepath()=> Path.Combine(OutputPath, !string.IsNullOrEmpty(FilenamePrefix) ? $"{FilenamePrefix}number-details.txt" : $"number-details.txt");
+        public string GetCsvFilepath() => Path.Combine(OutputPath, !string.IsNullOrEmpty(FilenamePrefix) ? $"{FilenamePrefix}number-details.csv" : $"number-details.csv");
 
         public async Task WriteReport() {
-            if(!EnableFileOutput || string.IsNullOrEmpty(this.Filepath)) {
+            if(!EnableFileOutput || string.IsNullOrEmpty(GetFilepath())) {
                 return;
             }
 
-            using var writer = new StreamWriter(Filepath, false);
-            using var csvWriter = new StreamWriter($"{Filepath}.csv", false);
+            using var writer = new StreamWriter(GetFilepath(), false);
+            using var csvWriter = new StreamWriter(GetCsvFilepath(), false);
 
             await writer.WriteLineAsync($"Number of spins: {_numberOfSpins:N0}\n");
             await writer.WriteLineAsync("Number details ".PadRight(60,'-'));
