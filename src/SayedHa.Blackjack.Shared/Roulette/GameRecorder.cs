@@ -8,9 +8,13 @@
         public bool EnableFileOutput { get; set; }
         public Task RecordSpinAsync(GameCell cell);
         public Task GameCompleted();
+        public string OutputPath { get; set; }
+        public string FilenamePrefix { get; set; }
     }
     public abstract class GameRecorderBase : IGameRecorder {
         public bool EnableFileOutput { get; set; } = true;
+        public string OutputPath { get; set; }
+        public string FilenamePrefix { get; set; }
 
         protected virtual void Dispose(bool disposing) {
 

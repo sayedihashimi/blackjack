@@ -1,5 +1,8 @@
 ﻿namespace SayedHa.Blackjack.Shared.Roulette {
     public class ConsoleGameRecorder : GameRecorderBase {
+        public ConsoleGameRecorder() : base() {
+            EnableFileOutput = false;
+        }
         public bool Enabled { get; set; } = true;
 
         public override async Task RecordSpinAsync(GameCell cell) {

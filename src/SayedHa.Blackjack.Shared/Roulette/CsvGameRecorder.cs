@@ -2,11 +2,15 @@
 
 namespace SayedHa.Blackjack.Shared.Roulette {
     public class CsvGameRecorder : GameRecorderBase {
-        public CsvGameRecorder(string csvFilepath) {
-            Debug.Assert(!string.IsNullOrEmpty(csvFilepath));
-            CsvFilePath = csvFilepath;
+        public CsvGameRecorder(string outputPath) : base() {
+            Debug.Assert(!string.IsNullOrEmpty(outputPath));
+            OutputPath = outputPath;
+            //CsvFilePath = csvFilepath;
         }
-        protected string CsvFilePath { get; init; }
+        public CsvGameRecorder(string outputPath, string filenamePrefix) : this(outputPath) {
+            FilenamePrefix = filenamePrefix;
+        }
+        public virtual string GetCsvFilePath() => Path.Combine(OutputPath, !string.IsNullOrEmpty(FilenamePrefix) ? $"{FilenamePrefix}game.txt" : $"game.txt");
         protected StreamWriter? StreamWriter { get; set; }
         protected bool isInitalized = false;
         private bool disposedValue;
@@ -15,7 +19,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             if (!EnableFileOutput) { return; }
 
             isInitalized = true;
-            StreamWriter = new StreamWriter(CsvFilePath, false);
+            StreamWriter = new StreamWriter(GetCsvFilePath(), false);
             await WriteHeaderAsync();
         }
         protected virtual async Task WriteHeaderAsync() {

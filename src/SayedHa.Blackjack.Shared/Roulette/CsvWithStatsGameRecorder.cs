@@ -16,8 +16,7 @@
     // some stats that we want to gather
     //  spins since last red/black/green
     public class CsvWithStatsGameRecorder : CsvGameRecorder {
-        public CsvWithStatsGameRecorder(string csvFilePath, string csvSummaryFilepath) : base(csvFilePath) {
-            CsvSummaryFilepath = csvSummaryFilepath;
+        public CsvWithStatsGameRecorder(string outputPath) : base(outputPath) {
             groupSpinsSince = new Dictionary<GameCellGroup, int>();
             groupConsecutive = new Dictionary<GameCellGroup, int>();
             groupSpinsSinceSum = new Dictionary<GameCellGroup, long>();
@@ -48,7 +47,14 @@
                 GameCellGroup.Second18
             };
         }
-        public string CsvSummaryFilepath { get; protected set; }
+        public CsvWithStatsGameRecorder(string outputPath, string filenamePrefix) : this(outputPath) {
+            FilenamePrefix = filenamePrefix;
+        }
+
+        public new string CsvFilePath {
+            get => Path.Combine(OutputPath, !string.IsNullOrEmpty(FilenamePrefix) ? $"{FilenamePrefix}stats.csv" : $"stats.csv");
+        }
+
         protected int SpinsSinceLastBlack { get; set; }
         protected int SpinsSinceLastRed { get; set; }
         protected int SpinsSinceLastGreen { get; set; }
@@ -67,6 +73,8 @@
         public bool EnableWriteCsvFile { get; set; } = true;
 
         List<GameCellGroup> groupOuputOrder { get; init; }
+        public override string GetCsvFilePath() => Path.Combine(OutputPath, !string.IsNullOrEmpty(FilenamePrefix) ? $"{FilenamePrefix}stats.csv" : $"stats.csv");
+        public string GetCsvSummaryFilepath() => Path.Combine(OutputPath, !string.IsNullOrEmpty(FilenamePrefix) ? $"{FilenamePrefix}summary.txt" : $"summary.txt");
         protected override async Task WriteHeaderAsync() {
             if (!EnableWriteCsvFile || !EnableFileOutput) {
                 return;
@@ -173,7 +181,7 @@
         public async Task CreateSummaryFileAsync() {
             if(!EnableFileOutput) { return; }
 
-            using var writer = new StreamWriter(CsvSummaryFilepath, false);
+            using var writer = new StreamWriter(GetCsvSummaryFilepath(), false);
             //foreach(var group in groupOuputOrder) {
             //    await writer.WriteLineAsync($"--- {group} ---");
             //    double avgLastSince = (double)groupSpinsSinceSum[group] / _numberOfSpins;

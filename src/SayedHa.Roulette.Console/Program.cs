@@ -33,33 +33,38 @@ if (settings.EnableConsoleLogger) {
 }
 
 var timestamp = DateTime.Now.ToString("yyyy.MM.dd-hhmmss.ff");
-var filename = $@"C:\temp\roulette\r-{numSpins}-{timestamp}.csv";
-var statsFilename = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-stats.csv";
-var csvSummaryFilename = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-summary.txt"; ;
-var csvRecorder = new CsvGameRecorder(filename);
-var csvWithStatsRecorder = new CsvWithStatsGameRecorder(statsFilename,csvSummaryFilename);
+var outputPath = $@"C:\temp\roulette";
 
-var numberDetailsFilename = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-number-details.txt";
-var numberDetailsRecorder = new NumberDetailsRecorder(settings, numberDetailsFilename);
+var csvGameFilename = Path.Combine(outputPath, $"r-{numSpins}-{timestamp}.csv");
+var statsFilename = Path.Combine(outputPath, $"r-{numSpins}-{timestamp}-stats.csv");
+var csvSummaryFilename = Path.Combine(outputPath, $"r-{numSpins}-{timestamp}-summary.txt");
+var csvRecorder = new CsvGameRecorder(outputPath, $"r-{numSpins}-{timestamp}-");
+
+
+var csvWithStatsRecorder = new CsvWithStatsGameRecorder(outputPath, $"r-{numSpins}-{timestamp}-");
 csvWithStatsRecorder.EnableWriteCsvFile = enableCsvFileOutput;
-var martingaleRedFilepath = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-martingale-red.txt";
+
+var numberDetailsFilename = Path.Combine(outputPath, $"r-{numSpins}-{timestamp}-number-details.txt");
+var numberDetailsRecorder = new NumberDetailsRecorder(settings, numberDetailsFilename);
+
+var martingaleRedFilepath = Path.Combine(outputPath, $"r-{numSpins}-{timestamp}-martingale-red.txt");
 var martingaleRed = new MartingaleBettingRecorder(martingaleRedFilepath, null, GameCellColor.Red, 1, 1000);
-var martingaleBlackFilepath = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-martingale-black.txt";
-var martingaleBlackDetailsFilepath = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-martingale-black-details.csv";
+var martingaleBlackFilepath = Path.Combine(outputPath, $"r-{numSpins}-{timestamp}-martingale-black.txt");
+var martingaleBlackDetailsFilepath = Path.Combine(outputPath, $"r-{numSpins}-{timestamp}-martingale-black-details.csv");
 var martingaleBlack = new MartingaleBettingRecorder(martingaleBlackFilepath, martingaleBlackDetailsFilepath, GameCellColor.Black, 1, 1000);
 martingaleBlack.EnableCsvWriter = true;
 
-var greenFilepath = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-greens.txt";
-var greenCsvFilepath = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-greens.csv";
+var greenFilepath = Path.Combine(outputPath, $"r-{numSpins}-{timestamp}-greens.txt");
+var greenCsvFilepath = Path.Combine(outputPath, $"r-{numSpins}-{timestamp}-greens.csv");
 var greenRecorder = new GreenMethodRecorder(greenFilepath, greenCsvFilepath, minimumBet, initialBankroll);
 
-var greenAgroFilepath = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-greens-agro.txt";
-var greenAgroCsvFilepath = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-greens-agro.csv";
+var greenAgroFilepath = Path.Combine(outputPath, $"r-{numSpins}-{timestamp}-greens-agro.txt");
+var greenAgroCsvFilepath = Path.Combine(outputPath, $"r-{numSpins}-{timestamp}-greens-agro.csv");
 var greenAgroRecorder = new GreenAgressiveMethodRecorder(greenAgroFilepath, greenAgroCsvFilepath, minimumBet, initialBankroll);
 
 
-var bondFilepath = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-bondmartingale.txt";
-var bondDetailsFilepath = $@"C:\temp\roulette\r-{numSpins}-{timestamp}-bondmartingale-details.csv";
+var bondFilepath = Path.Combine(outputPath, $"r-{numSpins}-{timestamp}-bondmartingale.txt");
+var bondDetailsFilepath = Path.Combine(outputPath, $"r-{numSpins}-{timestamp}-bondmartingale-details.csv");
 var bondMartingale = new BondMartingaleBettingRecorder(bondFilepath,bondDetailsFilepath,minimumBet, initialBankroll);
 
 if (enableCsvFileOutput) {
@@ -93,4 +98,4 @@ foreach (var recorder in recorders) {
     recorder.Dispose();
 }
 
-Console.WriteLine($"num spins: {settings.NumberOfSpins:N0}\ntime: {watch.Elapsed.TotalSeconds}\nfilenames: '{filename}','{statsFilename}'");
+Console.WriteLine($"num spins: {settings.NumberOfSpins:N0}\ntime: {watch.Elapsed.TotalSeconds}\nfilenames: '{csvGameFilename}','{statsFilename}'");
