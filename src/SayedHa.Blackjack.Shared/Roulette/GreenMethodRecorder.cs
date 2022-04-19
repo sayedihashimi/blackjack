@@ -12,13 +12,13 @@ namespace SayedHa.Blackjack.Shared.Roulette {
     /// 3. when you win, go back to 1 unit bet
     /// </summary>
     public class GreenMethodRecorder : MartingaleBettingRecorder {
-        public GreenMethodRecorder(string outputPath, string filenamePrefix, int minimumBet, long initialDollarAmount, bool enableCsvWriter) :
-            base(outputPath,filenamePrefix, GameCellColor.Green, minimumBet, initialDollarAmount,enableCsvWriter) {
+        public GreenMethodRecorder(string outputPath, string filenamePrefix, int minimumBet, long initialBankroll, bool enableCsvWriter) :
+            base(outputPath,filenamePrefix, GameCellColor.Green, minimumBet, initialBankroll,enableCsvWriter) {
         }
         protected override long GetNextBetAmount(WinOrLoss spinResult, long currentBet, long intialBankroll, long currentBankroll) =>
             spinResult switch {
                 WinOrLoss.Win => MinimumBet,
-                WinOrLoss.Loss => MinimumBet * ((int)Math.Ceiling(Math.Abs(((double)CurrentDollarAmount - DollarAmountOnLastWin) /(17*(double)MinimumBet)))),
+                WinOrLoss.Loss => MinimumBet * ((int)Math.Ceiling(Math.Abs(((double)CurrentBankroll - BankrollOnLastWin) /(17*(double)MinimumBet)))),
                 _ => throw new ArgumentException(nameof(spinResult))
             };
         protected override string GetMethodDisplayName() => "Green only betting method";
@@ -29,8 +29,8 @@ namespace SayedHa.Blackjack.Shared.Roulette {
     }
 
     public class GreenAgressiveMethodRecorder : GreenMethodRecorder {
-        public GreenAgressiveMethodRecorder(string outputPath,string filenamePrefix, int minimumBet, long initialDollarAmount, bool enableCsvWriter) :
-            base(outputPath, filenamePrefix, minimumBet, initialDollarAmount, enableCsvWriter) {
+        public GreenAgressiveMethodRecorder(string outputPath,string filenamePrefix, int minimumBet, long initialBankroll, bool enableCsvWriter) :
+            base(outputPath, filenamePrefix, minimumBet, initialBankroll, enableCsvWriter) {
         }
 
         protected override string GetMethodDisplayName() => "Green aggressive only betting method";
@@ -38,28 +38,27 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         protected override long GetNextBetAmount(WinOrLoss spinResult, long currentBet, long intialBankroll, long currentBankroll) {
             var betAmount = spinResult switch {
                 WinOrLoss.Win => getWinBet(),
-                WinOrLoss.Loss => getMultiplier() * MinimumBet * ((int)Math.Ceiling(Math.Abs(((double)CurrentDollarAmount - DollarAmountOnLastWin) / (17 * (double)MinimumBet)))),
+                WinOrLoss.Loss => getMultiplier() * MinimumBet * ((int)Math.Ceiling(Math.Abs(((double)CurrentBankroll - BankrollOnLastWin) / (17 * (double)MinimumBet)))),
                 _ => throw new ArgumentException(nameof(spinResult))
             };
 
-            // TODO: Not sure if I should be using DollarAmountOnLastWin or just InitialDollarAmount
             long getWinBet() {
-                if (CurrentDollarAmount < InitialDollarAmount) {
-                    return MinimumDollarAmount;
+                if (CurrentBankroll < InitialBankroll) {
+                    return MinBankroll;
                 }
 
                 // compute a bet multiplier based on how much has been gained
-                int multiplier = (int)Math.Floor((double)CurrentDollarAmount / InitialDollarAmount);
+                int multiplier = (int)Math.Floor((double)CurrentBankroll / InitialBankroll);
                 // for every $500 profit, increase bet by MinimumBet
-                multiplier = (int)Math.Floor(((double)CurrentDollarAmount - InitialDollarAmount) / 1000);
+                multiplier = (int)Math.Floor(((double)CurrentBankroll - InitialBankroll) / 1000);
                 multiplier = multiplier > 0 ? multiplier : 1;
-                var amt = CurrentDollarAmount - InitialDollarAmount > 0 ? MinimumBet * multiplier : MinimumBet;
+                var amt = CurrentBankroll - InitialBankroll > 0 ? MinimumBet * multiplier : MinimumBet;
 
                 return amt;
             }
 
             int getMultiplier() {
-                int multiplier = (int)Math.Floor(((double)CurrentDollarAmount - InitialDollarAmount) / 1000);
+                int multiplier = (int)Math.Floor(((double)CurrentBankroll - InitialBankroll) / 1000);
                 multiplier = multiplier > 0 ? multiplier : 1;
                 return multiplier;
             }

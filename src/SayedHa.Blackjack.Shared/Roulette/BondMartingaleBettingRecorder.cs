@@ -19,8 +19,8 @@ namespace SayedHa.Blackjack.Shared.Roulette {
     public class BondMartingaleBettingRecorder : MartingaleBettingRecorder {
         // TODO: Consider making this recorder configurable for what bets are being used for the first two bets
         //       Need to be a bit careful with this so it doesn't impact perf much
-        public BondMartingaleBettingRecorder(string outputPath,string filenamePrefix, int minimumBet, long initialDollarAmount, bool enableCsvWriter) :
-            base(outputPath, filenamePrefix, GameCellColor.Green, minimumBet, initialDollarAmount, enableCsvWriter) {
+        public BondMartingaleBettingRecorder(string outputPath,string filenamePrefix, int minimumBet, long initialBankroll, bool enableCsvWriter) :
+            base(outputPath, filenamePrefix, GameCellColor.Green, minimumBet, initialBankroll, enableCsvWriter) {
             // Note: GameCellColor.Green will be ignored in the base class
         }
         protected override string GetMethodDisplayName() => "Bond martingale";
@@ -61,11 +61,11 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             var winOrLoss = percentOfBetThatPaidOut > 0 ? WinOrLoss.Win : WinOrLoss.Loss;
             var payout = winOrLoss == WinOrLoss.Win ? ((int)Math.Floor(percentOfBetThatPaidOut * CurrentBet)) * betMultiplierOfWinningBet : 0;
 
-            long startDollarAmount = CurrentDollarAmount;
+            long startBankroll = CurrentBankroll;
             long startBet = CurrentBet;
 
-            CurrentDollarAmount -= CurrentBet;
-            CurrentDollarAmount += payout;
+            CurrentBankroll -= CurrentBet;
+            CurrentBankroll += payout;
 
             if(winOrLoss == WinOrLoss.Win) {
                 MaxAmountWon = MaxAmountWon > CurrentBet ? MaxAmountWon : CurrentBet;
@@ -79,14 +79,14 @@ namespace SayedHa.Blackjack.Shared.Roulette {
                 CurrentNumConsecutiveWins = 0;
             }
 
-            if (SpinWhenLostAllMoney == 0 && CurrentDollarAmount < 0) {
+            if (SpinWhenLostAllMoney == 0 && CurrentBankroll < 0) {
                 SpinWhenLostAllMoney = CurrentNumSpins;
             }
-            if (MaximumDollarAmount < CurrentDollarAmount) {
-                MaximumDollarAmount = CurrentDollarAmount;
+            if (MaxBankroll < CurrentBankroll) {
+                MaxBankroll = CurrentBankroll;
             }
-            if (MinimumDollarAmount > CurrentDollarAmount) {
-                MinimumDollarAmount = CurrentDollarAmount;
+            if (MinBankroll > CurrentBankroll) {
+                MinBankroll = CurrentBankroll;
             }
 
             if (MaxBet < CurrentBet) {
@@ -94,7 +94,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             }
 
             if (EnableCsvWriter) {
-                await WriteCsvLineAsync(cell, startDollarAmount, startBet, winOrLoss,payout);
+                await WriteCsvLineAsync(cell, startBankroll, startBet, winOrLoss,payout);
             }
         }
 

@@ -12,17 +12,17 @@ namespace SayedHa.Blackjack.Shared.Roulette {
     /// Once you do, you go back to $1 and start over.'
     /// </summary>
     public class MartingaleBettingRecorder : GameRecorderBase {
-        public MartingaleBettingRecorder(string outputPath, string filenamePrefix, GameCellColor selectedColor, int minimumBet, long initialDollarAmount, bool enableCsvWriter) {
+        public MartingaleBettingRecorder(string outputPath, string filenamePrefix, GameCellColor selectedColor, int minimumBet, long initialBankroll, bool enableCsvWriter) {
             OutputPath = outputPath;
             FilenamePrefix = filenamePrefix;
             MinimumBet = minimumBet;
             CurrentBet = MinimumBet;
             SelectedColor = selectedColor;
             MaxBet = 0;
-            InitialDollarAmount = initialDollarAmount;
-            CurrentDollarAmount = InitialDollarAmount;
-            DollarAmountOnLastWin = InitialDollarAmount;
-            MaximumDollarAmount = InitialDollarAmount;
+            InitialBankroll = initialBankroll;
+            CurrentBankroll = InitialBankroll;
+            BankrollOnLastWin = InitialBankroll;
+            MaxBankroll = InitialBankroll;
 
             EnableCsvWriter = enableCsvWriter;
         }
@@ -41,11 +41,11 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         protected long MaxAmountLost { get; set; }
 
         protected long CurrentBet { get; set; }
-        protected long InitialDollarAmount { get; init; }
-        protected long CurrentDollarAmount { get; set; } = 0;
-        protected long DollarAmountOnLastWin { get; set; }
-        protected long MaximumDollarAmount { get; set; }
-        public long MinimumDollarAmount { get; set; }
+        protected long InitialBankroll { get; init; }
+        protected long CurrentBankroll { get; set; } = 0;
+        protected long BankrollOnLastWin { get; set; }
+        protected long MaxBankroll { get; set; }
+        public long MinBankroll { get; set; }
         protected GameCellColor SelectedColor { get; init; }
         protected long SpinWhenLostAllMoney { get; set; }
         protected long CurrentNumSpins { get; set; }
@@ -71,12 +71,12 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             if (!EnableFileOutput) { return; }
             await CsvWriter!.WriteLineAsync("'spin number','spin value',bankroll,bet,winorloss,payout");
         }
-        public async Task WriteCsvLineAsync(GameCell currentSpin,long startDollarAmount, long startBet, WinOrLoss winOrLoss,long payout) {
+        public async Task WriteCsvLineAsync(GameCell currentSpin,long startBankroll, long startBet, WinOrLoss winOrLoss,long payout) {
             if (!EnableFileOutput || !EnableCsvWriter) { return; }
             if (!IsInitalized) {
                 await InitalizeAsync();
             }
-            await CsvWriter!.WriteLineAsync($"{CurrentNumSpins},{currentSpin.Text},{startDollarAmount},{startBet},{winOrLoss},{payout}");
+            await CsvWriter!.WriteLineAsync($"{CurrentNumSpins},{currentSpin.Text},{startBankroll},{startBet},{winOrLoss},{payout}");
         }
 
         public override async Task RecordSpinAsync(GameCell cell) {
@@ -86,7 +86,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             // once you win, reset bet amount to the initial bet amount
 
             // collect the values that we need to write the csv line
-            long startDollarAmount = CurrentDollarAmount;
+            long startBankroll = CurrentBankroll;
             long startBet = CurrentBet;
             var winOrLoss = WinOrLoss.Loss;
             var payout = (long)0;
@@ -94,10 +94,9 @@ namespace SayedHa.Blackjack.Shared.Roulette {
                 // won the bet
                 winOrLoss = WinOrLoss.Win;
                 // reset the bet amount back to the initial bet
-                // CurrentDollarAmount += CurrentBet;
                 payout = GetPayoutForWin(CurrentBet);
-                CurrentDollarAmount += payout;
-                DollarAmountOnLastWin = CurrentDollarAmount;
+                CurrentBankroll += payout;
+                BankrollOnLastWin = CurrentBankroll;
 
                 MaxAmountWon = MaxAmountWon > CurrentBet ? MaxAmountWon : CurrentBet;
 
@@ -113,8 +112,8 @@ namespace SayedHa.Blackjack.Shared.Roulette {
                 winOrLoss = WinOrLoss.Loss;
                 payout = 0;
                 // double the bet
-                CurrentDollarAmount -= CurrentBet;
-                if(SpinWhenLostAllMoney == 0 && CurrentDollarAmount < 0) {
+                CurrentBankroll -= CurrentBet;
+                if(SpinWhenLostAllMoney == 0 && CurrentBankroll < 0) {
                     SpinWhenLostAllMoney = CurrentNumSpins;
                 }
 
@@ -127,14 +126,14 @@ namespace SayedHa.Blackjack.Shared.Roulette {
                 CurrentNumConsecutiveWins = 0;
             }
 
-            CurrentBet = GetNextBetAmount(winOrLoss, CurrentBet, InitialDollarAmount, startDollarAmount);
+            CurrentBet = GetNextBetAmount(winOrLoss, CurrentBet, InitialBankroll, startBankroll);
 
             // TODO: Should refactor this becuase this needs to be copied to most sub-classes
-            if(MaximumDollarAmount < CurrentDollarAmount) {
-                MaximumDollarAmount = CurrentDollarAmount;
+            if(MaxBankroll < CurrentBankroll) {
+                MaxBankroll = CurrentBankroll;
             }
-            if(MinimumDollarAmount > CurrentDollarAmount) {
-                MinimumDollarAmount = CurrentDollarAmount;
+            if(MinBankroll > CurrentBankroll) {
+                MinBankroll = CurrentBankroll;
             }
 
             if(MaxBet < CurrentBet) {
@@ -142,7 +141,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             }
 
             if (EnableCsvWriter) {
-                await WriteCsvLineAsync(cell, startDollarAmount, startBet,winOrLoss,payout);
+                await WriteCsvLineAsync(cell, startBankroll, startBet,winOrLoss,payout);
             }
         }
         protected virtual long GetPayoutForWin(long currentBet) => currentBet;
@@ -163,10 +162,10 @@ namespace SayedHa.Blackjack.Shared.Roulette {
 
             await writer.WriteLineAsync($"{GetMethodDisplayName()} ".PadRight(60));
             await writer.WriteLineAsync($"  initial bet:                       ${MinimumBet:N0}");
-            await writer.WriteLineAsync($"  initial bankroll:                  ${InitialDollarAmount:N0}");
-            await writer.WriteLineAsync($"  current bankroll:                  ${CurrentDollarAmount:N0}");
-            await writer.WriteLineAsync($"  max bankroll:                      ${MaximumDollarAmount:N0}");
-            await writer.WriteLineAsync($"  min bankroll:                      ${MinimumDollarAmount:N0}");
+            await writer.WriteLineAsync($"  initial bankroll:                  ${InitialBankroll:N0}");
+            await writer.WriteLineAsync($"  current bankroll:                  ${CurrentBankroll:N0}");
+            await writer.WriteLineAsync($"  max bankroll:                      ${MaxBankroll:N0}");
+            await writer.WriteLineAsync($"  min bankroll:                      ${MinBankroll:N0}");
             await writer.WriteLineAsync($"  max bet won:                       ${MaxAmountWon:N0}");
             await writer.WriteLineAsync($"  max bet lost:                      ${MaxAmountLost:N0}");
             await writer.WriteLineAsync($"  maximum bet played:                ${MaxBet:N0}");
