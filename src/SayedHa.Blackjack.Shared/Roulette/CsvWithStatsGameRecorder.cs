@@ -51,10 +51,6 @@
             FilenamePrefix = filenamePrefix;
         }
 
-        public new string CsvFilePath {
-            get => Path.Combine(OutputPath, !string.IsNullOrEmpty(FilenamePrefix) ? $"{FilenamePrefix}stats.csv" : $"stats.csv");
-        }
-
         protected int SpinsSinceLastBlack { get; set; }
         protected int SpinsSinceLastRed { get; set; }
         protected int SpinsSinceLastGreen { get; set; }

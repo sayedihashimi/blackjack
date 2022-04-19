@@ -39,8 +39,6 @@ namespace SayedHa.Blackjack.Shared.Betting {
                 case >=6: // 12
                     betMultiplier = MaxBetSpread;
                     break;
-                default:
-                    break;
             }
 
             float nextBet = betMultiplier * BetUnitValue;
