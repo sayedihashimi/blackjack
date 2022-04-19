@@ -35,6 +35,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             };
         public override async Task RecordSpinAsync(GameCell cell) {
             CurrentNumSpins++;
+            SumPreviousBankrolls += CurrentBankroll;
 
             double percentOfBetThatPaidOut = 0;
             int betMultiplierOfWinningBet = 0;
@@ -88,7 +89,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             if (MinBankroll > CurrentBankroll) {
                 MinBankroll = CurrentBankroll;
             }
-
+            AverageBankroll = SumPreviousBankrolls / CurrentNumSpins;
             if (MaxBet < CurrentBet) {
                 MaxBet = CurrentBet;
             }

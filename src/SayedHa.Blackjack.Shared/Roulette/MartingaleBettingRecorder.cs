@@ -23,7 +23,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             CurrentBankroll = InitialBankroll;
             BankrollOnLastWin = InitialBankroll;
             MaxBankroll = InitialBankroll;
-
+            AverageBankroll = InitialBankroll;
             EnableCsvWriter = enableCsvWriter;
         }
         public bool EnableCsvWriter { get; set; } = false;
@@ -46,6 +46,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         protected long BankrollOnLastWin { get; set; }
         protected long MaxBankroll { get; set; }
         public long MinBankroll { get; set; }
+        public long AverageBankroll { get; set; }
         protected GameCellColor SelectedColor { get; init; }
         protected long SpinWhenLostAllMoney { get; set; }
         protected long CurrentNumSpins { get; set; }
@@ -56,6 +57,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         public virtual string GetCsvFilepath() => Path.Combine(OutputPath, !string.IsNullOrEmpty(FilenamePrefix) ? $"{FilenamePrefix}{GetMethodCompactName()}-{SelectedColor}-details.csv" : $"{GetMethodCompactName()}-{SelectedColor}-details");
 
         protected StreamWriter? CsvWriter { get; set; }
+        public long SumPreviousBankrolls { get; protected set; }
 
         public async Task InitalizeAsync() {
             if(!EnableFileOutput) { return; }
@@ -81,6 +83,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
 
         public override async Task RecordSpinAsync(GameCell cell) {
             CurrentNumSpins++;
+            SumPreviousBankrolls += CurrentBankroll;
             // if you win, repeat the bet
             // if you lose, double the bet
             // once you win, reset bet amount to the initial bet amount
@@ -135,7 +138,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             if(MinBankroll > CurrentBankroll) {
                 MinBankroll = CurrentBankroll;
             }
-
+            AverageBankroll = SumPreviousBankrolls / CurrentNumSpins;
             if(MaxBet < CurrentBet) {
                 MaxBet = CurrentBet;
             }
@@ -166,6 +169,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             await writer.WriteLineAsync($"  current bankroll:                  ${CurrentBankroll:N0}");
             await writer.WriteLineAsync($"  max bankroll:                      ${MaxBankroll:N0}");
             await writer.WriteLineAsync($"  min bankroll:                      ${MinBankroll:N0}");
+            await writer.WriteLineAsync($"  average bankroll:                  ${AverageBankroll:N0}");
             await writer.WriteLineAsync($"  max bet won:                       ${MaxAmountWon:N0}");
             await writer.WriteLineAsync($"  max bet lost:                      ${MaxAmountLost:N0}");
             await writer.WriteLineAsync($"  maximum bet played:                ${MaxBet:N0}");
