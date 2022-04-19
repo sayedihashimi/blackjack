@@ -14,6 +14,8 @@
     public interface IGameRollupRecorder {
         public Task WriteGameSummaryHeaderToAsync(StreamWriter writer);
         public Task WriteGameSummaryToAsync(StreamWriter writer);
+        protected string GetMethodDisplayName();
+        protected string GetMethodCompactName();
     }
 
     public abstract class GameRecorderBase : IGameRecorder {

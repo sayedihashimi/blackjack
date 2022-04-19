@@ -35,6 +35,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
 
         protected override string GetMethodDisplayName() => "Green aggressive only betting method";
         protected override string GetMethodCompactName() => "greenagro";
+
         protected override long GetNextBetAmount(WinOrLoss spinResult, long currentBet, long intialBankroll, long currentBankroll) {
             var betAmount = spinResult switch {
                 WinOrLoss.Win => getWinBet(),

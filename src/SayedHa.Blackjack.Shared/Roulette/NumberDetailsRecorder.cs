@@ -129,6 +129,10 @@ namespace SayedHa.Blackjack.Shared.Roulette {
                 await writer.WriteLineAsync(string.Empty);
             }
         }
+
+        string IGameRollupRecorder.GetMethodDisplayName() => "Numer details";
+
+        string IGameRollupRecorder.GetMethodCompactName() => "number-details";
     }
 
     public class NumberDetails {

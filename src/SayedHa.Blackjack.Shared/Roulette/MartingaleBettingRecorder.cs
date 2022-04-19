@@ -157,6 +157,9 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             };
         protected virtual string GetMethodDisplayName() => "Martingale betting method";
         protected virtual string GetMethodCompactName() => "martingale";
+        string IGameRollupRecorder.GetMethodDisplayName() => "Martingale betting method";
+
+        string IGameRollupRecorder.GetMethodCompactName() => "martingale";
         // write the summary file now
         public override async Task GameCompleted() {
             if (!EnableFileOutput) { return; }

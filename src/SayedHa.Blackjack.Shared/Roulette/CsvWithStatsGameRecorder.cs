@@ -225,5 +225,9 @@
         public async Task WriteGameSummaryToAsync(StreamWriter writer) {
             await writer.WriteLineAsync("group,avgLastSince,maxSpinsSince,maxConsecutive");
         }
+
+        string IGameRollupRecorder.GetMethodDisplayName() => "Group stats";
+
+        string IGameRollupRecorder.GetMethodCompactName() => "groupstats";
     }
 }
