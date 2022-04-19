@@ -36,48 +36,26 @@ var timestamp = DateTime.Now.ToString("yyyy.MM.dd-hhmmss.ff");
 var outputPath = $@"C:\temp\roulette";
 var filenamePrefix = $"r-{numSpins}-{timestamp}-";
 
-var csvRecorder = new CsvGameRecorder(outputPath, $"r-{numSpins}-{timestamp}-");
+
 var csvWithStatsRecorder = new CsvWithStatsGameRecorder(outputPath, $"r-{numSpins}-{timestamp}-");
 csvWithStatsRecorder.EnableWriteCsvFile = enableCsvFileOutput;
 
-var numberDetailsRecorder = new NumberDetailsRecorder(settings, outputPath,filenamePrefix);
-
-var martingaleRedFilepath = Path.Combine(outputPath, $"r-{numSpins}-{timestamp}-martingale-red.txt");
-var martingaleRed = new MartingaleBettingRecorder(martingaleRedFilepath, null, GameCellColor.Red, 1, 1000);
-var martingaleBlackFilepath = Path.Combine(outputPath, $"r-{numSpins}-{timestamp}-martingale-black.txt");
-var martingaleBlackDetailsFilepath = Path.Combine(outputPath, $"r-{numSpins}-{timestamp}-martingale-black-details.csv");
-var martingaleBlack = new MartingaleBettingRecorder(martingaleBlackFilepath, martingaleBlackDetailsFilepath, GameCellColor.Black, 1, 1000);
-martingaleBlack.EnableCsvWriter = true;
-
-var greenFilepath = Path.Combine(outputPath, $"r-{numSpins}-{timestamp}-greens.txt");
-var greenCsvFilepath = Path.Combine(outputPath, $"r-{numSpins}-{timestamp}-greens.csv");
-var greenRecorder = new GreenMethodRecorder(greenFilepath, greenCsvFilepath, minimumBet, initialBankroll);
-
-var greenAgroFilepath = Path.Combine(outputPath, $"r-{numSpins}-{timestamp}-greens-agro.txt");
-var greenAgroCsvFilepath = Path.Combine(outputPath, $"r-{numSpins}-{timestamp}-greens-agro.csv");
-var greenAgroRecorder = new GreenAgressiveMethodRecorder(greenAgroFilepath, greenAgroCsvFilepath, minimumBet, initialBankroll);
-
-
-var bondFilepath = Path.Combine(outputPath, $"r-{numSpins}-{timestamp}-bondmartingale.txt");
-var bondDetailsFilepath = Path.Combine(outputPath, $"r-{numSpins}-{timestamp}-bondmartingale-details.csv");
-var bondMartingale = new BondMartingaleBettingRecorder(bondFilepath,bondDetailsFilepath,minimumBet, initialBankroll);
-
 if (enableCsvFileOutput) {
-    recorders.Add(csvRecorder);
+    recorders.Add(new CsvGameRecorder(outputPath, $"r-{numSpins}-{timestamp}-"));
 }
 if (enableNumberDetails) {
-    recorders.Add(numberDetailsRecorder);
+    recorders.Add(new NumberDetailsRecorder(settings, outputPath, filenamePrefix));
 }
 if (enableMartingale) {
-    recorders.Add(martingaleBlack);
-    recorders.Add(martingaleRed);
+    recorders.Add(new MartingaleBettingRecorder(outputPath, filenamePrefix, GameCellColor.Black, 1, 1000, true));
+    recorders.Add(new MartingaleBettingRecorder(outputPath, filenamePrefix, GameCellColor.Red, 1, 1000, false));
 }
 if (enableGreen) {
-    recorders.Add(greenRecorder);
-    recorders.Add(greenAgroRecorder);
+    recorders.Add(new GreenMethodRecorder(outputPath, filenamePrefix, minimumBet, initialBankroll, true));
+    recorders.Add(new GreenAgressiveMethodRecorder(outputPath, filenamePrefix, minimumBet, initialBankroll, true));
 }
 if (enableBondMartingale) {
-    recorders.Add(bondMartingale);
+    recorders.Add(new BondMartingaleBettingRecorder(outputPath, filenamePrefix, minimumBet, initialBankroll, true));
 }
 
 // csv with stats always needs to be added for the summary

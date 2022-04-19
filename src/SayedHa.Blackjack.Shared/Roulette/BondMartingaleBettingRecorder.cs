@@ -19,10 +19,14 @@ namespace SayedHa.Blackjack.Shared.Roulette {
     public class BondMartingaleBettingRecorder : MartingaleBettingRecorder {
         // TODO: Consider making this recorder configurable for what bets are being used for the first two bets
         //       Need to be a bit careful with this so it doesn't impact perf much
-        public BondMartingaleBettingRecorder(string filepath, string csvFilepath, int minimumBet, long initialDollarAmount) : base(filepath, csvFilepath, GameCellColor.Green, minimumBet, initialDollarAmount) {
+        public BondMartingaleBettingRecorder(string outputPath,string filenamePrefix, int minimumBet, long initialDollarAmount, bool enableCsvWriter) :
+            base(outputPath, filenamePrefix, GameCellColor.Green, minimumBet, initialDollarAmount, enableCsvWriter) {
             // Note: GameCellColor.Green will be ignored in the base class
         }
         protected override string GetMethodDisplayName() => "Bond martingale";
+        protected override string GetMethodCompactName() => "bondmartingale";
+        public override string GetFilepath() => Path.Combine(OutputPath, !string.IsNullOrEmpty(FilenamePrefix) ? $"{FilenamePrefix}{GetMethodCompactName()}.txt" : $"{GetMethodCompactName()}.txt");
+        public override string GetCsvFilepath() => Path.Combine(OutputPath, !string.IsNullOrEmpty(FilenamePrefix) ? $"{FilenamePrefix}{GetMethodCompactName()}-details.csv" : $"{GetMethodCompactName()}-details");
         protected override long GetNextBetAmount(WinOrLoss spinResult, long currentBet, long intialBankroll, long currentBankroll) =>
             spinResult switch {
                 WinOrLoss.Loss => currentBet * 2,

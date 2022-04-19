@@ -12,26 +12,22 @@ namespace SayedHa.Blackjack.Shared.Roulette {
     /// Once you do, you go back to $1 and start over.'
     /// </summary>
     public class MartingaleBettingRecorder : GameRecorderBase {
-        public MartingaleBettingRecorder(string filepath, string csvFilepath, GameCellColor selectedColor, int minimumBet, long initialDollarAmount) {
+        public MartingaleBettingRecorder(string outputPath, string filenamePrefix, GameCellColor selectedColor, int minimumBet, long initialDollarAmount, bool enableCsvWriter) {
+            OutputPath = outputPath;
+            FilenamePrefix = filenamePrefix;
             MinimumBet = minimumBet;
             CurrentBet = MinimumBet;
             SelectedColor = selectedColor;
             MaxBet = 0;
-            Filepath = filepath;
             InitialDollarAmount = initialDollarAmount;
             CurrentDollarAmount = InitialDollarAmount;
             DollarAmountOnLastWin = InitialDollarAmount;
             MaximumDollarAmount = InitialDollarAmount;
-            CsvFilepath = csvFilepath;
-            if (!string.IsNullOrEmpty(CsvFilepath)) {
-                EnableCsvWriter = true;
-            }
 
-            EnableCsvWriter = string.IsNullOrEmpty(CsvFilepath) == false;
+            EnableCsvWriter = enableCsvWriter;
         }
-        private bool disposedValue;
         public bool EnableCsvWriter { get; set; } = false;
-        protected string Filepath { get; set; }
+
         protected int MinimumBet { get; init; } = 1;
         protected int BetMultiplier { get; init; } = 2;
         protected long MaxBet { get; set; }
@@ -55,18 +51,20 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         protected long CurrentNumSpins { get; set; }
 
         protected bool IsInitalized { get; set; } = false;
-        protected string CsvFilepath { get; set; }
+
+        public virtual string GetFilepath() => Path.Combine(OutputPath,!string.IsNullOrEmpty(FilenamePrefix)?$"{FilenamePrefix}{GetMethodCompactName()}-{SelectedColor}.txt":$"{GetMethodCompactName()}-{SelectedColor}.txt");
+        public virtual string GetCsvFilepath() => Path.Combine(OutputPath, !string.IsNullOrEmpty(FilenamePrefix) ? $"{FilenamePrefix}{GetMethodCompactName()}-{SelectedColor}-details.csv" : $"{GetMethodCompactName()}-{SelectedColor}-details");
+
         protected StreamWriter? CsvWriter { get; set; }
-        
 
         public async Task InitalizeAsync() {
             if(!EnableFileOutput) { return; }
 
             IsInitalized = true;
-            if (string.IsNullOrEmpty(CsvFilepath)) {
-                throw new ArgumentNullException(nameof(CsvFilepath));
+            if (string.IsNullOrEmpty(GetCsvFilepath())) {
+                throw new ArgumentException($"Cannot initalize martingale csv writer because the csv filepath is empty");
             }
-            CsvWriter = new StreamWriter(CsvFilepath, false);
+            CsvWriter = new StreamWriter(GetCsvFilepath(), false);
             await WriterHeaderAsync();
         }
         public async Task WriterHeaderAsync() {
@@ -74,7 +72,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             await CsvWriter!.WriteLineAsync("'spin number','spin value',bankroll,bet,winorloss,payout");
         }
         public async Task WriteCsvLineAsync(GameCell currentSpin,long startDollarAmount, long startBet, WinOrLoss winOrLoss,long payout) {
-            if (!EnableFileOutput) { return; }
+            if (!EnableFileOutput || !EnableCsvWriter) { return; }
             if (!IsInitalized) {
                 await InitalizeAsync();
             }
@@ -156,11 +154,12 @@ namespace SayedHa.Blackjack.Shared.Roulette {
                 _ => throw new ArgumentException(nameof(spinResult))
             };
         protected virtual string GetMethodDisplayName() => "Martingale betting method";
+        protected virtual string GetMethodCompactName() => "martingale";
         // write the summary file now
         public override async Task GameCompleted() {
             if (!EnableFileOutput) { return; }
 
-            var writer = new StreamWriter(Filepath, true);
+            var writer = new StreamWriter(GetFilepath(), true);
 
             await writer.WriteLineAsync($"{GetMethodDisplayName()} ".PadRight(60));
             await writer.WriteLineAsync($"  initial bet:                       ${MinimumBet:N0}");

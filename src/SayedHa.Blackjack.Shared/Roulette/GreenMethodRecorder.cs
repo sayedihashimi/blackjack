@@ -12,8 +12,8 @@ namespace SayedHa.Blackjack.Shared.Roulette {
     /// 3. when you win, go back to 1 unit bet
     /// </summary>
     public class GreenMethodRecorder : MartingaleBettingRecorder {
-        public GreenMethodRecorder(string filepath, string csvFilepath, int minimumBet, long initialDollarAmount) : 
-            base(filepath, csvFilepath, GameCellColor.Green, minimumBet, initialDollarAmount) {
+        public GreenMethodRecorder(string outputPath, string filenamePrefix, int minimumBet, long initialDollarAmount, bool enableCsvWriter) :
+            base(outputPath,filenamePrefix, GameCellColor.Green, minimumBet, initialDollarAmount,enableCsvWriter) {
         }
         protected override long GetNextBetAmount(WinOrLoss spinResult, long currentBet, long intialBankroll, long currentBankroll) =>
             spinResult switch {
@@ -22,14 +22,19 @@ namespace SayedHa.Blackjack.Shared.Roulette {
                 _ => throw new ArgumentException(nameof(spinResult))
             };
         protected override string GetMethodDisplayName() => "Green only betting method";
+        protected override string GetMethodCompactName() => "green";
         protected override long GetPayoutForWin(long currentBet) => currentBet * 17;
+        public override string GetFilepath() => Path.Combine(OutputPath, !string.IsNullOrEmpty(FilenamePrefix) ? $"{FilenamePrefix}{GetMethodCompactName()}.txt" : $"{GetMethodCompactName()}.txt");
+        public override string GetCsvFilepath() => Path.Combine(OutputPath, !string.IsNullOrEmpty(FilenamePrefix) ? $"{FilenamePrefix}{GetMethodCompactName()}-details.csv" : $"{GetMethodCompactName()}-details");
     }
 
     public class GreenAgressiveMethodRecorder : GreenMethodRecorder {
-        public GreenAgressiveMethodRecorder(string filepath, string csvFilepath, int minimumBet, long initialDollarAmount) : base(filepath, csvFilepath, minimumBet, initialDollarAmount) {
+        public GreenAgressiveMethodRecorder(string outputPath,string filenamePrefix, int minimumBet, long initialDollarAmount, bool enableCsvWriter) :
+            base(outputPath, filenamePrefix, minimumBet, initialDollarAmount, enableCsvWriter) {
         }
 
         protected override string GetMethodDisplayName() => "Green aggressive only betting method";
+        protected override string GetMethodCompactName() => "greenagro";
         protected override long GetNextBetAmount(WinOrLoss spinResult, long currentBet, long intialBankroll, long currentBankroll) {
             var betAmount = spinResult switch {
                 WinOrLoss.Win => getWinBet(),
