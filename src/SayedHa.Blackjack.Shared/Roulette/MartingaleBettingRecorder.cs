@@ -11,7 +11,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
     /// If you win, repeat. But if you lose, bet $2 next time. You keep doubling your bet amount until you win again. 
     /// Once you do, you go back to $1 and start over.'
     /// </summary>
-    public class MartingaleBettingRecorder : GameRecorderBase {
+    public class MartingaleBettingRecorder : GameRecorderBase, IGameRollupRecorder {
         public MartingaleBettingRecorder(string outputPath, string filenamePrefix, GameCellColor selectedColor, int minimumBet, long initialBankroll, bool enableCsvWriter) {
             OutputPath = outputPath;
             FilenamePrefix = filenamePrefix;
@@ -182,6 +182,26 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             if(EnableCsvWriter && CsvWriter != null) {
                 await CsvWriter.FlushAsync();
             }
+        }
+
+        public async Task WriteGameSummaryToAsync(StreamWriter writer) {
+            await writer.WriteAsync($"{MinimumBet},");
+            await writer.WriteAsync($"{InitialBankroll},");
+            await writer.WriteAsync($"{CurrentBankroll},");
+            await writer.WriteAsync($"{MaxBankroll},");
+            await writer.WriteAsync($"{MinBankroll},");
+            await writer.WriteAsync($"{AverageBankroll},");
+            await writer.WriteAsync($"{MaxAmountWon},");
+            await writer.WriteAsync($"{MaxAmountLost},");
+            await writer.WriteAsync($"{MaxBet},");
+            await writer.WriteAsync($"{MaxNumConsecutiveWins},");
+            await writer.WriteAsync($"{MaxNumConsecutiveLosses},");
+            await writer.WriteAsync($"{SpinWhenLostAllMoney}");
+            await writer.WriteLineAsync(string.Empty);
+        }
+
+        public async Task WriteGameSummaryHeaderToAsync(StreamWriter writer) {
+            await writer.WriteLineAsync("minimumBet,initialBankroll,currentBankroll,maxBankroll,minBankroll,averageBankroll,maxBetWon,maxBetLost,maxBetPlayed,maxNumConsecutiveWins,maxNumConsecutiveLosses,spinWhenGoneBust");
         }
     }
     public enum WinOrLoss {

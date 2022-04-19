@@ -15,7 +15,7 @@
 
     // some stats that we want to gather
     //  spins since last red/black/green
-    public class CsvWithStatsGameRecorder : CsvGameRecorder {
+    public class CsvWithStatsGameRecorder : CsvGameRecorder,IGameRollupRecorder {
         public CsvWithStatsGameRecorder(string outputPath) : base(outputPath) {
             groupSpinsSince = new Dictionary<GameCellGroup, int>();
             groupConsecutive = new Dictionary<GameCellGroup, int>();
@@ -178,14 +178,6 @@
             if(!EnableFileOutput) { return; }
 
             using var writer = new StreamWriter(GetCsvSummaryFilepath(), false);
-            //foreach(var group in groupOuputOrder) {
-            //    await writer.WriteLineAsync($"--- {group} ---");
-            //    double avgLastSince = (double)groupSpinsSinceSum[group] / _numberOfSpins;
-            //    await writer.WriteLineAsync($"last since - avg: {avgLastSince:F}");
-            //    await writer.WriteLineAsync($"last since - max: {maxSpinsSince[group]}");
-            //    await writer.WriteLineAsync($"max consecutive:  {maxConsecutive[group]}");
-            //    await writer.WriteLineAsync("");
-            //}
 
             await writer.WriteLineAsync($"Number of spins: {_numberOfSpins:N0}\n");
             var nextThree = groupOuputOrder.Take(3);
@@ -217,6 +209,21 @@
         }
         public override async Task GameCompleted() {
             await CreateSummaryFileAsync();
+        }
+
+        public async Task WriteGameSummaryHeaderToAsync(StreamWriter writer) {
+            foreach (var group in groupOuputOrder) {
+                double avgLastSince = (double)groupSpinsSinceSum[group] / _numberOfSpins;
+                await writer.WriteAsync($"{group},");
+                await writer.WriteAsync($"{avgLastSince},");
+                await writer.WriteAsync($"{maxSpinsSince},");
+                await writer.WriteAsync($"{maxConsecutive},");
+                await writer.WriteLineAsync(string.Empty);
+            }
+        }
+
+        public async Task WriteGameSummaryToAsync(StreamWriter writer) {
+            await writer.WriteLineAsync("group,avgLastSince,maxSpinsSince,maxConsecutive");
         }
     }
 }

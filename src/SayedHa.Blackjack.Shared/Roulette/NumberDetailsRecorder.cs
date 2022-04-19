@@ -8,7 +8,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
     /// <summary>
     /// This will keep track of individual numbers.
     /// </summary>
-    public class NumberDetailsRecorder : GameRecorderBase {
+    public class NumberDetailsRecorder : GameRecorderBase,IGameRollupRecorder {
         public NumberDetailsRecorder(GameSettings gameSettings,string outputPath) {
             OutputPath = outputPath;
             if(gameSettings == null) {
@@ -113,6 +113,21 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         }
         public override async Task GameCompleted() {
             await WriteReport();
+        }
+
+        public async Task WriteGameSummaryHeaderToAsync(StreamWriter writer) {
+            await writer.WriteLineAsync("boardPosition,numHits,maxNumSpinsSinceLastHit,maxNumConsecutiveHits,numTimesHitBackToBack,numTimesHitThreeInARow");
+        }
+
+        public async Task WriteGameSummaryToAsync(StreamWriter writer) {
+            foreach(var item in CellNumberList) {
+                await writer.WriteAsync($"'{item.Cell.Text}',");
+                await writer.WriteAsync($"{item.NumberOfTimesHit},");
+                await writer.WriteAsync($"{item.MaxConsecutiveHits},");
+                await writer.WriteAsync($"{item.NumberOfTimesBackToBack},");
+                await writer.WriteAsync($"{item.NumberOfTimesThreeInARow},");
+                await writer.WriteLineAsync(string.Empty);
+            }
         }
     }
 

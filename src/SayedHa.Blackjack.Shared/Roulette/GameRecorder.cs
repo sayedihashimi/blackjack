@@ -11,6 +11,11 @@
         public string OutputPath { get; set; }
         public string FilenamePrefix { get; set; }
     }
+    public interface IGameRollupRecorder {
+        public Task WriteGameSummaryHeaderToAsync(StreamWriter writer);
+        public Task WriteGameSummaryToAsync(StreamWriter writer);
+    }
+
     public abstract class GameRecorderBase : IGameRecorder {
         public bool EnableFileOutput { get; set; } = true;
         public string OutputPath { get; set; }
