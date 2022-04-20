@@ -21,8 +21,9 @@ namespace SayedHa.Blackjack.Shared.Roulette {
                 WinOrLoss.Loss => MinimumBet * ((int)Math.Ceiling(Math.Abs(((double)CurrentBankroll - BankrollOnLastWin) /(17*(double)MinimumBet)))),
                 _ => throw new ArgumentException(nameof(spinResult))
             };
-        protected override string GetMethodDisplayName() => "Green only betting method";
-        protected override string GetMethodCompactName() => "green";
+        public override string GetMethodDisplayName() => "Green only betting method";
+        public override string GetMethodCompactName() => "green";
+
         protected override long GetPayoutForWin(long currentBet) => currentBet * 17;
         public override string GetFilepath() => Path.Combine(OutputPath, !string.IsNullOrEmpty(FilenamePrefix) ? $"{FilenamePrefix}{GetMethodCompactName()}.txt" : $"{GetMethodCompactName()}.txt");
         public override string GetCsvFilepath() => Path.Combine(OutputPath, !string.IsNullOrEmpty(FilenamePrefix) ? $"{FilenamePrefix}{GetMethodCompactName()}-details.csv" : $"{GetMethodCompactName()}-details");
@@ -33,8 +34,9 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             base(outputPath, filenamePrefix, minimumBet, initialBankroll, enableCsvWriter) {
         }
 
-        protected override string GetMethodDisplayName() => "Green aggressive only betting method";
-        protected override string GetMethodCompactName() => "greenagro";
+        public override string GetMethodDisplayName() => "Green aggressive only betting method";
+        public override string GetMethodCompactName() => "greenagro";
+
 
         protected override long GetNextBetAmount(WinOrLoss spinResult, long currentBet, long intialBankroll, long currentBankroll) {
             var betAmount = spinResult switch {

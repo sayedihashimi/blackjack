@@ -36,7 +36,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             }
         }
 
-        public void PlayRollup(int numGames) {
+        public async Task PlayRollup(int numGames) {
             foreach (var recorder in GameRecorders) {
                 recorder.EnableFileOutput = false;
             }
@@ -44,15 +44,35 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             // need to create a StreamWriter to a new file for each rolluprecorder
             var recorderWriterMap = new Dictionary<IGameRollupRecorder, StreamWriter>();
             foreach (var rollupRecorder in RollupRecorders) {
-                string filepath = Path.Combine(OutputPath, !string.IsNullOrEmpty(FilenamePrefix) ? $"{FilenamePrefix}rollup.csv" : $"rollup.csv");
-                recorderWriterMap.Add(rollupRecorder, new StreamWriter(filepath, false));
+                string filepath = Path.Combine(OutputPath, !string.IsNullOrEmpty(FilenamePrefix) ? $"{FilenamePrefix}{rollupRecorder.GetMethodCompactName()}-rollup.csv" : $"{rollupRecorder.GetMethodCompactName()}-rollup.csv");
+                Console.WriteLine($"filepath: {filepath}");
+                var stream = new StreamWriter(filepath, false);
+                // without this some of the content wasn't making it into the file for some reason
+                stream.AutoFlush = true;
+                recorderWriterMap.Add(rollupRecorder, stream);
             }
 
+            var player = new RoulettePlayer();
             // play game and write content
+            foreach (var rollupRecorder in RollupRecorders) {
+                await rollupRecorder.WriteGameSummaryHeaderToAsync(recorderWriterMap[rollupRecorder]);
+            }
             for (int i = 0; i < numGames; i++) {
+                await player.PlayAsync(Board,GameSettings,GameRecorders);
+
+                foreach (var rollupRecorder in RollupRecorders) {
+                    await rollupRecorder.WriteGameSummaryToAsync(recorderWriterMap[rollupRecorder]);
+                    rollupRecorder.Reset();
+                }
             }
 
             // flush/dispose all the streams
+            foreach(var key in recorderWriterMap.Keys) {
+                var rollupRecorderStream = recorderWriterMap[key];
+                await rollupRecorderStream.FlushAsync();
+
+                rollupRecorderStream.Dispose();
+            }
         }
     }
 }

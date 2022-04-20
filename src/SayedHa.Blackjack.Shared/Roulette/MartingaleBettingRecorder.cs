@@ -23,11 +23,19 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             CurrentBankroll = InitialBankroll;
             BankrollOnLastWin = InitialBankroll;
             MaxBankroll = InitialBankroll;
+            MinBankroll = InitialBankroll;
             AverageBankroll = InitialBankroll;
             EnableCsvWriter = enableCsvWriter;
         }
-        public bool EnableCsvWriter { get; set; } = false;
-
+        private bool _enableCsvWriter = true;
+        public bool EnableCsvWriter {
+            get {
+                return EnableFileOutput && _enableCsvWriter;
+            }
+            set {
+                _enableCsvWriter = value;
+            }
+        }
         protected int MinimumBet { get; init; } = 1;
         protected int BetMultiplier { get; init; } = 2;
         protected long MaxBet { get; set; }
@@ -50,7 +58,6 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         protected GameCellColor SelectedColor { get; init; }
         protected long SpinWhenLostAllMoney { get; set; }
         protected long CurrentNumSpins { get; set; }
-
         protected bool IsInitalized { get; set; } = false;
 
         public virtual string GetFilepath() => Path.Combine(OutputPath,!string.IsNullOrEmpty(FilenamePrefix)?$"{FilenamePrefix}{GetMethodCompactName()}-{SelectedColor}.txt":$"{GetMethodCompactName()}-{SelectedColor}.txt");
@@ -58,6 +65,26 @@ namespace SayedHa.Blackjack.Shared.Roulette {
 
         protected StreamWriter? CsvWriter { get; set; }
         public long SumPreviousBankrolls { get; protected set; }
+
+        public override void Reset() {
+            base.Reset();
+            CurrentNumSpins = 0;
+            CurrentBet = MinimumBet;
+            MaxBet = 0;
+            CurrentBankroll = InitialBankroll;
+            BankrollOnLastWin = 0;
+            MaxBankroll = InitialBankroll;
+            MinBankroll = InitialBankroll;
+            AverageBankroll = InitialBankroll;
+            SumPreviousBankrolls = 0;
+            MaxAmountLost = 0;
+            MaxAmountWon = 0;
+            SpinWhenLostAllMoney = 0;
+            MaxNumConsecutiveLosses = 0;
+            MaxNumConsecutiveWins = 0;
+            CurrentNumConsecutiveWins = 0;
+            CurrentNumConsecutiveLosses = 0;
+        }
 
         public async Task InitalizeAsync() {
             if(!EnableFileOutput) { return; }
@@ -71,7 +98,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         }
         public async Task WriterHeaderAsync() {
             if (!EnableFileOutput) { return; }
-            await CsvWriter!.WriteLineAsync("'spin number','spin value',bankroll,bet,winorloss,payout");
+            await CsvWriter!.WriteLineAsync("'spin number','spin value',bankroll,bet,'win or loss',payout");
         }
         public async Task WriteCsvLineAsync(GameCell currentSpin,long startBankroll, long startBet, WinOrLoss winOrLoss,long payout) {
             if (!EnableFileOutput || !EnableCsvWriter) { return; }
@@ -101,9 +128,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
                 CurrentBankroll += payout;
                 BankrollOnLastWin = CurrentBankroll;
 
-                MaxAmountWon = MaxAmountWon > CurrentBet ? MaxAmountWon : CurrentBet;
-
-                // CurrentBet = MinimumBet;
+                MaxAmountWon = CurrentBet > MaxAmountWon ? CurrentBet : MaxAmountWon;
 
                 CurrentNumConsecutiveWins++;
                 MaxNumConsecutiveWins = MaxNumConsecutiveWins < CurrentNumConsecutiveWins ? CurrentNumConsecutiveWins : MaxNumConsecutiveWins;
@@ -132,10 +157,10 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             CurrentBet = GetNextBetAmount(winOrLoss, CurrentBet, InitialBankroll, startBankroll);
 
             // TODO: Should refactor this becuase this needs to be copied to most sub-classes
-            if(MaxBankroll < CurrentBankroll) {
+            if(CurrentBankroll > MaxBankroll) {
                 MaxBankroll = CurrentBankroll;
             }
-            if(MinBankroll > CurrentBankroll) {
+            if(CurrentBankroll < MinBankroll) {
                 MinBankroll = CurrentBankroll;
             }
             AverageBankroll = SumPreviousBankrolls / CurrentNumSpins;
@@ -155,18 +180,18 @@ namespace SayedHa.Blackjack.Shared.Roulette {
                 WinOrLoss.Loss => currentBet*2,
                 _ => throw new ArgumentException(nameof(spinResult))
             };
-        protected virtual string GetMethodDisplayName() => "Martingale betting method";
-        protected virtual string GetMethodCompactName() => "martingale";
-        string IGameRollupRecorder.GetMethodDisplayName() => "Martingale betting method";
+        public virtual string GetMethodDisplayName() => "Martingale betting method";
+        public virtual string GetMethodCompactName() => $"martingale-{SelectedColor}";
+        //string IGameRollupRecorder.GetMethodDisplayName() => "Martingale betting method";
 
-        string IGameRollupRecorder.GetMethodCompactName() => "martingale";
+        //string IGameRollupRecorder.GetMethodCompactName() => "martingale";
         // write the summary file now
         public override async Task GameCompleted() {
             if (!EnableFileOutput) { return; }
 
             var writer = new StreamWriter(GetFilepath(), true);
 
-            await writer.WriteLineAsync($"{GetMethodDisplayName()} ".PadRight(60));
+            await writer.WriteLineAsync($"{GetMethodDisplayName()} - # spins: {CurrentNumSpins:N0} ".PadRight(60));
             await writer.WriteLineAsync($"  initial bet:                       ${MinimumBet:N0}");
             await writer.WriteLineAsync($"  initial bankroll:                  ${InitialBankroll:N0}");
             await writer.WriteLineAsync($"  current bankroll:                  ${CurrentBankroll:N0}");
@@ -204,7 +229,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         }
 
         public async Task WriteGameSummaryHeaderToAsync(StreamWriter writer) {
-            await writer.WriteLineAsync("minimumBet,initialBankroll,currentBankroll,maxBankroll,minBankroll,averageBankroll,maxBetWon,maxBetLost,maxBetPlayed,maxNumConsecutiveWins,maxNumConsecutiveLosses,spinWhenGoneBust");
+            await writer.WriteLineAsync("minimumBet,initialBankroll,endingBankroll,maxBankroll,minBankroll,averageBankroll,maxBetWon,maxBetLost,maxBetPlayed,maxNumConsecutiveWins,maxNumConsecutiveLosses,spinWhenGoneBust");
         }
     }
     public enum WinOrLoss {

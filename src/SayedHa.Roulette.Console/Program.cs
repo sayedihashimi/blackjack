@@ -1,8 +1,8 @@
 ﻿using SayedHa.Blackjack.Shared.Roulette;
 using System.Diagnostics;
 
-int numSpins = 100;
-bool enableCsvFileOutput = true;
+int numSpins = 1000;
+bool enableCsvFileOutput = false;
 bool enableNumberDetails = true;
 bool enableMartingale = true;
 bool enableGreen = true;
@@ -40,8 +40,8 @@ if (enableNumberDetails) {
     recorders.Add(new NumberDetailsRecorder(settings, outputPath, filenamePrefix));
 }
 if (enableMartingale) {
-    recorders.Add(new MartingaleBettingRecorder(outputPath, filenamePrefix, GameCellColor.Black, 1, 1000, true));
-    recorders.Add(new MartingaleBettingRecorder(outputPath, filenamePrefix, GameCellColor.Red, 1, 1000, false));
+    recorders.Add(new MartingaleBettingRecorder(outputPath, filenamePrefix, GameCellColor.Black, 1, initialBankroll, true));
+    recorders.Add(new MartingaleBettingRecorder(outputPath, filenamePrefix, GameCellColor.Red, 1, initialBankroll, false));
 }
 if (enableGreen) {
     recorders.Add(new GreenMethodRecorder(outputPath, filenamePrefix, minimumBet, initialBankroll, true));
@@ -62,7 +62,10 @@ var controller = new RouletteGameController(settings, outputPath, filenamePrefix
 foreach(var recorder in recorders) {
     controller.AddGameRecorder(recorder);
 }
-await controller.PlayAll();
+
+// await controller.PlayAll();
+
+await controller.PlayRollup(500);
 
 watch.Stop();
 Console.WriteLine($"num spins: {settings.NumberOfSpins:N0}\ntime: {watch.Elapsed.TotalSeconds}\nfilenames: '{filenamePrefix}*'");

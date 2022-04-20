@@ -23,8 +23,8 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             base(outputPath, filenamePrefix, GameCellColor.Green, minimumBet, initialBankroll, enableCsvWriter) {
             // Note: GameCellColor.Green will be ignored in the base class
         }
-        protected override string GetMethodDisplayName() => "Bond martingale";
-        protected override string GetMethodCompactName() => "bondmartingale";
+        public override string GetMethodDisplayName() => "Bond martingale";
+        public override string GetMethodCompactName() => "bondmartingale";
 
         public override string GetFilepath() => Path.Combine(OutputPath, !string.IsNullOrEmpty(FilenamePrefix) ? $"{FilenamePrefix}{GetMethodCompactName()}.txt" : $"{GetMethodCompactName()}.txt");
         public override string GetCsvFilepath() => Path.Combine(OutputPath, !string.IsNullOrEmpty(FilenamePrefix) ? $"{FilenamePrefix}{GetMethodCompactName()}-details.csv" : $"{GetMethodCompactName()}-details");
@@ -62,43 +62,49 @@ namespace SayedHa.Blackjack.Shared.Roulette {
 
             var winOrLoss = percentOfBetThatPaidOut > 0 ? WinOrLoss.Win : WinOrLoss.Loss;
             var payout = winOrLoss == WinOrLoss.Win ? ((int)Math.Floor(percentOfBetThatPaidOut * CurrentBet)) * betMultiplierOfWinningBet : 0;
-
             long startBankroll = CurrentBankroll;
             long startBet = CurrentBet;
 
+            // bet amount needs to be deducted here because there are multiple bets
+            // in win section we will give the bet that won back to the player
             CurrentBankroll -= CurrentBet;
-            CurrentBankroll += payout;
 
-            if(winOrLoss == WinOrLoss.Win) {
-                MaxAmountWon = MaxAmountWon > CurrentBet ? MaxAmountWon : CurrentBet;
+            if (winOrLoss == WinOrLoss.Win) {
                 CurrentNumConsecutiveWins++;
+                CurrentBankroll += payout;
+                // give back the bet on the cell that hit
+                CurrentBankroll += ((int)Math.Floor(percentOfBetThatPaidOut * CurrentBet));
+                MaxAmountWon = payout > MaxAmountWon ? payout : MaxAmountWon;
+
                 MaxNumConsecutiveWins = CurrentNumConsecutiveWins > MaxNumConsecutiveWins ? CurrentNumConsecutiveWins : MaxNumConsecutiveWins;
                 CurrentNumConsecutiveLosses = 0;
+                CurrentBet = MinimumBet;
             }
             else {
                 CurrentNumConsecutiveLosses++;
                 MaxNumConsecutiveLosses = MaxNumConsecutiveLosses < CurrentNumConsecutiveLosses ? CurrentNumConsecutiveLosses : MaxNumConsecutiveLosses;
                 CurrentNumConsecutiveWins = 0;
+                MaxAmountLost = MaxAmountLost < CurrentBet ? CurrentBet : MaxAmountLost;
+                CurrentBet *= 2;
             }
 
             if (SpinWhenLostAllMoney == 0 && CurrentBankroll < 0) {
                 SpinWhenLostAllMoney = CurrentNumSpins;
             }
-            if (MaxBankroll < CurrentBankroll) {
+            if (CurrentBankroll > MaxBankroll) {
                 MaxBankroll = CurrentBankroll;
             }
-            if (MinBankroll > CurrentBankroll) {
+            if (CurrentBankroll < MinBankroll) {
                 MinBankroll = CurrentBankroll;
             }
             AverageBankroll = SumPreviousBankrolls / CurrentNumSpins;
-            if (MaxBet < CurrentBet) {
-                MaxBet = CurrentBet;
+            if (MaxBet < startBet) {
+                MaxBet = startBet;
             }
 
             if (EnableCsvWriter) {
                 await WriteCsvLineAsync(cell, startBankroll, startBet, winOrLoss,payout);
             }
         }
-
     }
 }

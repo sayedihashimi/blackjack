@@ -66,7 +66,15 @@
         Dictionary<GameCellGroup, int> maxSpinsSince { get; init; }
         Dictionary<GameCellGroup, int> maxConsecutive { get; init; }
 
-        public bool EnableWriteCsvFile { get; set; } = true;
+        private bool _enableWriteCsvFile = true;
+        public bool EnableWriteCsvFile {
+            get {
+                return EnableFileOutput && _enableWriteCsvFile;
+            }
+            set {
+                _enableWriteCsvFile = value;
+            }
+        }
 
         List<GameCellGroup> groupOuputOrder { get; init; }
         public override string GetCsvFilePath() => Path.Combine(OutputPath, !string.IsNullOrEmpty(FilenamePrefix) ? $"{FilenamePrefix}stats.csv" : $"stats.csv");
@@ -173,7 +181,24 @@
 
             await WriteLineForAsync(cell);
         }
+        public override void Reset() {
+            base.Reset();
+            groupSpinsSince.Clear();
+            groupConsecutive.Clear();
+            groupSpinsSinceSum.Clear();
+            groupConsecutiveSum.Clear();
+            maxSpinsSince.Clear();
+            maxConsecutive.Clear();
 
+            foreach (GameCellGroup group in EnumHelper.GetHelper().GetAllGameCellGroup()) {
+                groupSpinsSince.Add(group, 0);
+                groupConsecutive.Add(group, 0);
+                groupSpinsSinceSum.Add(group, 0);
+                groupConsecutiveSum.Add(group, 0);
+                maxSpinsSince.Add(group, 0);
+                maxConsecutive.Add(group, 0);
+            }
+        }
         public async Task CreateSummaryFileAsync() {
             if(!EnableFileOutput) { return; }
 
@@ -212,18 +237,18 @@
         }
 
         public async Task WriteGameSummaryHeaderToAsync(StreamWriter writer) {
+            await writer.WriteLineAsync("group,avgLastSince,maxSpinsSince,maxConsecutive");
+        }
+
+        public async Task WriteGameSummaryToAsync(StreamWriter writer) {
             foreach (var group in groupOuputOrder) {
                 double avgLastSince = (double)groupSpinsSinceSum[group] / _numberOfSpins;
                 await writer.WriteAsync($"{group},");
                 await writer.WriteAsync($"{avgLastSince},");
-                await writer.WriteAsync($"{maxSpinsSince},");
-                await writer.WriteAsync($"{maxConsecutive},");
+                await writer.WriteAsync($"{maxSpinsSince[group]},");
+                await writer.WriteAsync($"{maxConsecutive[group]}");
                 await writer.WriteLineAsync(string.Empty);
             }
-        }
-
-        public async Task WriteGameSummaryToAsync(StreamWriter writer) {
-            await writer.WriteLineAsync("group,avgLastSince,maxSpinsSince,maxConsecutive");
         }
 
         string IGameRollupRecorder.GetMethodDisplayName() => "Group stats";

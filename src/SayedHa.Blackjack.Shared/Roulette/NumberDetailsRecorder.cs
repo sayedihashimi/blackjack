@@ -125,14 +125,22 @@ namespace SayedHa.Blackjack.Shared.Roulette {
                 await writer.WriteAsync($"{item.NumberOfTimesHit},");
                 await writer.WriteAsync($"{item.MaxConsecutiveHits},");
                 await writer.WriteAsync($"{item.NumberOfTimesBackToBack},");
-                await writer.WriteAsync($"{item.NumberOfTimesThreeInARow},");
+                await writer.WriteAsync($"{item.NumberOfTimesThreeInARow}");
                 await writer.WriteLineAsync(string.Empty);
             }
         }
 
-        string IGameRollupRecorder.GetMethodDisplayName() => "Numer details";
+        public string GetMethodDisplayName() => "Numer details";
 
-        string IGameRollupRecorder.GetMethodCompactName() => "number-details";
+        public string GetMethodCompactName() => "number-details";
+        public override void Reset() {
+            CellNumberList.Clear();
+
+            var board = Board.BuildBoard(GameSettings);
+            foreach (var cell in board.Cells!) {
+                CellNumberList.Add(new NumberDetails(cell));
+            }
+        }
     }
 
     public class NumberDetails {

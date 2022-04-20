@@ -10,12 +10,14 @@
         public Task GameCompleted();
         public string OutputPath { get; set; }
         public string FilenamePrefix { get; set; }
+        
     }
     public interface IGameRollupRecorder {
         public Task WriteGameSummaryHeaderToAsync(StreamWriter writer);
         public Task WriteGameSummaryToAsync(StreamWriter writer);
-        protected string GetMethodDisplayName();
-        protected string GetMethodCompactName();
+        public string GetMethodDisplayName();
+        public string GetMethodCompactName();
+        public void Reset();
     }
 
     public abstract class GameRecorderBase : IGameRecorder {
@@ -23,6 +25,7 @@
         public string OutputPath { get; set; }
         public string FilenamePrefix { get; set; }
 
+        public virtual void Reset() { }
         protected virtual void Dispose(bool disposing) {
 
         }
