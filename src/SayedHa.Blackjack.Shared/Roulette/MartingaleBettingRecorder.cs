@@ -128,18 +128,16 @@ namespace SayedHa.Blackjack.Shared.Roulette {
                 CurrentBankroll += payout;
                 BankrollOnLastWin = CurrentBankroll;
 
-                MaxAmountWon = CurrentBet > MaxAmountWon ? CurrentBet : MaxAmountWon;
-
-                CurrentNumConsecutiveWins++;
-                MaxNumConsecutiveWins = MaxNumConsecutiveWins < CurrentNumConsecutiveWins ? CurrentNumConsecutiveWins : MaxNumConsecutiveWins;
+                MaxAmountWon = payout > MaxAmountWon ? payout : MaxAmountWon;
 
                 CurrentNumConsecutiveLosses = 0;
+                CurrentNumConsecutiveWins++;
+                MaxNumConsecutiveWins = MaxNumConsecutiveWins < CurrentNumConsecutiveWins ? CurrentNumConsecutiveWins : MaxNumConsecutiveWins;
             }
             else {
                 // lost the bet
                 winOrLoss = WinOrLoss.Loss;
                 payout = 0;
-                // double the bet
                 CurrentBankroll -= CurrentBet;
                 if(SpinWhenLostAllMoney == 0 && CurrentBankroll < 0) {
                     SpinWhenLostAllMoney = CurrentNumSpins;
@@ -148,10 +146,9 @@ namespace SayedHa.Blackjack.Shared.Roulette {
                 MaxAmountLost = MaxAmountLost < CurrentBet ? CurrentBet : MaxAmountLost;
                 // CurrentBet *= BetMultiplier;
 
+                CurrentNumConsecutiveWins = 0;
                 CurrentNumConsecutiveLosses++;
                 MaxNumConsecutiveLosses = MaxNumConsecutiveLosses < CurrentNumConsecutiveLosses ? CurrentNumConsecutiveLosses : MaxNumConsecutiveLosses;
-
-                CurrentNumConsecutiveWins = 0;
             }
 
             CurrentBet = GetNextBetAmount(winOrLoss, CurrentBet, InitialBankroll, startBankroll);

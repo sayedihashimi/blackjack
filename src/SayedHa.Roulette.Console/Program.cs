@@ -40,8 +40,8 @@ if (enableNumberDetails) {
     recorders.Add(new NumberDetailsRecorder(settings, outputPath, filenamePrefix));
 }
 if (enableMartingale) {
-    recorders.Add(new MartingaleBettingRecorder(outputPath, filenamePrefix, GameCellColor.Black, 1, initialBankroll, true));
-    recorders.Add(new MartingaleBettingRecorder(outputPath, filenamePrefix, GameCellColor.Red, 1, initialBankroll, false));
+    recorders.Add(new MartingaleBettingRecorder(outputPath, filenamePrefix, GameCellColor.Black, minimumBet, initialBankroll, true));
+    recorders.Add(new MartingaleBettingRecorder(outputPath, filenamePrefix, GameCellColor.Red, minimumBet, initialBankroll, false));
 }
 if (enableGreen) {
     recorders.Add(new GreenMethodRecorder(outputPath, filenamePrefix, minimumBet, initialBankroll, true));
@@ -63,9 +63,9 @@ foreach(var recorder in recorders) {
     controller.AddGameRecorder(recorder);
 }
 
-// await controller.PlayAll();
+await controller.PlayAll();
 
-await controller.PlayRollup(500);
+// await controller.PlayRollup(50);
 
 watch.Stop();
 Console.WriteLine($"num spins: {settings.NumberOfSpins:N0}\ntime: {watch.Elapsed.TotalSeconds}\nfilenames: '{filenamePrefix}*'");
