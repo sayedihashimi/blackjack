@@ -9,7 +9,7 @@ bool enableGreen = true;
 bool enableBondMartingale = true;
 
 int minimumBet = 20;
-int initialBankroll = 5000;
+int initialBankroll = 1000;
 
 var rouletteType = RouletteType.European;
 

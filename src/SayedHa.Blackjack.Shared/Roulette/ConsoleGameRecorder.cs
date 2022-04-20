@@ -5,6 +5,8 @@
         }
         public bool Enabled { get; set; } = true;
 
+        public override bool IsBankrupt => false;
+
         public override async Task RecordSpinAsync(GameCell cell) {
             RecordSpin(cell);
         }

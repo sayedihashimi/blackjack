@@ -1,4 +1,6 @@
-﻿namespace SayedHa.Blackjack.Shared.Roulette {
+﻿using System.Reflection.Metadata.Ecma335;
+
+namespace SayedHa.Blackjack.Shared.Roulette {
     /// <summary>
     /// GameRecorders are responsbile for capturing the results of the game.
     /// If the game results are to be persisted anywhere, the game recorder
@@ -10,7 +12,8 @@
         public Task GameCompleted();
         public string OutputPath { get; set; }
         public string FilenamePrefix { get; set; }
-        
+        public bool StopWhenBankrupt { get; set; }
+        public bool IsBankrupt { get; }
     }
     public interface IGameRollupRecorder {
         public Task WriteGameSummaryHeaderToAsync(StreamWriter writer);
@@ -24,6 +27,8 @@
         public bool EnableFileOutput { get; set; } = true;
         public string OutputPath { get; set; }
         public string FilenamePrefix { get; set; }
+        public bool StopWhenBankrupt { get; set; } = true;
+        public abstract bool IsBankrupt { get; }
 
         public virtual void Reset() { }
         protected virtual void Dispose(bool disposing) {

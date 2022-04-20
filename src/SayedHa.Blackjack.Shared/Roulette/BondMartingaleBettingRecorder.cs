@@ -35,6 +35,10 @@ namespace SayedHa.Blackjack.Shared.Roulette {
                 _ => throw new ArgumentOutOfRangeException(nameof(spinResult))
             };
         public override async Task RecordSpinAsync(GameCell cell) {
+            if (StopWhenBankrupt && IsBankrupt) {
+                // ignore the spin
+                return;
+            }
             CurrentNumSpins++;
             SumPreviousBankrolls += CurrentBankroll;
 

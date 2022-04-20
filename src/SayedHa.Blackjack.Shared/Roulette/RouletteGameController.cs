@@ -22,6 +22,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         public void AddGameRecorder(IGameRecorder recorder) {
             GameRecorders.Add(recorder);
             if (recorder is IGameRollupRecorder) {
+                recorder.StopWhenBankrupt = GameSettings.StopWhenBankrupt;
                 RollupRecorders.Add((IGameRollupRecorder)recorder);
             }
         }

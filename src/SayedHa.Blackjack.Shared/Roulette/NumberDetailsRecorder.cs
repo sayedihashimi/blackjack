@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -35,6 +36,8 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         }
 
         protected long NumRedBlackSwaps { get; set; }
+
+        public override bool IsBankrupt => false;
 
         private long _numberOfSpins = 0;
 

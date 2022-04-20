@@ -12,6 +12,9 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         }
         public virtual string GetCsvFilePath() => Path.Combine(OutputPath, !string.IsNullOrEmpty(FilenamePrefix) ? $"{FilenamePrefix}game.txt" : $"game.txt");
         protected StreamWriter? StreamWriter { get; set; }
+
+        public override bool IsBankrupt => false;
+
         protected bool isInitalized = false;
         private bool disposedValue;
 

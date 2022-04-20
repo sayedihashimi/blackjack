@@ -66,6 +66,8 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         protected StreamWriter? CsvWriter { get; set; }
         public long SumPreviousBankrolls { get; protected set; }
 
+        public override bool IsBankrupt => CurrentBankroll <= 0;
+
         public override void Reset() {
             base.Reset();
             CurrentNumSpins = 0;
@@ -109,6 +111,11 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         }
 
         public override async Task RecordSpinAsync(GameCell cell) {
+            if(StopWhenBankrupt && IsBankrupt) {
+                // ignore the spin
+                return;
+            }
+
             CurrentNumSpins++;
             SumPreviousBankrolls += CurrentBankroll;
             // if you win, repeat the bet
@@ -139,7 +146,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
                 winOrLoss = WinOrLoss.Loss;
                 payout = 0;
                 CurrentBankroll -= CurrentBet;
-                if(SpinWhenLostAllMoney == 0 && CurrentBankroll < 0) {
+                if(SpinWhenLostAllMoney == 0 && CurrentBankroll <= 0) {
                     SpinWhenLostAllMoney = CurrentNumSpins;
                 }
 

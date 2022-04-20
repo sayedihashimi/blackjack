@@ -12,7 +12,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         public int NumberOfSpins { get; set; } = 100;
         public bool EnableConsoleLogger { get; set; } = true;
         public RouletteType RouletteType { get; protected set; }
-
+        public bool StopWhenBankrupt { get; set; } = true;
 
         public void SetRouletteType(RouletteType rouletteType) {
             RouletteType = rouletteType;
