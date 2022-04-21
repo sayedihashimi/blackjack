@@ -28,12 +28,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
 
         public override string GetFilepath() => Path.Combine(OutputPath, !string.IsNullOrEmpty(FilenamePrefix) ? $"{FilenamePrefix}{GetMethodCompactName()}.txt" : $"{GetMethodCompactName()}.txt");
         public override string GetCsvFilepath() => Path.Combine(OutputPath, !string.IsNullOrEmpty(FilenamePrefix) ? $"{FilenamePrefix}{GetMethodCompactName()}-details.csv" : $"{GetMethodCompactName()}-details");
-        protected override long GetNextBetAmount(WinOrLoss spinResult, long currentBet, long intialBankroll, long currentBankroll) =>
-            spinResult switch {
-                WinOrLoss.Loss => currentBet * 2,
-                WinOrLoss.Win => MinimumBet,
-                _ => throw new ArgumentOutOfRangeException(nameof(spinResult))
-            };
+
         public override async Task RecordSpinAsync(GameCell cell) {
             if (StopWhenBankrupt && IsBankrupt) {
                 // ignore the spin
@@ -41,6 +36,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             }
             CurrentNumSpins++;
             SumPreviousBankrolls += CurrentBankroll;
+            CurrentBet = CurrentBet < MaximumBet? CurrentBet : MaximumBet;
 
             double percentOfBetThatPaidOut = 0;
             int betMultiplierOfWinningBet = 0;
@@ -89,7 +85,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
                 MaxNumConsecutiveLosses = MaxNumConsecutiveLosses < CurrentNumConsecutiveLosses ? CurrentNumConsecutiveLosses : MaxNumConsecutiveLosses;
                 CurrentNumConsecutiveWins = 0;
                 MaxAmountLost = MaxAmountLost < CurrentBet ? CurrentBet : MaxAmountLost;
-                CurrentBet *= 2;
+                CurrentBet = CurrentBet*2<MaximumBet?CurrentBet*2:MaximumBet;
             }
 
             if (SpinWhenLostAllMoney == 0 && CurrentBankroll < 0) {
@@ -102,8 +98,8 @@ namespace SayedHa.Blackjack.Shared.Roulette {
                 MinBankroll = CurrentBankroll;
             }
             AverageBankroll = SumPreviousBankrolls / CurrentNumSpins;
-            if (MaxBet < startBet) {
-                MaxBet = startBet;
+            if (MaxBetPlayed < startBet) {
+                MaxBetPlayed = startBet;
             }
 
             if (EnableCsvWriter) {

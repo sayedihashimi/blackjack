@@ -14,6 +14,9 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         public RouletteType RouletteType { get; protected set; }
         public bool StopWhenBankrupt { get; set; } = true;
 
+        public int MinimumBet { get; set; } = 1;
+        public long MaximumBet { get; set; } = long.MaxValue;
+
         public void SetRouletteType(RouletteType rouletteType) {
             RouletteType = rouletteType;
             switch (rouletteType) {

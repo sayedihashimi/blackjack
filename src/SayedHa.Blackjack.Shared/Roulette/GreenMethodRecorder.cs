@@ -15,12 +15,14 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         public GreenMethodRecorder(string outputPath, string filenamePrefix, int minimumBet, long initialBankroll, bool enableCsvWriter) :
             base(outputPath,filenamePrefix, GameCellColor.Green, minimumBet, initialBankroll,enableCsvWriter) {
         }
-        protected override long GetNextBetAmount(WinOrLoss spinResult, long currentBet, long intialBankroll, long currentBankroll) =>
-            spinResult switch {
+        protected override long GetNextBetAmount(WinOrLoss spinResult, long currentBet, long intialBankroll, long currentBankroll) {
+            long nextBetAmount = MinimumBet * ((int)Math.Ceiling(Math.Abs(((double)CurrentBankroll - BankrollOnLastWin) / (17 * (double)MinimumBet))));
+            return spinResult switch {
                 WinOrLoss.Win => MinimumBet,
-                WinOrLoss.Loss => MinimumBet * ((int)Math.Ceiling(Math.Abs(((double)CurrentBankroll - BankrollOnLastWin) /(17*(double)MinimumBet)))),
+                WinOrLoss.Loss => nextBetAmount < MaximumBet ? nextBetAmount : MaximumBet,
                 _ => throw new ArgumentException(nameof(spinResult))
             };
+        }
         public override string GetMethodDisplayName() => "Green only betting method";
         public override string GetMethodCompactName() => "green";
 
@@ -65,6 +67,8 @@ namespace SayedHa.Blackjack.Shared.Roulette {
                 multiplier = multiplier > 0 ? multiplier : 1;
                 return multiplier;
             }
+
+            betAmount = betAmount < MaximumBet ? betAmount : MaximumBet;
 
             return betAmount;
         }

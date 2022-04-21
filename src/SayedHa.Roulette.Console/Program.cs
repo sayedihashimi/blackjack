@@ -9,7 +9,8 @@ bool enableGreen = true;
 bool enableBondMartingale = true;
 
 int minimumBet = 20;
-int initialBankroll = 1000;
+int initialBankroll = 1000000;
+long maximumBet = 1000;
 
 var rouletteType = RouletteType.European;
 
@@ -19,7 +20,9 @@ if(args.Length == 1) {
 
 var settings = new GameSettings {
     EnableConsoleLogger = false,
-    NumberOfSpins = numSpins
+    NumberOfSpins = numSpins,
+    MaximumBet = maximumBet,
+    MinimumBet = minimumBet
 };
 // need to change this to support custom if needed later
 settings.SetRouletteType(rouletteType);
@@ -39,16 +42,17 @@ if (enableCsvFileOutput) {
 if (enableNumberDetails) {
     recorders.Add(new NumberDetailsRecorder(settings, outputPath, filenamePrefix));
 }
+var foo = new MartingaleBettingRecorder(outputPath, filenamePrefix, GameCellColor.Black, minimumBet, initialBankroll, true) { MaximumBet = settings.MaximumBet };
 if (enableMartingale) {
-    recorders.Add(new MartingaleBettingRecorder(outputPath, filenamePrefix, GameCellColor.Black, minimumBet, initialBankroll, true));
-    recorders.Add(new MartingaleBettingRecorder(outputPath, filenamePrefix, GameCellColor.Red, minimumBet, initialBankroll, false));
+    recorders.Add(new MartingaleBettingRecorder(outputPath, filenamePrefix, GameCellColor.Black, minimumBet, initialBankroll, true) { MaximumBet = settings.MaximumBet});
+    recorders.Add(new MartingaleBettingRecorder(outputPath, filenamePrefix, GameCellColor.Red, minimumBet, initialBankroll, false) { MaximumBet = settings.MaximumBet });
 }
 if (enableGreen) {
-    recorders.Add(new GreenMethodRecorder(outputPath, filenamePrefix, minimumBet, initialBankroll, true));
-    recorders.Add(new GreenAgressiveMethodRecorder(outputPath, filenamePrefix, minimumBet, initialBankroll, true));
+    recorders.Add(new GreenMethodRecorder(outputPath, filenamePrefix, minimumBet, initialBankroll, true) { MaximumBet = settings.MaximumBet });
+    recorders.Add(new GreenAgressiveMethodRecorder(outputPath, filenamePrefix, minimumBet, initialBankroll, true) { MaximumBet = settings.MaximumBet });
 }
 if (enableBondMartingale) {
-    recorders.Add(new BondMartingaleBettingRecorder(outputPath, filenamePrefix, minimumBet, initialBankroll, true));
+    recorders.Add(new BondMartingaleBettingRecorder(outputPath, filenamePrefix, minimumBet, initialBankroll, true) { MaximumBet = settings.MaximumBet });
 }
 
 // csv with stats always needs to be added for the summary

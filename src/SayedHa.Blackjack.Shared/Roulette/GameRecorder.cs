@@ -29,7 +29,8 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         public string FilenamePrefix { get; set; }
         public bool StopWhenBankrupt { get; set; } = true;
         public abstract bool IsBankrupt { get; }
-
+        public int MinimumBet { get; init; } = 1;
+        public long MaximumBet { get; set; }=long.MaxValue;
         public virtual void Reset() { }
         protected virtual void Dispose(bool disposing) {
 
