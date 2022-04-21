@@ -60,8 +60,8 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         protected long CurrentNumSpins { get; set; }
         protected bool IsInitalized { get; set; } = false;
 
-        public virtual string GetFilepath() => Path.Combine(OutputPath, !string.IsNullOrEmpty(FilenamePrefix) ? $"{FilenamePrefix}{GetMethodCompactName()}-{SelectedColor}.txt" : $"{GetMethodCompactName()}-{SelectedColor}.txt");
-        public virtual string GetCsvFilepath() => Path.Combine(OutputPath, !string.IsNullOrEmpty(FilenamePrefix) ? $"{FilenamePrefix}{GetMethodCompactName()}-{SelectedColor}-details.csv" : $"{GetMethodCompactName()}-{SelectedColor}-details");
+        public virtual string GetFilepath() => Path.Combine(OutputPath, !string.IsNullOrEmpty(FilenamePrefix) ? $"{FilenamePrefix}{GetMethodCompactName()}.txt" : $"{GetMethodCompactName()}.txt");
+        public virtual string GetCsvFilepath() => Path.Combine(OutputPath, !string.IsNullOrEmpty(FilenamePrefix) ? $"{FilenamePrefix}{GetMethodCompactName()}-details.csv" : $"{GetMethodCompactName()}-details");
 
         protected StreamWriter? CsvWriter { get; set; }
         public long SumPreviousBankrolls { get; protected set; }
@@ -112,6 +112,9 @@ namespace SayedHa.Blackjack.Shared.Roulette {
 
         public override async Task RecordSpinAsync(GameCell cell) {
             if (StopWhenBankrupt && IsBankrupt) {
+                //if (SpinWhenLostAllMoney == 0 && CurrentBankroll <= 0) {
+                //    SpinWhenLostAllMoney = CurrentNumSpins;
+                //}
                 // ignore the spin
                 return;
             }
@@ -119,6 +122,9 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             CurrentNumSpins++;
             SumPreviousBankrolls += CurrentBankroll;
             CurrentBet = CurrentBet < MaximumBet ? CurrentBet : MaximumBet;
+            if (!AllowNegativeBankroll && (CurrentBankroll - CurrentBet) < 0) {
+                CurrentBet = CurrentBankroll;
+            }
             // if you win, repeat the bet
             // if you lose, double the bet
             // once you win, reset bet amount to the initial bet amount

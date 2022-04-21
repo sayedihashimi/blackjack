@@ -31,6 +31,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         public abstract bool IsBankrupt { get; }
         public int MinimumBet { get; init; } = 1;
         public long MaximumBet { get; set; }=long.MaxValue;
+        public bool AllowNegativeBankroll { get; set; } = false;
         public virtual void Reset() { }
         protected virtual void Dispose(bool disposing) {
 

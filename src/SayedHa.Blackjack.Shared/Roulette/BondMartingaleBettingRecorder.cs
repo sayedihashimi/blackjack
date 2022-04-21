@@ -31,12 +31,19 @@ namespace SayedHa.Blackjack.Shared.Roulette {
 
         public override async Task RecordSpinAsync(GameCell cell) {
             if (StopWhenBankrupt && IsBankrupt) {
+                //if (SpinWhenLostAllMoney == 0 && CurrentBankroll <= 0) {
+                //    SpinWhenLostAllMoney = CurrentNumSpins;
+                //}
                 // ignore the spin
                 return;
             }
             CurrentNumSpins++;
             SumPreviousBankrolls += CurrentBankroll;
             CurrentBet = CurrentBet < MaximumBet? CurrentBet : MaximumBet;
+            
+            if(!AllowNegativeBankroll && (CurrentBankroll - CurrentBet) < 0) {
+                CurrentBet = CurrentBankroll;
+            }
 
             double percentOfBetThatPaidOut = 0;
             int betMultiplierOfWinningBet = 0;
@@ -88,7 +95,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
                 CurrentBet = CurrentBet*2<MaximumBet?CurrentBet*2:MaximumBet;
             }
 
-            if (SpinWhenLostAllMoney == 0 && CurrentBankroll < 0) {
+            if (SpinWhenLostAllMoney == 0 && CurrentBankroll <= 0) {
                 SpinWhenLostAllMoney = CurrentNumSpins;
             }
             if (CurrentBankroll > MaxBankroll) {

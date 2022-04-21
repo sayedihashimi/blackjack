@@ -16,6 +16,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
 
         public int MinimumBet { get; set; } = 1;
         public long MaximumBet { get; set; } = long.MaxValue;
+        public bool AllowNegativeBankroll { get; set; }
 
         public void SetRouletteType(RouletteType rouletteType) {
             RouletteType = rouletteType;

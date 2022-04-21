@@ -8,9 +8,9 @@ bool enableMartingale = true;
 bool enableGreen = true;
 bool enableBondMartingale = true;
 
-int minimumBet = 20;
-int initialBankroll = 1000000;
-long maximumBet = 1000;
+int minimumBet = 25;
+int initialBankroll = 5000000;
+long maximumBet = 5000;
 
 var rouletteType = RouletteType.European;
 
@@ -22,7 +22,8 @@ var settings = new GameSettings {
     EnableConsoleLogger = false,
     NumberOfSpins = numSpins,
     MaximumBet = maximumBet,
-    MinimumBet = minimumBet
+    MinimumBet = minimumBet,
+    AllowNegativeBankroll = false
 };
 // need to change this to support custom if needed later
 settings.SetRouletteType(rouletteType);
@@ -42,17 +43,32 @@ if (enableCsvFileOutput) {
 if (enableNumberDetails) {
     recorders.Add(new NumberDetailsRecorder(settings, outputPath, filenamePrefix));
 }
-var foo = new MartingaleBettingRecorder(outputPath, filenamePrefix, GameCellColor.Black, minimumBet, initialBankroll, true) { MaximumBet = settings.MaximumBet };
+
 if (enableMartingale) {
-    recorders.Add(new MartingaleBettingRecorder(outputPath, filenamePrefix, GameCellColor.Black, minimumBet, initialBankroll, true) { MaximumBet = settings.MaximumBet});
-    recorders.Add(new MartingaleBettingRecorder(outputPath, filenamePrefix, GameCellColor.Red, minimumBet, initialBankroll, false) { MaximumBet = settings.MaximumBet });
+    recorders.Add(new MartingaleBettingRecorder(outputPath, filenamePrefix, GameCellColor.Black, minimumBet, initialBankroll, true) {
+        MaximumBet = settings.MaximumBet,
+        AllowNegativeBankroll = settings.AllowNegativeBankroll
+    });
+    recorders.Add(new MartingaleBettingRecorder(outputPath, filenamePrefix, GameCellColor.Red, minimumBet, initialBankroll, false) { 
+        MaximumBet = settings.MaximumBet,
+        AllowNegativeBankroll = settings.AllowNegativeBankroll
+    });
 }
 if (enableGreen) {
-    recorders.Add(new GreenMethodRecorder(outputPath, filenamePrefix, minimumBet, initialBankroll, true) { MaximumBet = settings.MaximumBet });
-    recorders.Add(new GreenAgressiveMethodRecorder(outputPath, filenamePrefix, minimumBet, initialBankroll, true) { MaximumBet = settings.MaximumBet });
+    recorders.Add(new GreenMethodRecorder(outputPath, filenamePrefix, minimumBet, initialBankroll, true) { 
+        MaximumBet = settings.MaximumBet,
+        AllowNegativeBankroll = settings.AllowNegativeBankroll
+    });
+    recorders.Add(new GreenAgressiveMethodRecorder(outputPath, filenamePrefix, minimumBet, initialBankroll, true) { 
+        MaximumBet = settings.MaximumBet,
+        AllowNegativeBankroll = settings.AllowNegativeBankroll
+    });
 }
 if (enableBondMartingale) {
-    recorders.Add(new BondMartingaleBettingRecorder(outputPath, filenamePrefix, minimumBet, initialBankroll, true) { MaximumBet = settings.MaximumBet });
+    recorders.Add(new BondMartingaleBettingRecorder(outputPath, filenamePrefix, minimumBet, initialBankroll, true) { 
+        MaximumBet = settings.MaximumBet,
+        AllowNegativeBankroll = settings.AllowNegativeBankroll
+    });
 }
 
 // csv with stats always needs to be added for the summary
@@ -67,9 +83,9 @@ foreach(var recorder in recorders) {
     controller.AddGameRecorder(recorder);
 }
 
-await controller.PlayAll();
+// await controller.PlayAll();
 
-// await controller.PlayRollup(50);
+await controller.PlayRollup(50);
 
 watch.Stop();
 Console.WriteLine($"num spins: {settings.NumberOfSpins:N0}\ntime: {watch.Elapsed.TotalSeconds}\nfilenames: '{filenamePrefix}*'");

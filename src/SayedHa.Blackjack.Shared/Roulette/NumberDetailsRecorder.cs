@@ -126,7 +126,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             foreach(var item in CellNumberList) {
                 await writer.WriteAsync($"'{item.Cell.Text}',");
                 await writer.WriteAsync($"{item.NumberOfTimesHit},");
-                await writer.WriteAsync($"{item.MaxNumSpinsSinceLastHit}");
+                await writer.WriteAsync($"{item.MaxNumSpinsSinceLastHit},");
                 await writer.WriteAsync($"{item.MaxConsecutiveHits},");
                 await writer.WriteAsync($"{item.NumberOfTimesBackToBack},");
                 await writer.WriteAsync($"{item.NumberOfTimesThreeInARow}");
