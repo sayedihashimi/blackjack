@@ -2,11 +2,11 @@
 using System.Diagnostics;
 
 int numSpins = 1000;
-bool enableCsvFileOutput = false;
-bool enableNumberDetails = true;
-bool enableMartingale = true;
-bool enableGreen = true;
-bool enableBondMartingale = true;
+//bool enableCsvFileOutput = false;
+//bool enableNumberDetails = true;
+//bool enableMartingale = true;
+//bool enableGreen = true;
+//bool enableBondMartingale = true;
 
 int minimumBet = 25;
 int initialBankroll = 5000000;
@@ -23,7 +23,12 @@ var settings = new GameSettings {
     NumberOfSpins = numSpins,
     MaximumBet = maximumBet,
     MinimumBet = minimumBet,
-    AllowNegativeBankroll = false
+    AllowNegativeBankroll = false,
+    EnableCsvFileOutput = false,
+    EnableNumberDetails = false,
+    EnableMartingale = false,
+    EnableGreen = false,
+    EnableBondMartingale = false
 };
 // need to change this to support custom if needed later
 settings.SetRouletteType(rouletteType);
@@ -37,14 +42,14 @@ var timestamp = DateTime.Now.ToString("yyyy.MM.dd-hhmmss.ff");
 var outputPath = $@"C:\temp\roulette";
 var filenamePrefix = $"r-{numSpins}-{timestamp}-";
 
-if (enableCsvFileOutput) {
+if (settings.EnableCsvFileOutput) {
     recorders.Add(new CsvGameRecorder(outputPath, $"r-{numSpins}-{timestamp}-"));
 }
-if (enableNumberDetails) {
+if (settings.EnableNumberDetails) {
     recorders.Add(new NumberDetailsRecorder(settings, outputPath, filenamePrefix));
 }
 
-if (enableMartingale) {
+if (settings.EnableMartingale) {
     recorders.Add(new MartingaleBettingRecorder(outputPath, filenamePrefix, GameCellColor.Black, minimumBet, initialBankroll, true) {
         MaximumBet = settings.MaximumBet,
         AllowNegativeBankroll = settings.AllowNegativeBankroll
@@ -54,7 +59,7 @@ if (enableMartingale) {
         AllowNegativeBankroll = settings.AllowNegativeBankroll
     });
 }
-if (enableGreen) {
+if (settings.EnableGreen) {
     recorders.Add(new GreenMethodRecorder(outputPath, filenamePrefix, minimumBet, initialBankroll, true) { 
         MaximumBet = settings.MaximumBet,
         AllowNegativeBankroll = settings.AllowNegativeBankroll
@@ -64,7 +69,7 @@ if (enableGreen) {
         AllowNegativeBankroll = settings.AllowNegativeBankroll
     });
 }
-if (enableBondMartingale) {
+if (settings.EnableBondMartingale) {
     recorders.Add(new BondMartingaleBettingRecorder(outputPath, filenamePrefix, minimumBet, initialBankroll, true) { 
         MaximumBet = settings.MaximumBet,
         AllowNegativeBankroll = settings.AllowNegativeBankroll
@@ -73,7 +78,7 @@ if (enableBondMartingale) {
 
 // csv with stats always needs to be added for the summary
 var csvWithStatsRecorder = new CsvWithStatsGameRecorder(outputPath, $"r-{numSpins}-{timestamp}-");
-csvWithStatsRecorder.EnableWriteCsvFile = enableCsvFileOutput;
+csvWithStatsRecorder.EnableWriteCsvFile = settings.EnableCsvFileOutput;
 recorders.Add(csvWithStatsRecorder);
 
 var watch = Stopwatch.StartNew();

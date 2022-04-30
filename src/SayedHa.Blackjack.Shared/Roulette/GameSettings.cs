@@ -11,6 +11,11 @@ namespace SayedHa.Blackjack.Shared.Roulette {
 
         public int NumberOfSpins { get; set; } = 100;
         public bool EnableConsoleLogger { get; set; } = true;
+        public bool EnableCsvFileOutput { get; set; } = false;
+        public bool EnableNumberDetails { get; set; } = false;
+        public bool EnableMartingale { get; set; } = false;
+        public bool EnableBondMartingale { get; set; } = false;
+        public bool EnableGreen { get; set; }
         public RouletteType RouletteType { get; protected set; }
         public bool StopWhenBankrupt { get; set; } = true;
 

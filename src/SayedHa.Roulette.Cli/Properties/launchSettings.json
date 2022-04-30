@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "SayedHa.Roulette.Cli": {
+      "commandName": "Project",
+      "commandLineArgs": "simulate --paramname 1234526 --verbose"
+    }
+  }
+}
