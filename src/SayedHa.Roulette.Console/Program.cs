@@ -18,6 +18,14 @@ var settings = new GameSettings {
 // need to change this to support custom if needed later
 settings.SetRouletteType(RouletteType.European);
 
+try {
+    
+    await new GameSettingsFactory().SaveSettingsToJsonFileAsync(@"c:\temp\roulette-settings.json", settings);
+}
+catch (Exception ex) {
+    Console.WriteLine(ex.ToString());
+}
+
 
 if (args.Length == 1) {
     settings.NumberOfSpins = int.Parse(args[0]);

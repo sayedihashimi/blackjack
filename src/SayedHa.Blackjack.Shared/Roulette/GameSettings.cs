@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,6 +8,7 @@ using System.Threading.Tasks;
 namespace SayedHa.Blackjack.Shared.Roulette {
     public class GameSettings {
         // array because some games have 0,0 + 00 and 0 + 00 + OTHER
+        [JsonIgnore]
         public string[] SpecialCells { get; protected set; } = new string[2] { "0", "00" };
 
         public int NumberOfSpins { get; set; } = 100;
@@ -16,7 +18,11 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         public bool EnableMartingale { get; set; } = false;
         public bool EnableBondMartingale { get; set; } = false;
         public bool EnableGreen { get; set; }
-        public RouletteType RouletteType { get; protected set; }
+        private RouletteType _rouletteType;
+        public RouletteType RouletteType {
+            get => _rouletteType;
+            set => SetRouletteType(value);
+        }
         public bool StopWhenBankrupt { get; set; } = true;
         public long InitialBankroll { get; set; }
         public int MinimumBet { get; set; } = 1;
@@ -24,7 +30,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         public bool AllowNegativeBankroll { get; set; }
 
         public void SetRouletteType(RouletteType rouletteType) {
-            RouletteType = rouletteType;
+            _rouletteType = rouletteType;
             switch (rouletteType) {
                 case RouletteType.American:
                     SpecialCells = new string[2] { "0", "00" };
@@ -42,5 +48,12 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             RouletteType = RouletteType.Custom;
             SpecialCells = specialCells;
         }
+    }
+    public class GameSettingsFactory {
+        public async Task SaveSettingsToJsonFileAsync(string filepath,GameSettings settings) =>
+            await File.WriteAllTextAsync(filepath, JsonConvert.SerializeObject(settings, Formatting.Indented));
+
+        public GameSettings? ReadFromJsonFile(string filepath) =>
+            JsonConvert.DeserializeObject<GameSettings>(filepath);
     }
 }
