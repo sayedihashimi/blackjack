@@ -1,29 +1,14 @@
 ﻿using SayedHa.Blackjack.Shared.Roulette;
 using System.Diagnostics;
 
-int numSpins = 1000;
-//bool enableCsvFileOutput = false;
-//bool enableNumberDetails = true;
-//bool enableMartingale = true;
-//bool enableGreen = true;
-//bool enableBondMartingale = true;
-
-int minimumBet = 25;
-int initialBankroll = 5000000;
-long maximumBet = 5000;
-
-var rouletteType = RouletteType.European;
-
-if(args.Length == 1) {
-    numSpins = int.Parse(args[0]);
-}
-
 var settings = new GameSettings {
-    EnableConsoleLogger = false,
-    NumberOfSpins = numSpins,
-    MaximumBet = maximumBet,
-    MinimumBet = minimumBet,
+    NumberOfSpins = 1000,
+    InitialBankroll = 5000000,
+    MaximumBet = 5000,
+    MinimumBet = 25,
+
     AllowNegativeBankroll = false,
+    EnableConsoleLogger = false,
     EnableCsvFileOutput = false,
     EnableNumberDetails = false,
     EnableMartingale = false,
@@ -31,8 +16,12 @@ var settings = new GameSettings {
     EnableBondMartingale = false
 };
 // need to change this to support custom if needed later
-settings.SetRouletteType(rouletteType);
+settings.SetRouletteType(RouletteType.European);
 
+
+if (args.Length == 1) {
+    settings.NumberOfSpins = int.Parse(args[0]);
+}
 var recorders = new List<IGameRecorder>();
 if (settings.EnableConsoleLogger) {
     recorders.Add(new ConsoleGameRecorder());
@@ -40,44 +29,44 @@ if (settings.EnableConsoleLogger) {
 
 var timestamp = DateTime.Now.ToString("yyyy.MM.dd-hhmmss.ff");
 var outputPath = $@"C:\temp\roulette";
-var filenamePrefix = $"r-{numSpins}-{timestamp}-";
+var filenamePrefix = $"r-{settings.NumberOfSpins}-{timestamp}-";
 
 if (settings.EnableCsvFileOutput) {
-    recorders.Add(new CsvGameRecorder(outputPath, $"r-{numSpins}-{timestamp}-"));
+    recorders.Add(new CsvGameRecorder(outputPath, $"r-{settings.NumberOfSpins}-{timestamp}-"));
 }
 if (settings.EnableNumberDetails) {
     recorders.Add(new NumberDetailsRecorder(settings, outputPath, filenamePrefix));
 }
 
 if (settings.EnableMartingale) {
-    recorders.Add(new MartingaleBettingRecorder(outputPath, filenamePrefix, GameCellColor.Black, minimumBet, initialBankroll, true) {
+    recorders.Add(new MartingaleBettingRecorder(outputPath, filenamePrefix, GameCellColor.Black, settings.MinimumBet, settings.InitialBankroll, true) {
         MaximumBet = settings.MaximumBet,
         AllowNegativeBankroll = settings.AllowNegativeBankroll
     });
-    recorders.Add(new MartingaleBettingRecorder(outputPath, filenamePrefix, GameCellColor.Red, minimumBet, initialBankroll, false) { 
+    recorders.Add(new MartingaleBettingRecorder(outputPath, filenamePrefix, GameCellColor.Red, settings.MinimumBet, settings.InitialBankroll, false) { 
         MaximumBet = settings.MaximumBet,
         AllowNegativeBankroll = settings.AllowNegativeBankroll
     });
 }
 if (settings.EnableGreen) {
-    recorders.Add(new GreenMethodRecorder(outputPath, filenamePrefix, minimumBet, initialBankroll, true) { 
+    recorders.Add(new GreenMethodRecorder(outputPath, filenamePrefix, settings.MinimumBet, settings.InitialBankroll, true) { 
         MaximumBet = settings.MaximumBet,
         AllowNegativeBankroll = settings.AllowNegativeBankroll
     });
-    recorders.Add(new GreenAgressiveMethodRecorder(outputPath, filenamePrefix, minimumBet, initialBankroll, true) { 
+    recorders.Add(new GreenAgressiveMethodRecorder(outputPath, filenamePrefix, settings.MinimumBet, settings.InitialBankroll, true) { 
         MaximumBet = settings.MaximumBet,
         AllowNegativeBankroll = settings.AllowNegativeBankroll
     });
 }
 if (settings.EnableBondMartingale) {
-    recorders.Add(new BondMartingaleBettingRecorder(outputPath, filenamePrefix, minimumBet, initialBankroll, true) { 
+    recorders.Add(new BondMartingaleBettingRecorder(outputPath, filenamePrefix, settings.MinimumBet, settings.InitialBankroll, true) { 
         MaximumBet = settings.MaximumBet,
         AllowNegativeBankroll = settings.AllowNegativeBankroll
     });
 }
 
 // csv with stats always needs to be added for the summary
-var csvWithStatsRecorder = new CsvWithStatsGameRecorder(outputPath, $"r-{numSpins}-{timestamp}-");
+var csvWithStatsRecorder = new CsvWithStatsGameRecorder(outputPath, $"r-{settings.NumberOfSpins}-{timestamp}-");
 csvWithStatsRecorder.EnableWriteCsvFile = settings.EnableCsvFileOutput;
 recorders.Add(csvWithStatsRecorder);
 

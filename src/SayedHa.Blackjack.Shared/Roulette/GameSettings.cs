@@ -18,7 +18,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         public bool EnableGreen { get; set; }
         public RouletteType RouletteType { get; protected set; }
         public bool StopWhenBankrupt { get; set; } = true;
-
+        public long InitialBankroll { get; set; }
         public int MinimumBet { get; set; } = 1;
         public long MaximumBet { get; set; } = long.MaxValue;
         public bool AllowNegativeBankroll { get; set; }
