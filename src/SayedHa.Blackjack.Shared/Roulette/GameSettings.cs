@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,6 +20,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         public bool EnableBondMartingale { get; set; } = false;
         public bool EnableGreen { get; set; }
         private RouletteType _rouletteType;
+        [JsonConverter(typeof(StringEnumConverter))]
         public RouletteType RouletteType {
             get => _rouletteType;
             set => SetRouletteType(value);
@@ -55,5 +57,8 @@ namespace SayedHa.Blackjack.Shared.Roulette {
 
         public GameSettings? ReadFromJsonFile(string filepath) =>
             JsonConvert.DeserializeObject<GameSettings>(filepath);
+
+        public string GetJsonFor(GameSettings settings) =>
+            JsonConvert.SerializeObject(settings, Formatting.Indented);
     }
 }

@@ -2,7 +2,7 @@
   "profiles": {
     "SayedHa.Roulette.Cli": {
       "commandName": "Project",
-      "commandLineArgs": "simulate --paramname 1234526 --verbose"
+      "commandLineArgs": "config --initialBankroll 1234526 --numSpins 1234 --verbose"
     }
   }
 }

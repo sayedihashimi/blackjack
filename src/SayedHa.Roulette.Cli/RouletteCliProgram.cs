@@ -16,6 +16,8 @@ namespace SayedHa.Roulette.Cli {
             _parser = new CommandLineBuilder()
                         .AddCommand(
                             new SimulateCommand(GetFromServices<IReporter>()).CreateCommand())
+                        .AddCommand(
+                            new ConfigCommand(GetFromServices<IReporter>()).CreateCommand())
                         .UseDefaults()
                         .Build();
 
