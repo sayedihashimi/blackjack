@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace SayedHa.Roulette.Cli {
     public class ConfigCommand : CommandBase {
+
         private IReporter _reporter;
         public ConfigCommand(IReporter reporter) {
             _reporter = reporter;
@@ -16,21 +17,31 @@ namespace SayedHa.Roulette.Cli {
 
         public override Command CreateCommand() =>
             new Command(name: "config", description: "enables you to set config settings that will be persisted in a temp file") {
-                // TODO: see https://github.com/dotnet/command-line-api/issues/458
-                CommandHandler.Create<string,long,int,int,int,bool,bool>((rouletteType,initialBankroll,numSpins,minBet,maxBet,stopWhenBankrupt,verbose) => {
-                    if(!Enum.TryParse(rouletteType,out RouletteType rouletteTypeConverted)) {
-                        throw new ArgumentOutOfRangeException(nameof(rouletteType));
+
+
+                // TODO: revisit how this is implemented, currently all settings are set
+                //       better would be to only apply the changes to values that are passed in.
+                CommandHandler.Create<ConfigCommandArgs>((config) => {
+                //CommandHandler.Create<string,long,int,int,int,bool,bool>((rouletteType,initialBankroll,numSpins,minBet,maxBet,stopWhenBankrupt,verbose) => {
+                    if(!Enum.TryParse(config.rouletteType,out RouletteType rouletteTypeConverted)) {
+                        throw new ArgumentOutOfRangeException(nameof(config.rouletteType));
                     }
                     var settings = new GameSettings() {
                         RouletteType = rouletteTypeConverted,
-                        InitialBankroll = initialBankroll,
-                        NumberOfSpins = numSpins,
-                        StopWhenBankrupt = stopWhenBankrupt
+                        InitialBankroll = config.initialBankroll,
+                        NumberOfSpins = config.numSpins,
+                        StopWhenBankrupt = config.stopWhenBankrupt,
+                        EnableNumberDetails = config.enableReportNumberDetails,
+                        EnableMartingale = config.enablePlayerMartingale,
+                        EnableBondMartingale = config.enablePlayerBondMartingale,
+                        EnableGreen = config.enablePlayerGreen,
+                        EnableConsoleLogger = config.enableConsoleLogger,
+                        EnableCsvFileOutput = config.enableCsvFileOutput
                     };
 
                     string json = new GameSettingsFactory().GetJsonFor(settings);
 
-                    Console.WriteLine($"rouletteType: {rouletteType}");
+                    Console.WriteLine($"rouletteType: {config.rouletteType}");
                     Console.WriteLine($"settings:\n{json}");
                 }),
                 OptionRouletteType(),
@@ -40,6 +51,13 @@ namespace SayedHa.Roulette.Cli {
                 OptionMaxBet(),
                 OptionStopWhenBankrupt(),
                 EnableReportNumberDetails(),
+                EnablePlayerMartingale(),
+                EnablePlayerBondMartingale(),
+                EnablePlayerGreen(),
+
+                EnableConsoleLogger(),
+                EnableCsvFileOutput(),
+
                 OptionVerbose(),
             };
 
@@ -99,24 +117,21 @@ namespace SayedHa.Roulette.Cli {
             new Option(new string[] { "--enableCsvFileOutput" }) {
                 Argument = new Argument<bool>(name:"enableCsvFileOutput",description:"sets the default value if the CSV file output will be enabled")
             };
-        /*
-         *   "EnableNumberDetails": false,
-  "EnableMartingale": false,
-  "EnableBondMartingale": false,
-  "EnableGreen": false,
 
-  "EnableConsoleLogger": false,
-  "EnableCsvFileOutput": false
-         */
-
-        public Option OptionFoo() {
-            var foo = new Option(new string[] { "--initialBankroll" }, "initial bankroll (amount of money to play)") {
-                Argument = new Argument<long>(name: "initialBankroll", getDefaultValue: () => 3000)
-            };
-
-            foo.Argument.FromAmong(new string[] { "american", "european" });
-
-            return foo;
+        internal class ConfigCommandArgs {
+            public string rouletteType { get; set; }
+            public long initialBankroll { get; set; }
+            public int numSpins { get; set; }
+            public int minBet { get; set; }
+            public int maxBet { get; set; }
+            public bool stopWhenBankrupt { get; set; }
+            public bool enableReportNumberDetails { get; set; }
+            public bool enablePlayerMartingale { get; internal set; }
+            public bool enablePlayerBondMartingale { get; internal set; }
+            public bool enablePlayerGreen { get; internal set; }
+            public bool enableConsoleLogger { get; internal set; }
+            public bool enableCsvFileOutput { get; internal set; }
+            public bool verbose { get; set; }
         }
     }
 }
