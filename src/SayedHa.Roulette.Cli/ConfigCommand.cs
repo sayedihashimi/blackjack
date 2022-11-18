@@ -1,8 +1,10 @@
-﻿using SayedHa.Blackjack.Shared.Roulette;
+﻿using Newtonsoft.Json;
+using SayedHa.Blackjack.Shared.Roulette;
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,32 +19,41 @@ namespace SayedHa.Roulette.Cli {
 
         public override Command CreateCommand() =>
             new Command(name: "config", description: "enables you to set config settings that will be persisted in a temp file") {
-
-
                 // TODO: revisit how this is implemented, currently all settings are set
                 //       better would be to only apply the changes to values that are passed in.
-                CommandHandler.Create<ConfigCommandArgs>((config) => {
-                //CommandHandler.Create<string,long,int,int,int,bool,bool>((rouletteType,initialBankroll,numSpins,minBet,maxBet,stopWhenBankrupt,verbose) => {
-                    if(!Enum.TryParse(config.rouletteType,out RouletteType rouletteTypeConverted)) {
-                        throw new ArgumentOutOfRangeException(nameof(config.rouletteType));
+                CommandHandler.Create<ConfigCommandArgs>(async (config) => {
+                    var settings = await GetOrCreateExistingConfigSettingsFileAsync();
+                    // only set properties which have a non-null value
+                    if(config.rouletteType != null) {
+                        if(!Enum.TryParse(config.rouletteType,out RouletteType rouletteTypeConverted)) {
+                            throw new ArgumentOutOfRangeException(nameof(config.rouletteType));
+                        }
+                        settings.RouletteType = rouletteTypeConverted;
                     }
-                    var settings = new GameSettings() {
-                        RouletteType = rouletteTypeConverted,
-                        InitialBankroll = config.initialBankroll,
-                        NumberOfSpins = config.numSpins,
-                        StopWhenBankrupt = config.stopWhenBankrupt,
-                        EnableNumberDetails = config.enableReportNumberDetails,
-                        EnableMartingale = config.enablePlayerMartingale,
-                        EnableBondMartingale = config.enablePlayerBondMartingale,
-                        EnableGreen = config.enablePlayerGreen,
-                        EnableConsoleLogger = config.enableConsoleLogger,
-                        EnableCsvFileOutput = config.enableCsvFileOutput
-                    };
+                    settings.InitialBankroll = config.initialBankroll ?? settings.InitialBankroll;
+                    settings.NumberOfSpins = config.numSpins ?? settings.NumberOfSpins;
+                    settings.StopWhenBankrupt = config.stopWhenBankrupt ?? settings.StopWhenBankrupt;
+                    settings.EnableNumberDetails = config.enableReportNumberDetails ?? settings.EnableNumberDetails;
+                    settings.EnableMartingale = config.enablePlayerMartingale ?? settings.EnableMartingale;
+                    settings.EnableBondMartingale = config.enablePlayerBondMartingale ?? settings.EnableBondMartingale;
+                    settings.EnableGreen = config.enablePlayerGreen ?? settings.EnableGreen;
+                    settings.EnableConsoleLogger = config.enableConsoleLogger ?? settings.EnableConsoleLogger;
+                    settings.EnableCsvFileOutput = config.enableCsvFileOutput ?? settings.EnableCsvFileOutput;
 
-                    string json = new GameSettingsFactory().GetJsonFor(settings);
+                    // save the settings now
+                    SaveGameSettingsConfig(settings);
 
-                    Console.WriteLine($"rouletteType: {config.rouletteType}");
-                    Console.WriteLine($"settings:\n{json}");
+                    var wasSettingPassed = config.initialBankroll == null && config.numSpins == null && config.stopWhenBankrupt == null && config.enableReportNumberDetails == null &&
+                                            config.enablePlayerMartingale == null && config.enablePlayerBondMartingale == null && config.enablePlayerGreen == null &&
+                                            config.enableConsoleLogger == null && config.enableCsvFileOutput == null;
+                    if (wasSettingPassed) {
+                        Console.WriteLine($"settings saved");
+                    }
+
+                    if (config.printSettings != null && (bool)config.printSettings) {
+                        Console.WriteLine($"settings:\n{new GameSettingsFactory().GetJsonFor(settings)}");
+                    }
+
                 }),
                 OptionRouletteType(),
                 OptionInitialBankroll(),
@@ -58,8 +69,59 @@ namespace SayedHa.Roulette.Cli {
                 EnableConsoleLogger(),
                 EnableCsvFileOutput(),
 
+                OptionPrintSettings(),
                 OptionVerbose(),
             };
+
+        internal protected async Task<GameSettings> GetOrCreateExistingConfigSettingsFileAsync() {
+            string settingsFilepath = GetPathToSettingsFile();
+            Debug.Assert(!string.IsNullOrEmpty(settingsFilepath));
+
+            var settings = new GameSettings();
+            if (File.Exists(settingsFilepath)) {
+                // var contents = await File.ReadAllTextAsync(settingsFilepath);
+
+                try {
+                    settings = await new GameSettingsFactory().ReadFromJsonFileAsync(settingsFilepath);
+                }
+                catch (JsonException je) {
+                    Console.WriteLine($"unable to read settings from file, loading default settings. filepath='{settingsFilepath}'.\njson Error:{je.ToString()}");
+                    settings = new GameSettings();
+                }
+                catch (Exception ex) {
+                    Console.WriteLine($"unable to read settings from file, loading default settings. filepath='{settingsFilepath}'.\nError:{ex.ToString()}");
+                    settings = new GameSettings();
+                }
+
+                //try {
+                //    settings = JsonConvert.DeserializeObject<GameSettings>(contents);
+                //}
+                //catch (JsonException je) {
+                //    Console.WriteLine($"unable to read settings from file, loading default settings. filepath='{settingsFilepath}'.\njson Error:{je.ToString()}");
+                //    settings = new GameSettings();
+                //}
+                //catch (Exception ex) {
+                //    Console.WriteLine($"unable to read settings from file, loading default settings. filepath='{settingsFilepath}'.\nError:{ex.ToString()}");
+                //    settings = new GameSettings();
+                //}
+            }
+
+            return settings;
+        }
+        internal protected void SaveGameSettingsConfig(GameSettings configSettings) {
+            Debug.Assert(configSettings != null);
+
+            File.WriteAllTextAsync(GetPathToSettingsFile(), JsonConvert.SerializeObject(configSettings, Formatting.Indented));
+        }
+
+        internal protected string GetPathToSettingsFile() {
+            // should work xplat, see: https://developers.redhat.com/blog/2018/11/07/dotnet-special-folder-api-linux#environment_getfolderpath
+            string appdata = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.DoNotVerify), "sayedha.roulette");
+            // ensure that the directory exists
+            Directory.CreateDirectory(appdata);
+
+            return Path.Combine(appdata, "roulette.settings.json");
+        }
 
         public Option OptionNumberOfSpins() =>
             new Option(new string[] { "--numSpins" }, "number of spins") {
@@ -86,19 +148,19 @@ namespace SayedHa.Roulette.Cli {
 
         public Option OptionMaxBet() =>
             new Option(new string[] { "--maxBet" }) {
-                Argument = new Argument<int>(name:"maxBet",description:"maximum bet for the table", getDefaultValue:()=>int.MaxValue)
+                Argument = new Argument<int>(name:"maxBet",description:"maximum bet for the table")
             };
         public Option OptionStopWhenBankrupt() =>
             new Option(new string[] { "--stopWhenBankrupt" }) {
-                Argument = new Argument<bool>(name: "stopWhenBankrupt", description: "stop when the bankroll gets to zero", getDefaultValue: () => true)
+                Argument = new Argument<bool>(name: "stopWhenBankrupt", description: "stop when the bankroll gets to zero")
             };
         public Option EnableReportNumberDetails() =>
             new Option(new string[] { "--enableReportNumberDetails" }) {
-                Argument = new Argument<bool>(name: "enableReportNumberDetails", description: "if true number details will be include when executed", getDefaultValue: () => false)
+                Argument = new Argument<bool>(name: "enableReportNumberDetails", description: "if true number details will be include when executed")
             };
         public Option EnablePlayerMartingale() =>
             new Option(new string[] { "--enablePlayerMartingale" }) {
-                Argument = new Argument<bool>(name: "enablePlayerMartingale", description:"sets the default value if the martingale player will be used",getDefaultValue:()=>false)
+                Argument = new Argument<bool>(name: "enablePlayerMartingale", description:"sets the default value if the martingale player will be used")
             };
         public Option EnablePlayerBondMartingale() =>
             new Option(new string[] { "--enablePlayerBondMartingale" }) {
@@ -117,21 +179,26 @@ namespace SayedHa.Roulette.Cli {
             new Option(new string[] { "--enableCsvFileOutput" }) {
                 Argument = new Argument<bool>(name:"enableCsvFileOutput",description:"sets the default value if the CSV file output will be enabled")
             };
+        public Option OptionPrintSettings() =>
+            new Option(new string[] { "--printSettings" }) {
+                Argument = new Argument<bool>(name: "printSettings", description: "settings will be printed out")
+            };
 
         internal class ConfigCommandArgs {
-            public string rouletteType { get; set; }
-            public long initialBankroll { get; set; }
-            public int numSpins { get; set; }
-            public int minBet { get; set; }
-            public int maxBet { get; set; }
-            public bool stopWhenBankrupt { get; set; }
-            public bool enableReportNumberDetails { get; set; }
-            public bool enablePlayerMartingale { get; internal set; }
-            public bool enablePlayerBondMartingale { get; internal set; }
-            public bool enablePlayerGreen { get; internal set; }
-            public bool enableConsoleLogger { get; internal set; }
-            public bool enableCsvFileOutput { get; internal set; }
-            public bool verbose { get; set; }
+            public string? rouletteType { get; set; }
+            public long? initialBankroll { get; set; }
+            public int? numSpins { get; set; }
+            public int? minBet { get; set; }
+            public int? maxBet { get; set; }
+            public bool? stopWhenBankrupt { get; set; }
+            public bool? enableReportNumberDetails { get; set; }
+            public bool? enablePlayerMartingale { get; internal set; }
+            public bool? enablePlayerBondMartingale { get; internal set; }
+            public bool? enablePlayerGreen { get; internal set; }
+            public bool? enableConsoleLogger { get; internal set; }
+            public bool? enableCsvFileOutput { get; internal set; }
+            public bool? printSettings { get; internal set; }
+            public bool? verbose { get; set; }
         }
     }
 }

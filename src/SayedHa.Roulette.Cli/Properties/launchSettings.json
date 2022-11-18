@@ -2,7 +2,7 @@
   "profiles": {
     "SayedHa.Roulette.Cli": {
       "commandName": "Project",
-      "commandLineArgs": "config --initialBankroll 1234526 --numSpins 1234 --verbose"
+      "commandLineArgs": "config --minBet 5 --printSettings"
     }
   }
 }

@@ -55,8 +55,10 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         public async Task SaveSettingsToJsonFileAsync(string filepath,GameSettings settings) =>
             await File.WriteAllTextAsync(filepath, JsonConvert.SerializeObject(settings, Formatting.Indented));
 
-        public GameSettings? ReadFromJsonFile(string filepath) =>
-            JsonConvert.DeserializeObject<GameSettings>(filepath);
+        public async Task<GameSettings?> ReadFromJsonFileAsync(string filepath) {
+            var contents = await File.ReadAllTextAsync(filepath);
+            return JsonConvert.DeserializeObject<GameSettings>(contents);
+        }
 
         public string GetJsonFor(GameSettings settings) =>
             JsonConvert.SerializeObject(settings, Formatting.Indented);
