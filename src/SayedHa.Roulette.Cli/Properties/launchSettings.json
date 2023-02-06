@@ -2,7 +2,7 @@
   "profiles": {
     "SayedHa.Roulette.Cli": {
       "commandName": "Project",
-      "commandLineArgs": "config --minBet 5 --printSettings"
+      "commandLineArgs": "simulate"
     }
   }
 }

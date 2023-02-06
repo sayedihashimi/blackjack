@@ -1,26 +1,79 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace SayedHa.Blackjack.Shared.Roulette {
     public class RouletteGameController {
-        public RouletteGameController(GameSettings gameSettings,string outputPath, string filenamePrefix) {
+        public RouletteGameController(GameSettings gameSettings, string outputPath, string filenamePrefix) {
             GameSettings = gameSettings;
-            OutputPath = outputPath;
-            FilenamePrefix = filenamePrefix;
+            this.OutputPath = outputPath;
+            this.FilenamePrefix = filenamePrefix;
+
+            InitFromGameSettings();
 
             Board = Board.BuildBoard(GameSettings);
         }
         public GameSettings GameSettings { get; protected init; }
         public string OutputPath { get; protected init; }
         public string FilenamePrefix { get; protected init; }
-        public List<IGameRecorder> GameRecorders { get; protected init; } = new List<IGameRecorder>();
+        public List<IGameRecorder> Recorders { get; protected init; } = new List<IGameRecorder>();
         public List<IGameRollupRecorder> RollupRecorders { get; protected init; } = new List<IGameRollupRecorder>();
         protected Board Board { get; init; }
+
+        protected void InitFromGameSettings() {
+            Debug.Assert(GameSettings != null);
+            Debug.Assert(!string.IsNullOrEmpty(OutputPath));
+            Debug.Assert(!string.IsNullOrEmpty(FilenamePrefix));
+
+            if (GameSettings.EnableConsoleLogger) {
+                Recorders.Add(new ConsoleGameRecorder());
+            }
+
+            if (GameSettings.EnableCsvFileOutput) {
+                Recorders.Add(new CsvGameRecorder(OutputPath, FilenamePrefix));
+            }
+            if (GameSettings.EnableNumberDetails) {
+                Recorders.Add(new NumberDetailsRecorder(GameSettings, OutputPath, FilenamePrefix));
+            }
+
+            if (GameSettings.EnableMartingale) {
+                Recorders.Add(new MartingaleBettingRecorder(OutputPath, FilenamePrefix, GameCellColor.Black, GameSettings.MinimumBet, GameSettings.InitialBankroll, true) {
+                    MaximumBet = GameSettings.MaximumBet,
+                    AllowNegativeBankroll = GameSettings.AllowNegativeBankroll
+                });
+                Recorders.Add(new MartingaleBettingRecorder(OutputPath, FilenamePrefix, GameCellColor.Red, GameSettings.MinimumBet, GameSettings.InitialBankroll, false) {
+                    MaximumBet = GameSettings.MaximumBet,
+                    AllowNegativeBankroll = GameSettings.AllowNegativeBankroll
+                });
+            }
+            if (GameSettings.EnableGreen) {
+                Recorders.Add(new GreenMethodRecorder(OutputPath, FilenamePrefix, GameSettings.MinimumBet, GameSettings.InitialBankroll, true) {
+                    MaximumBet = GameSettings.MaximumBet,
+                    AllowNegativeBankroll = GameSettings.AllowNegativeBankroll
+                });
+                Recorders.Add(new GreenAgressiveMethodRecorder(OutputPath, FilenamePrefix, GameSettings.MinimumBet, GameSettings.InitialBankroll, true) {
+                    MaximumBet = GameSettings.MaximumBet,
+                    AllowNegativeBankroll = GameSettings.AllowNegativeBankroll
+                });
+            }
+            if (GameSettings.EnableBondMartingale) {
+                Recorders.Add(new BondMartingaleBettingRecorder(OutputPath, FilenamePrefix, GameSettings.MinimumBet, GameSettings.InitialBankroll, true) {
+                    MaximumBet = GameSettings.MaximumBet,
+                    AllowNegativeBankroll = GameSettings.AllowNegativeBankroll
+                });
+            }
+
+            // csv with stats always needs to be added for the summary
+            var csvWithStatsRecorder = new CsvWithStatsGameRecorder(OutputPath, FilenamePrefix);
+            csvWithStatsRecorder.EnableWriteCsvFile = GameSettings.EnableCsvFileOutput;
+            Recorders.Add(csvWithStatsRecorder);
+        }
+
         public void AddGameRecorder(IGameRecorder recorder) {
-            GameRecorders.Add(recorder);
+            Recorders.Add(recorder);
             if (recorder is IGameRollupRecorder) {
                 recorder.StopWhenBankrupt = GameSettings.StopWhenBankrupt;
                 RollupRecorders.Add((IGameRollupRecorder)recorder);
@@ -29,16 +82,16 @@ namespace SayedHa.Blackjack.Shared.Roulette {
 
         public async Task PlayAll() {
             var player = new RoulettePlayer();
-            await player.PlayAsync(Board, GameSettings, GameRecorders);
+            await player.PlayAsync(Board, GameSettings, Recorders);
 
-            foreach(var recorder in GameRecorders) {
+            foreach (var recorder in Recorders) {
                 await recorder.GameCompleted();
                 recorder.Dispose();
             }
         }
 
         public async Task PlayRollup(int numGames) {
-            foreach (var recorder in GameRecorders) {
+            foreach (var recorder in Recorders) {
                 recorder.EnableFileOutput = false;
             }
 
@@ -59,7 +112,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
                 await rollupRecorder.WriteGameSummaryHeaderToAsync(recorderWriterMap[rollupRecorder]);
             }
             for (int i = 0; i < numGames; i++) {
-                await player.PlayAsync(Board,GameSettings,GameRecorders);
+                await player.PlayAsync(Board, GameSettings, Recorders);
 
                 foreach (var rollupRecorder in RollupRecorders) {
                     await rollupRecorder.WriteGameSummaryToAsync(recorderWriterMap[rollupRecorder]);
@@ -68,7 +121,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             }
 
             // flush/dispose all the streams
-            foreach(var key in recorderWriterMap.Keys) {
+            foreach (var key in recorderWriterMap.Keys) {
                 var rollupRecorderStream = recorderWriterMap[key];
                 await rollupRecorderStream.FlushAsync();
 
