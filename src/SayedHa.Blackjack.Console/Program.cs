@@ -120,8 +120,8 @@ async Task PlayGameWithStrategyAsync(OpponentPlayStrategy opponentPlayStrategy, 
             var gameResult = gameRunner.PlayGame(game);
             gameResults.Add(gameResult);
             logger.Log($"Bankroll: dealer ${gameResult.DealerRemainingCash.remaining:F0}(${gameResult.DealerRemainingCash.diff:F0})");
-            foreach (var opr in gameResult.OpponentRemaining) {
-                logger.Log($", op: ${opr.remaining:F0}(${opr.diff:F0}){Environment.NewLine}");
+            foreach (var (remaining, diff) in gameResult.OpponentRemaining) {
+                logger.Log($", op: ${remaining:F0}(${diff:F0}){Environment.NewLine}");
             }
         }
 
@@ -152,8 +152,8 @@ string GetSummaryString(int numGames,Game game) {
     var sb = new StringBuilder();
 
     sb.AppendLine($"Num games: {numGames}");
-    var conWins = GetNumConsecutiveWins((Opponent)game.Opponents[0]);
-    sb.AppendLine($"Max consecutive wins, opponent={conWins.maxOpponentConWins},dealer={conWins.maxDealerConWins}");
+    var (maxOpponentConWins, maxDealerConWins) = GetNumConsecutiveWins((Opponent)game.Opponents[0]);
+    sb.AppendLine($"Max consecutive wins, opponent={maxOpponentConWins},dealer={maxDealerConWins}");
     sb.AppendLine($"Bankroll: dealer {game.Dealer.BettingStrategy.Bankroll.DollarsRemaining}, op: {game.Opponents[0].BettingStrategy.Bankroll.DollarsRemaining}");
 
     return sb.ToString();

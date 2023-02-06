@@ -8,11 +8,13 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Reflection;
+using System.Runtime.Versioning;
+using SayedHa.Blackjack.Shared;
 
 namespace SayedHa.Roulette.Cli {
     public class ConfigCommand : CommandBase {
-
-        private IReporter _reporter;
+        private readonly IReporter _reporter;
         public ConfigCommand(IReporter reporter) {
             _reporter = reporter;
         }
@@ -41,17 +43,17 @@ namespace SayedHa.Roulette.Cli {
                     settings.EnableCsvFileOutput = config.enableCsvFileOutput ?? settings.EnableCsvFileOutput;
 
                     // save the settings now
-                    SaveGameSettingsConfig(settings);
+                    await SaveGameSettingsConfigAsync(settings);
 
                     var wasSettingPassed = config.initialBankroll == null && config.numSpins == null && config.stopWhenBankrupt == null && config.enableReportNumberDetails == null &&
                                             config.enablePlayerMartingale == null && config.enablePlayerBondMartingale == null && config.enablePlayerGreen == null &&
                                             config.enableConsoleLogger == null && config.enableCsvFileOutput == null;
                     if (wasSettingPassed) {
-                        Console.WriteLine($"settings saved");
+                        _reporter.WriteLine($"settings saved");
                     }
 
                     if (config.printSettings != null && (bool)config.printSettings) {
-                        Console.WriteLine($"settings:\n{new GameSettingsFactory().GetJsonFor(settings)}");
+                        _reporter.WriteLine($"settings:\n{new GameSettingsFactory().GetJsonFor(settings)}");
                     }
 
                 }),
@@ -82,14 +84,15 @@ namespace SayedHa.Roulette.Cli {
                 // var contents = await File.ReadAllTextAsync(settingsFilepath);
 
                 try {
-                    settings = await new GameSettingsFactory().ReadFromJsonFileAsync(settingsFilepath);
+                    var gsf = new GameSettingsFactory();
+                    settings = await gsf.ReadFromJsonFileAsync(settingsFilepath);
                 }
                 catch (JsonException je) {
-                    Console.WriteLine($"unable to read settings from file, loading default settings. filepath='{settingsFilepath}'.\njson Error:{je.ToString()}");
+                    _reporter.WriteLine($"unable to read settings from file, loading default settings. filepath='{settingsFilepath}'.\njson Error:{je}");
                     settings = new GameSettings();
                 }
                 catch (Exception ex) {
-                    Console.WriteLine($"unable to read settings from file, loading default settings. filepath='{settingsFilepath}'.\nError:{ex.ToString()}");
+                    _reporter.WriteLine($"unable to read settings from file, loading default settings. filepath='{settingsFilepath}'.\nError:{ex}");
                     settings = new GameSettings();
                 }
 
@@ -108,10 +111,11 @@ namespace SayedHa.Roulette.Cli {
 
             return settings;
         }
-        internal protected void SaveGameSettingsConfig(GameSettings configSettings) {
+        internal protected async Task SaveGameSettingsConfigAsync(GameSettings configSettings) {
             Debug.Assert(configSettings != null);
-
-            File.WriteAllTextAsync(GetPathToSettingsFile(), JsonConvert.SerializeObject(configSettings, Formatting.Indented));
+            // TODO: This should be passed in
+            var gsf = new GameSettingsFactory();
+            await gsf.SaveSettingsToJsonFileAsync(GetPathToSettingsFile(), configSettings);
         }
 
         internal protected string GetPathToSettingsFile() {
@@ -185,7 +189,7 @@ namespace SayedHa.Roulette.Cli {
             };
 
         internal class ConfigCommandArgs {
-            public string? rouletteType { get; set; }
+            public string rouletteType { get; set; }
             public long? initialBankroll { get; set; }
             public int? numSpins { get; set; }
             public int? minBet { get; set; }

@@ -1,17 +1,22 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
+﻿using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+
 
 namespace SayedHa.Blackjack.Shared.Roulette {
     public class GameSettings {
+        public GameSettings() {
+            SetRouletteType(RouletteType.American);
+        }
         // array because some games have 0,0 + 00 and 0 + 00 + OTHER
         [JsonIgnore]
-        public string[] SpecialCells { get; protected set; } = new string[2] { "0", "00" };
-
+        public string[] SpecialCells { get; set; } = new string[2] { "0", "00" };
         public int NumberOfSpins { get; set; } = 100;
         public bool EnableConsoleLogger { get; set; } = true;
         public bool EnableCsvFileOutput { get; set; } = false;
@@ -19,8 +24,8 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         public bool EnableMartingale { get; set; } = false;
         public bool EnableBondMartingale { get; set; } = false;
         public bool EnableGreen { get; set; }
-        private RouletteType _rouletteType;
-        [JsonConverter(typeof(StringEnumConverter))]
+        private RouletteType _rouletteType = RouletteType.American;
+        // [JsonConverter(typeof(StringEnumConverter))]
         public RouletteType RouletteType {
             get => _rouletteType;
             set => SetRouletteType(value);
@@ -28,7 +33,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         public bool StopWhenBankrupt { get; set; } = true;
         public long InitialBankroll { get; set; }
         public int MinimumBet { get; set; } = 1;
-        public long MaximumBet { get; set; } = long.MaxValue;
+        public long MaximumBet { get; set; } = 50000;
         public bool AllowNegativeBankroll { get; set; }
 
         public void SetRouletteType(RouletteType rouletteType) {
@@ -41,7 +46,9 @@ namespace SayedHa.Blackjack.Shared.Roulette {
                     SpecialCells = new string[1] { "0" };
                     break;
                 case RouletteType.Custom:
-                    throw new ArgumentOutOfRangeException($"For RouletteType.Custom call SetCustomRouletteType");
+                    Console.Error.WriteLine($"For RouletteType.Custom call SetCustomRouletteType");
+                    break;
+                // throw new ArgumentOutOfRangeException($"For RouletteType.Custom call SetCustomRouletteType");
                 default:
                     throw new ArgumentOutOfRangeException(nameof(rouletteType));
             }
@@ -52,15 +59,37 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         }
     }
     public class GameSettingsFactory {
-        public async Task SaveSettingsToJsonFileAsync(string filepath,GameSettings settings) =>
-            await File.WriteAllTextAsync(filepath, JsonConvert.SerializeObject(settings, Formatting.Indented));
 
+        private JsonSerializerOptions _options = new JsonSerializerOptions {
+            Converters ={
+                new JsonStringEnumConverter()
+            }
+        };
+        
+        public async Task SaveSettingsToJsonFileAsync(string filepath, GameSettings settings) {
+            using FileStream createStream = File.Create(filepath);
+            await System.Text.Json.JsonSerializer.SerializeAsync<GameSettings>(createStream, settings, _options);
+            await createStream.FlushAsync();
+            await createStream.DisposeAsync();
+        }
         public async Task<GameSettings?> ReadFromJsonFileAsync(string filepath) {
-            var contents = await File.ReadAllTextAsync(filepath);
-            return JsonConvert.DeserializeObject<GameSettings>(contents);
+            Debug.Assert(!string.IsNullOrEmpty(filepath));
+            using FileStream readStream = File.OpenRead(filepath);
+            try
+            {
+                Console.WriteLine($"Reading settings file from '{filepath}'");
+                var settings = await System.Text.Json.JsonSerializer.DeserializeAsync<GameSettings>(readStream, _options);
+                await readStream.DisposeAsync();
+                return settings;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error reading settings file at '{filepath}'. Error:\n{ex}");
+                return null;
+            }
         }
 
         public string GetJsonFor(GameSettings settings) =>
-            JsonConvert.SerializeObject(settings, Formatting.Indented);
+           System.Text.Json.JsonSerializer.Serialize(settings);
     }
 }

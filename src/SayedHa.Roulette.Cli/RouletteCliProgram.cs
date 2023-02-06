@@ -12,7 +12,7 @@ namespace SayedHa.Roulette.Cli {
         public RouletteCliProgram() {
             RegisterServices();
         }
-        public Task<int> Execute(string[] args) {
+        public async Task<int> Execute(string[] args) {
             _parser = new CommandLineBuilder()
                         .AddCommand(
                             new SimulateCommand(GetFromServices<IReporter>()).CreateCommand())
@@ -21,7 +21,7 @@ namespace SayedHa.Roulette.Cli {
                         .UseDefaults()
                         .Build();
 
-            return _parser.InvokeAsync(args);
+            return await _parser.InvokeAsync(args);
         }
         private void RegisterServices() {
             _services = new ServiceCollection();

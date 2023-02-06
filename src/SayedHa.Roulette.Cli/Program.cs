@@ -1,3 +1,3 @@
 ﻿using SayedHa.Roulette.Cli;
 
-new RouletteCliProgram().Execute(args);
+await new RouletteCliProgram().Execute(args);
