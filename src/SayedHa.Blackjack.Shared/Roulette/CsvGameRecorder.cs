@@ -10,7 +10,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         public CsvGameRecorder(string outputPath, string filenamePrefix) : this(outputPath) {
             FilenamePrefix = filenamePrefix;
         }
-        public virtual string GetCsvFilePath() => Path.Combine(OutputPath, !string.IsNullOrEmpty(FilenamePrefix) ? $"{FilenamePrefix}game.txt" : $"game.txt");
+        public virtual string GetCsvFilePath() => Path.Combine(OutputPath, !string.IsNullOrEmpty(FilenamePrefix) ? $"{FilenamePrefix}game.csv" : $"game.csv");
         protected StreamWriter? StreamWriter { get; set; }
 
         public override bool IsBankrupt => false;

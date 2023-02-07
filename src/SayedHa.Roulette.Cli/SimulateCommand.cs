@@ -9,31 +9,47 @@ namespace SayedHa.Roulette.Cli {
         }
         public override Command CreateCommand() =>
             new Command(name: "simulate", description: "roulette simulator") {
-                CommandHandler.Create<string, string, bool>(async (settingsFilePath, outputPath, verbose) => {
+                CommandHandler.Create<string, int,bool,bool,string, bool>(async (settingsFilePath, numberOfSpins,enableCsvOutput,enableNumberDetails,outputPath, verbose) => {
                     _reporter.EnableVerbose = verbose;
                     _reporter.WriteLine(_rouletteText);
                     _reporter.WriteLine(string.Empty);
                     _reporter.WriteLine($"settingsFilePath: {settingsFilePath}");
                     _reporter.WriteLine($"outputPath: {outputPath}");
+                    _reporter.WriteLine($"num spins: {numberOfSpins}");
+                    _reporter.WriteLine($"enableCsv: {enableCsvOutput}");
+                    _reporter.WriteLine($"enableNumDetails: {enableNumberDetails}");
                     _reporter.WriteLine($"verbose: {verbose}");
                     _reporter.WriteVerbose("verbose message here");
                     // added here to avoid async/await warning
                     await Task.Delay(1000);
                 }),
                 OptionSettingsFilePath(),
+                OptionNumberOfSpins(),
+                OptionEnableCsvFileOutput(),
+                OptionEnableNumberDetails(),
                 OptionOutputPath(),
                 OptionVerbose(),
             };
-        protected Option OptionPackages() =>
-            new Option(new string[] { "--paramname" }, "TODO: update param description") {
-                Argument = new Argument<string>(name: "paramname")
-            };
 
         protected Option OptionSettingsFilePath() =>
-            new Option(new string[] { "--settings-file-path" }, "Path to the roulette settings file (JSON) to configure how to play.")
-            {
+            new Option(new string[] { "--settings-file-path" }, "Path to the roulette settings file (JSON) to configure how to play.") {
                 Argument = new Argument<string>(name:"settings-file-path")
             };
+
+        protected Option OptionNumberOfSpins() =>
+            new Option(new string[] { "--number-of-spins" }, "Number of spins of the roulette wheel.") {
+                Argument = new Argument<int>(name:"number-of-spins")
+            };
+        protected Option OptionEnableCsvFileOutput() =>
+            new Option(new string[] { "--enable-csv-output" }, "Enables output of a .csv file with all the spins.") {
+                Argument = new Argument<bool>("enable-csv-output")
+            };
+        protected Option OptionEnableNumberDetails() =>
+            new Option(new string[] { "--enable-number-details" }, "Details on each individual number (cell) will be written to a file.") {
+                Argument = new Argument<bool>("enable-number-details")
+            };
+
+
         // TODO: args to add: rollup-num-games,
         protected Option OptionOutputPath() =>
             new Option(new string[] { "--output-path" }, 
