@@ -9,7 +9,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
     /// <summary>
     /// This will keep track of individual numbers.
     /// </summary>
-    public class NumberDetailsRecorder : GameRecorderBase,IGameRollupRecorder {
+    public class NumberDetailsRecorder : GameRecorderBase,IGameRollupRecorder, IConsoleSummaryGameRecorder {
         public NumberDetailsRecorder(GameSettings gameSettings,string outputPath) {
             OutputPath = outputPath;
             if(gameSettings == null) {
@@ -94,7 +94,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             await writer.WriteLineAsync("Number details ".PadRight(60,'-'));
             await writer.WriteLineAsync(string.Empty);
 
-            await writer.WriteLineAsync($"Number of black and red swaps: {NumRedBlackSwaps:N0}");
+            await writer.WriteLineAsync($"Number of black and red swaps: {NumRedBlackSwaps:N0}, {(double)NumRedBlackSwaps/(double)GameSettings.NumberOfSpins:P}");
             await writer.WriteLineAsync(string.Empty);
 
             await csvWriter.WriteLineAsync($"cell,numHits,maxSinceLast,maxConsecutive,numBackToBack,numThreeInARow");
@@ -104,7 +104,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
                 await writer.WriteLineAsync($"Number of hits:                  {item.NumberOfTimesHit:N0}");
                 await writer.WriteLineAsync($"Max # spins since last hit:      {item.MaxNumSpinsSinceLastHit:N0}");
                 await writer.WriteLineAsync($"Max # of consecutive hits:       {item.MaxConsecutiveHits:N0}");
-                await writer.WriteLineAsync($"Number of times back-to-back:    {item.NumberOfTimesBackToBack:N0}");
+                await writer.WriteLineAsync($"Number of times two in a row:    {item.NumberOfTimesBackToBack:N0}");
                 await writer.WriteLineAsync($"Number of times three in a row:  {item.NumberOfTimesThreeInARow:N0}");
                 await writer.WriteLineAsync(string.Empty);
 
@@ -134,7 +134,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             }
         }
 
-        public string GetMethodDisplayName() => "Numer details";
+        public string GetMethodDisplayName() => "Number details";
 
         public string GetMethodCompactName() => "number-details";
         public override void Reset() {
@@ -144,6 +144,10 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             foreach (var cell in board.Cells!) {
                 CellNumberList.Add(new NumberDetails(cell));
             }
+        }
+
+        public async Task WriteTextSummaryToAsync(StreamWriter writer) {
+            await writer.WriteLineAsync($"For details on individual cells see the file '{GetFilepath()}' and '{GetCsvFilepath()}'\n");
         }
     }
 
@@ -160,7 +164,5 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         public int NumberOfTimesThreeInARow { get; set; }
         public int SpinsSinceLastHit { get; internal set; }
         public int ConsecutiveHits { get; internal set; }
-
-        // public void
     }
 }

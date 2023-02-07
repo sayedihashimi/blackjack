@@ -81,11 +81,20 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         }
 
         public async Task PlayAll() {
+            Console.WriteLine($"Starting play for {GameSettings.NumberOfSpins} spins of {GameSettings.RouletteType} roulette.");
+
             var player = new RoulettePlayer();
             await player.PlayAsync(Board, GameSettings, Recorders);
 
             foreach (var recorder in Recorders) {
                 await recorder.GameCompleted();
+                if(recorder is IConsoleSummaryGameRecorder) {
+                    using var sw = new StreamWriter(Console.OpenStandardOutput());
+                    await ((IConsoleSummaryGameRecorder)recorder).WriteTextSummaryToAsync(sw);
+                    Console.WriteLine();
+                    sw.Flush();
+                }
+
                 recorder.Dispose();
             }
         }

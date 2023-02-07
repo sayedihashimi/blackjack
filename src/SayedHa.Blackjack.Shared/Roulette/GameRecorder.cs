@@ -2,7 +2,7 @@
 
 namespace SayedHa.Blackjack.Shared.Roulette {
     /// <summary>
-    /// GameRecorders are responsbile for capturing the results of the game.
+    /// GameRecorders are responsible for capturing the results of the game.
     /// If the game results are to be persisted anywhere, the game recorder
     /// should be the one persisting the data as well.
     /// </summary>
@@ -15,6 +15,15 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         public bool StopWhenBankrupt { get; set; }
         public bool IsBankrupt { get; }
     }
+
+    /// <summary>
+    /// Game recorders can implement this class if they have a game
+    /// summary text that they want to display to the end-user.
+    /// </summary>
+    public interface IConsoleSummaryGameRecorder : IGameRecorder {
+        public Task WriteTextSummaryToAsync(StreamWriter writer);
+    }
+
     public interface IGameRollupRecorder {
         public Task WriteGameSummaryHeaderToAsync(StreamWriter writer);
         public Task WriteGameSummaryToAsync(StreamWriter writer);

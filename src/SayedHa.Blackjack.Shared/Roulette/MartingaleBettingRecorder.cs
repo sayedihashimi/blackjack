@@ -11,7 +11,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
     /// If you win, repeat. But if you lose, bet $2 next time. You keep doubling your bet amount until you win again. 
     /// Once you do, you go back to $1 and start over.'
     /// </summary>
-    public class MartingaleBettingRecorder : GameRecorderBase, IGameRollupRecorder {
+    public class MartingaleBettingRecorder : GameRecorderBase, IGameRollupRecorder,IConsoleSummaryGameRecorder {
         public MartingaleBettingRecorder(string outputPath, string filenamePrefix, GameCellColor selectedColor, int minimumBet, long initialBankroll, bool enableCsvWriter) {
             OutputPath = outputPath;
             FilenamePrefix = filenamePrefix;
@@ -151,7 +151,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             else {
                 // lost the bet
                 winOrLoss = WinOrLoss.Loss;
-                payout = 0;
+                payout = -1*CurrentBet;
                 CurrentBankroll -= CurrentBet;
                 if (SpinWhenLostAllMoney == 0 && CurrentBankroll <= 0) {
                     SpinWhenLostAllMoney = CurrentNumSpins;
@@ -202,22 +202,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
 
             var writer = new StreamWriter(GetFilepath(), true);
 
-            await writer.WriteLineAsync($"{GetMethodDisplayName()} - # spins: {CurrentNumSpins:N0} ".PadRight(60));
-            await writer.WriteLineAsync($"  initial bet:                       ${MinimumBet:N0}");
-            await writer.WriteLineAsync($"  max bet placed:                    ${MaxBetPlayed:N0}");
-            await writer.WriteLineAsync($"  initial bankroll:                  ${InitialBankroll:N0}");
-            await writer.WriteLineAsync($"  current bankroll:                  ${CurrentBankroll:N0}");
-            await writer.WriteLineAsync($"  max bankroll:                      ${MaxBankroll:N0}");
-            await writer.WriteLineAsync($"  min bankroll:                      ${MinBankroll:N0}");
-            await writer.WriteLineAsync($"  average bankroll:                  ${AverageBankroll:N0}");
-            await writer.WriteLineAsync($"  max payout:                        ${MaxAmountWon:N0}");
-            await writer.WriteLineAsync($"  max bet lost:                      ${MaxAmountLost:N0}");
-            await writer.WriteLineAsync($"  maximum bet played:                ${MaxBetPlayed:N0}");
-            await writer.WriteLineAsync($"  maximum num consecutive wins:      {MaxNumConsecutiveWins:N0}");
-            await writer.WriteLineAsync($"  maximum num consecutive losses:    {MaxNumConsecutiveLosses:N0}");
-            await writer.WriteLineAsync($"  spin when went bankrupt:           {SpinWhenLostAllMoney:N0}");
-
-            await writer.FlushAsync();
+            await WriteTextSummaryToAsync(writer);
 
             if (EnableCsvWriter && CsvWriter != null) {
                 await CsvWriter.FlushAsync();
@@ -243,6 +228,25 @@ namespace SayedHa.Blackjack.Shared.Roulette {
 
         public async Task WriteGameSummaryHeaderToAsync(StreamWriter writer) {
             await writer.WriteLineAsync("minimumBet,maximumBetPlayed,initialBankroll,endingBankroll,maxBankroll,minBankroll,averageBankroll,maxBetWon,maxBetLost,maxBetPlayed,maxNumConsecutiveWins,maxNumConsecutiveLosses,spinWhenGoneBust");
+        }
+
+        public async Task WriteTextSummaryToAsync(StreamWriter writer) {
+            await writer.WriteLineAsync($"{GetMethodDisplayName()} - # spins: {CurrentNumSpins:N0} ".PadRight(60));
+            await writer.WriteLineAsync($"  initial bet:                       ${MinimumBet:N0}");
+            await writer.WriteLineAsync($"  max bet placed:                    ${MaxBetPlayed:N0}");
+            await writer.WriteLineAsync($"  initial bankroll:                  ${InitialBankroll:N0}");
+            await writer.WriteLineAsync($"  current bankroll:                  ${CurrentBankroll:N0}");
+            await writer.WriteLineAsync($"  max bankroll:                      ${MaxBankroll:N0}");
+            await writer.WriteLineAsync($"  min bankroll:                      ${MinBankroll:N0}");
+            await writer.WriteLineAsync($"  average bankroll:                  ${AverageBankroll:N0}");
+            await writer.WriteLineAsync($"  max payout:                        ${MaxAmountWon:N0}");
+            await writer.WriteLineAsync($"  max bet lost:                      ${MaxAmountLost:N0}");
+            await writer.WriteLineAsync($"  maximum bet played:                ${MaxBetPlayed:N0}");
+            await writer.WriteLineAsync($"  maximum num consecutive wins:      {MaxNumConsecutiveWins:N0}");
+            await writer.WriteLineAsync($"  maximum num consecutive losses:    {MaxNumConsecutiveLosses:N0}");
+            await writer.WriteLineAsync($"  spin when went bankrupt:           {SpinWhenLostAllMoney:N0}");
+
+            await writer.FlushAsync();
         }
     }
     public enum WinOrLoss {

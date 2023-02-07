@@ -2,7 +2,7 @@
 
     // some stats that we want to gather
     //  spins since last red/black/green
-    public class CsvWithStatsGameRecorder : CsvGameRecorder,IGameRollupRecorder {
+    public class CsvWithStatsGameRecorder : CsvGameRecorder,IGameRollupRecorder,IConsoleSummaryGameRecorder {
         public CsvWithStatsGameRecorder(string outputPath) : base(outputPath) {
             groupSpinsSince = new Dictionary<GameCellGroup, int>();
             groupConsecutive = new Dictionary<GameCellGroup, int>();
@@ -186,15 +186,15 @@
                 maxConsecutive.Add(group, 0);
             }
         }
-        public async Task CreateSummaryFileAsync() {
-            if(!EnableFileOutput) { return; }
-
-            using var writer = new StreamWriter(GetCsvSummaryFilepath(), false);
-
+        public async Task WriteTextSummaryToAsync(StreamWriter writer) {
             await writer.WriteLineAsync($"Number of spins: {_numberOfSpins:N0}\n");
+            await writer.WriteLineAsync($"* Legend ********************************************************************************************");
+            await writer.WriteLineAsync($"*  last since = The number of spins since this group was last hit.                                  *");
+            await writer.WriteLineAsync($"*  max consecutive = The maximum number of spins which this group hit consecutively (in a row).     *");
+            await writer.WriteLineAsync($"*****************************************************************************************************\n");
             var nextThree = groupOuputOrder.Take(3);
             int index = 0;
-            while(nextThree != null && nextThree.Count() > 0) {
+            while (nextThree != null && nextThree.Count() > 0) {
                 foreach (var group in nextThree) {
                     await writer.WriteAsync($"------ {group} ------".PadRight(30));
                 }
@@ -218,6 +218,13 @@
                 index += 3;
                 nextThree = groupOuputOrder.Skip(index).Take(3);
             }
+        }
+        public async Task CreateSummaryFileAsync() {
+            if(!EnableFileOutput) { return; }
+
+            using var writer = new StreamWriter(GetCsvSummaryFilepath(), false);
+
+            await WriteTextSummaryToAsync(writer);
         }
         public override async Task GameCompleted() {
             await CreateSummaryFileAsync();
