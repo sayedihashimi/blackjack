@@ -8,7 +8,7 @@ namespace SayedHa.Roulette.Cli {
         public abstract Command CreateCommand();
 
         protected Option OptionVerbose() =>
-            new Option(new string[] { "--verbose" }, "enables verbose output") {
+            new Option(new string[] { "--verbose" }, "Enables verbose output.") {
                 Argument = new Argument<bool>(name: "verbose")
             };
 

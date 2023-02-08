@@ -67,10 +67,8 @@ namespace SayedHa.Roulette.Cli {
                 EnablePlayerMartingale(),
                 EnablePlayerBondMartingale(),
                 EnablePlayerGreen(),
-
                 EnableConsoleLogger(),
                 EnableCsvFileOutput(),
-
                 OptionPrintSettings(),
                 OptionVerbose(),
             };

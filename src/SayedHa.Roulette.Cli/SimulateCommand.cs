@@ -34,17 +34,23 @@ namespace SayedHa.Roulette.Cli {
                 OptionEnableNumberDetails(),
                 OptionOutputPath(),
                 OptionVerbose()
-                
+
             };
 
         public override Command CreateCommand() {
             var cmd = new Command(name: "simulate", description: "roulette simulator");
+            cmd.AddOption(OptionOutputPath());
+            cmd.AddOption(OptionFilenamePrefix());
             cmd.AddOption(OptionSettingsFilePath());
             cmd.AddOption(OptionNumberOfSpins());
             cmd.AddOption(OptionRouletteType());
             cmd.AddOption(OptionEnableCsvOutput());
             cmd.AddOption(OptionEnableNumberDetails());
-            cmd.AddOption(OptionOutputPath());
+            cmd.AddOption(OptionEnableConsoleLogger());
+            cmd.AddOption(OptionEnableMartingale());
+            cmd.AddOption(OptionEnableBondMartingale());
+            cmd.AddOption(OptionEnableGreen());
+            cmd.AddOption(OptionStopWhenBankrupt());
             cmd.AddOption(OptionVerbose());
             cmd.Handler = CommandHandler.Create<SimulateCommandOptions>(ExecuteSimulateAsync);
             return cmd;
@@ -52,15 +58,29 @@ namespace SayedHa.Roulette.Cli {
 
         private async Task ExecuteSimulateAsync(SimulateCommandOptions options) {
             _reporter.EnableVerbose = options.Verbose;
+
+            if(options.RouletteType != RouletteType.American && 
+                options.RouletteType != RouletteType.European) {
+                throw new ArgumentException($"Value for roulette type must be '{RouletteType.American}' or '{RouletteType.European}'");
+            }
+
             _reporter.WriteLine(_rouletteText);
             _reporter.WriteLine(string.Empty);
+            _reporter.WriteLine($"outputPath: {options.OutputPath}");
+            _reporter.WriteLine($"filename prefix: {options.FilenamePrefix}");
             _reporter.WriteLine($"settingsFilePath: {options.SettingsFilePath}");
             _reporter.WriteLine($"num spins: {options.NumberOfSpins}");
             _reporter.WriteLine($"roulette type: {options.RouletteType}");
             _reporter.WriteLine($"enableCsv: {options.EnableCsvOutput}");
             _reporter.WriteLine($"enableNumDetails: {options.EnableNumberDetails}");
-            _reporter.WriteLine($"outputPath: {options.OutputPath}");
+            
+            _reporter.WriteLine($"console logger: {options.EnableConsoleLogger}");
+            _reporter.WriteLine($"martingale: {options.EnableMartingale}");
+            _reporter.WriteLine($"bond martingale: {options.EnableBondMartingale}");
+            _reporter.WriteLine($"green: {options.EnableGreen}");
+            _reporter.WriteLine($"stop when bankrupt: {options.EnableStopWhenBankrupt}");
             _reporter.WriteLine($"verbose: {options.Verbose}");
+            
             _reporter.WriteVerbose("verbose message here");
             // added here to avoid async/await warning
             await Task.Delay(1000);
@@ -72,14 +92,20 @@ namespace SayedHa.Roulette.Cli {
             public RouletteType RouletteType { get; set; }
             public bool EnableCsvOutput { get; set; }
             public bool EnableNumberDetails { get; set; }
+            public bool EnableConsoleLogger { get; set; }
+            public bool EnableMartingale { get; set; }
+            public bool EnableBondMartingale { get; set; }
+            public bool EnableGreen { get; set; }
+            public bool EnableStopWhenBankrupt { get; set; }
             public string OutputPath { get; set; }
+            public string FilenamePrefix { get; set; }
             public bool Verbose { get; internal set; }
         }
 
-            protected Option OptionSettingsFilePath() =>
-            new Option(new string[] { "--settings-file-path" }, "Path to the roulette settings file (JSON) to configure how to play.") {
-                Argument = new Argument<string>(name:"settings-file-path")
-            };
+        protected Option OptionSettingsFilePath() =>
+        new Option(new string[] { "--settings-file-path" }, "Path to the roulette settings file (JSON) to configure how to play.") {
+            Argument = new Argument<string>(name: "settings-file-path")
+        };
 
         protected Option OptionNumberOfSpins() {
             var arg = new Argument<int>(name: "number-of-spins");
@@ -91,18 +117,13 @@ namespace SayedHa.Roulette.Cli {
 
             return opt;
         }
-        protected Option OptionRouletteType() {
-            //var rArg = new Argument<RouletteType>("roulette-type");
-            //rArg.SetDefaultValue(RouletteType.American);
-            var option = new Option(new string[] {"--roulette-type"},
+        protected Option OptionRouletteType() =>
+            new Option<RouletteType>(new string[] { "--roulette-type" },
                 $"Sets the roulette type, values include 'American' and 'European', default is {RouletteType.American}") {
                 Argument = new Argument<RouletteType>(
+                    name: "roulette-type",
                     getDefaultValue: () => RouletteType.American)
             };
-
-            return option;
-        }
-        protected Option OptionConsoleColor() => new Option<string>("--color");
 
         protected Option OptionEnableCsvOutput() =>
             new Option(new string[] { "--enable-csv-output" }, "Enables output of a .csv file with all the spins.") {
@@ -113,66 +134,38 @@ namespace SayedHa.Roulette.Cli {
                 Argument = new Argument<bool>("enable-number-details")
             };
         protected Option OptionEnableMartingale() =>
-            new Option(new string[] {"--enable-martingale"}, "Enables martingale play style simulation.") {
+            new Option(new string[] { "--enable-martingale" }, "Enables martingale play style simulation.") {
                 Argument = new Argument<bool>("enable-martingale")
             };
         protected Option OptionEnableBondMartingale() =>
-            new Option(new string[] {"--enable-bond-martingale"}, "Enables Bond martingale play style simulation.") {
+            new Option(new string[] { "--enable-bond-martingale" }, "Enables Bond martingale play style simulation.") {
                 Argument = new Argument<bool>("enable-bond-martingale")
             };
         protected Option OptionEnableGreen() =>
-            new Option(new string[] {"--enable-green"}, "Enables playing on green cells only.") {
+            new Option(new string[] { "--enable-green" }, "Enables playing on green cells only.") {
                 Argument = new Argument<bool>("enable-green")
             };
+        protected Option OptionEnableConsoleLogger() =>
+            new Option(new string[] { "--enable-console-logger" }, "When enabled will log every spin to the console. Enabling this will significantly slow down the play time.") {
+                Argument = new Argument<bool>("enable-console-logger")
+            };
         protected Option OptionStopWhenBankrupt() =>
-            new Option(new string[] { }, "--enable-stop-when-bankrupt") {
+            new Option(new string[] { "--enable-stop-when-bankrupt" }, "When enabled the play will end when the bankroll goes to zero.") {
                 Argument = new Argument<bool>("enable-stop-when-bankrupt")
             };
 
         // TODO: args to add: rollup-num-games,
         protected Option OptionOutputPath() =>
-            new Option(new string[] { "--output-path" }, 
-                $"Path to folder where the results should be written. Default is the current directory '{Path.GetFullPath(Directory.GetCurrentDirectory())}'.")
-            {
-                Argument = new Argument<string>(name: "output-path")
+            new Option(new string[] { "--output-path" },
+                $"Path to folder where the results should be written. Default is the current directory.") {
+                Argument = new Argument<string>(
+                    name: "output-path",
+                    getDefaultValue: ()=>Path.GetFullPath(Directory.GetCurrentDirectory()))
             };
-
-        
-
-        private void Test1() {
-            var opt = new Option(new string[] {"--roulette-type"}, 
-                "Selects American or European Roulette cells (0|00|etc.). Default is American. Valid values include 'American' and 'European'") {
-                //Argument = new Argument<RouletteType>("roulette-type") //.SetDefaultValue(RouletteType.American)
-                Argument = new Argument<RouletteType>(
-                    getDefaultValue: () => RouletteType.American)
+        protected Option OptionFilenamePrefix() =>
+            new Option(new string[] {"--filename-prefix"}, "Prefix for all the files that are generated when the simulation is executed.") {
+                Argument = new Argument<string>(name: "filename-prefix")
             };
-            opt.Argument.SetDefaultValue(RouletteType.American);
-
-            var rArg = new Argument<RouletteType>("roulette-type");
-            rArg.SetDefaultValue(RouletteType.American);
-
-
-            //var opt = new Option<string>("--{owner}",
-            //        parseArgument: argResult => {
-            //            if (argResult.Tokens.Any()) {
-            //                // this is the user input, if any:
-            //                return argResult.Tokens.Single().Value;
-            //            }
-
-            //            //if (Configuration.GetSection("owner") is { } section) {
-            //            //    // ...and here's the vaue from config, if any...
-            //            //    return section.Value;
-            //            //}
-
-            //            // ...and finally this error message will be shown to the user if no config value was found:
-            //            argResult.ErrorMessage = "owner information is missing";
-            //            return null;
-            //        },
-            //        isDefault: true, // This means the parseArgument delegate will be called even if the user didn't enter a value for this option.
-            //        description: $"Repository owner or organization") {
-            //    Required = true
-            //};
-        }
 
         private readonly string _rouletteText = @"
                                    88
