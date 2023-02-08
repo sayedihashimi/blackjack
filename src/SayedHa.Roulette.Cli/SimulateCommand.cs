@@ -13,7 +13,7 @@ namespace SayedHa.Roulette.Cli {
             _reporter = reporter;
         }
         public override Command CreateCommand() =>
-            new Command(name: "simulate", description: "roulette simulator2") {
+            new Command(name: "simulate", description: "This can be used to simulate a large number of spins on a roulette wheel and play using various method. Reports will be generated in the output folder.") {
                 CommandHandler.Create<SimulateCommandOptions>(ExecuteSimulateAsync),
                 OptionOutputPath(),
                 OptionFilenamePrefix(),
