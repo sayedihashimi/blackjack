@@ -2,7 +2,9 @@
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.CommandLine.Parsing;
+using System.Diagnostics;
 using System.Drawing;
+using static System.CommandLine.Help.DefaultHelpText;
 
 namespace SayedHa.Roulette.Cli {
     public class SimulateCommand : CommandBase {
@@ -13,7 +15,6 @@ namespace SayedHa.Roulette.Cli {
         public override Command CreateCommand() =>
             new Command(name: "simulate", description: "roulette simulator2") {
                 CommandHandler.Create<SimulateCommandOptions>(ExecuteSimulateAsync),
-
                 OptionOutputPath(),
                 OptionFilenamePrefix(),
                 OptionSettingsFilePath(),
@@ -26,6 +27,10 @@ namespace SayedHa.Roulette.Cli {
                 OptionEnableBondMartingale(),
                 OptionEnableGreen(),
                 OptionStopWhenBankrupt(),
+                OptionInitialBankroll(),
+                OptionMinimumBet(),
+                OptionMaximumBet(),
+                OptionAllowNegativeBankroll(),
                 OptionVerbose()
             };
 
@@ -39,6 +44,19 @@ namespace SayedHa.Roulette.Cli {
 
             _reporter.WriteLine(_rouletteText);
             _reporter.WriteLine(string.Empty);
+            if (options.Verbose) {
+                WriteOptionsToLog(options);
+            }
+
+            var gameSettings = GetGameSettingsFrom(options);
+            var watch = Stopwatch.StartNew();
+            var gameController = new RouletteGameController(gameSettings, options.OutputPath, options.FilenamePrefix);
+            await gameController.PlayAll();
+            watch.Stop();
+            Console.WriteLine($"num spins: {options.NumberOfSpins:N0}\ntime: {watch.Elapsed.TotalSeconds}\nfilenames: '{options.FilenamePrefix}*'");
+        }
+
+        private void WriteOptionsToLog(SimulateCommandOptions options) {
             _reporter.WriteLine($"outputPath: {options.OutputPath}");
             _reporter.WriteLine($"filename prefix: {options.FilenamePrefix}");
             _reporter.WriteLine($"settingsFilePath: {options.SettingsFilePath}");
@@ -46,32 +64,80 @@ namespace SayedHa.Roulette.Cli {
             _reporter.WriteLine($"roulette type: {options.RouletteType}");
             _reporter.WriteLine($"enableCsv: {options.EnableCsvOutput}");
             _reporter.WriteLine($"enableNumDetails: {options.EnableNumberDetails}");
-            
             _reporter.WriteLine($"console logger: {options.EnableConsoleLogger}");
             _reporter.WriteLine($"martingale: {options.EnableMartingale}");
             _reporter.WriteLine($"bond martingale: {options.EnableBondMartingale}");
             _reporter.WriteLine($"green: {options.EnableGreen}");
             _reporter.WriteLine($"stop when bankrupt: {options.EnableStopWhenBankrupt}");
+            _reporter.WriteLine($"initial bankroll: {options.InitialBankroll}");
+            _reporter.WriteLine($"min bet: {options.MinimumBet}");
+            _reporter.WriteLine($"max bet: {options.MaximumBet}");
+            _reporter.WriteLine($"allow neg bankroll: {options.AllowNegativeBankroll}");
             _reporter.WriteLine($"verbose: {options.Verbose}");
+        }
+
+        protected GameSettings GetGameSettingsFrom(SimulateCommandOptions options) {
+            var gameSettings = new GameSettings();
             
-            _reporter.WriteVerbose("verbose message here");
-            // added here to avoid async/await warning
-            await Task.Delay(1000);
+            if(options.NumberOfSpins != null && options.NumberOfSpins.HasValue) {
+                gameSettings.NumberOfSpins = options.NumberOfSpins.Value;
+            }
+            if(options.EnableConsoleLogger != null && options.EnableConsoleLogger.HasValue) {
+                gameSettings.EnableConsoleLogger = options.EnableConsoleLogger.Value;
+            }
+            if(options.EnableCsvOutput != null && options.EnableCsvOutput.HasValue) {
+                gameSettings.EnableCsvFileOutput = options.EnableCsvOutput.Value;
+            }
+            if(options.EnableNumberDetails != null && options.EnableNumberDetails.HasValue) {
+                gameSettings.EnableNumberDetails = options.EnableNumberDetails.Value;
+            }
+            if(options.EnableMartingale != null && options.EnableMartingale.HasValue) {
+                gameSettings.EnableMartingale = options.EnableMartingale.Value;
+            }
+            if (options.EnableBondMartingale != null && options.EnableBondMartingale.HasValue) {
+                gameSettings.EnableBondMartingale = options.EnableBondMartingale.Value;
+            }
+            if(options.EnableGreen != null && options.EnableGreen.HasValue) {
+                gameSettings.EnableGreen = options.EnableGreen.Value;
+            }
+            if(options.EnableStopWhenBankrupt != null && options.EnableStopWhenBankrupt.HasValue) {
+                gameSettings.StopWhenBankrupt = options.EnableStopWhenBankrupt.Value;
+            }
+            if(options.AllowNegativeBankroll != null && options.AllowNegativeBankroll.HasValue) {
+                gameSettings.AllowNegativeBankroll = options.AllowNegativeBankroll.Value;
+            }
+            if(options.InitialBankroll != null && options.InitialBankroll.HasValue) {
+                gameSettings.InitialBankroll = options.InitialBankroll.Value;
+            }
+            if(options.MinimumBet != null && options.MinimumBet.HasValue) {
+                gameSettings.MinimumBet = options.MinimumBet.Value;
+            }
+            if(options.MaximumBet != null && options.MaximumBet.HasValue) {
+                gameSettings.MaximumBet = options.MaximumBet.Value;
+            }
+
+            gameSettings.SetRouletteType(gameSettings.RouletteType);
+
+            return gameSettings;
         }
 
         public class SimulateCommandOptions {
             public string SettingsFilePath { get; set; }
-            public int NumberOfSpins { get; set; }
+            public int? NumberOfSpins { get; set; }
             public RouletteType RouletteType { get; set; }
-            public bool EnableCsvOutput { get; set; }
-            public bool EnableNumberDetails { get; set; }
-            public bool EnableConsoleLogger { get; set; }
-            public bool EnableMartingale { get; set; }
-            public bool EnableBondMartingale { get; set; }
-            public bool EnableGreen { get; set; }
-            public bool EnableStopWhenBankrupt { get; set; }
+            public bool? EnableCsvOutput { get; set; }
+            public bool? EnableNumberDetails { get; set; }
+            public bool? EnableConsoleLogger { get; set; }
+            public bool? EnableMartingale { get; set; }
+            public bool? EnableBondMartingale { get; set; }
+            public bool? EnableGreen { get; set; }
+            public bool? EnableStopWhenBankrupt { get; set; }
             public string OutputPath { get; set; }
             public string FilenamePrefix { get; set; }
+            public long? InitialBankroll { get; set; }
+            public int? MinimumBet { get; set; }
+            public long? MaximumBet { get; set; }
+            public bool? AllowNegativeBankroll { get; set; }
             public bool Verbose { get; internal set; }
         }
 
@@ -79,7 +145,6 @@ namespace SayedHa.Roulette.Cli {
         new Option(new string[] { "--settings-file-path" }, "Path to the roulette settings file (JSON) to configure how to play.") {
             Argument = new Argument<string>(name: "settings-file-path")
         };
-
         protected Option OptionNumberOfSpins() {
             var arg = new Argument<int>(name: "number-of-spins");
             arg.SetDefaultValue(10001);
@@ -97,7 +162,6 @@ namespace SayedHa.Roulette.Cli {
                     name: "roulette-type",
                     getDefaultValue: () => RouletteType.American)
             };
-
         protected Option OptionEnableCsvOutput() =>
             new Option(new string[] { "--enable-csv-output" }, "Enables output of a .csv file with all the spins.") {
                 Argument = new Argument<bool>("enable-csv-output")
@@ -126,7 +190,6 @@ namespace SayedHa.Roulette.Cli {
             new Option(new string[] { "--enable-stop-when-bankrupt" }, "When enabled the play will end when the bankroll goes to zero.") {
                 Argument = new Argument<bool>("enable-stop-when-bankrupt")
             };
-
         // TODO: args to add: rollup-num-games,
         protected Option OptionOutputPath() =>
             new Option(new string[] { "--output-path" },
@@ -138,6 +201,22 @@ namespace SayedHa.Roulette.Cli {
         protected Option OptionFilenamePrefix() =>
             new Option(new string[] {"--filename-prefix"}, "Prefix for all the files that are generated when the simulation is executed.") {
                 Argument = new Argument<string>(name: "filename-prefix")
+            };
+        protected Option OptionInitialBankroll() =>
+            new Option(new string[] { "--initial-bankroll" }, "The initial bankroll that the player has when starting the simulation.") {
+                Argument = new Argument<long>(name: "initial-bankroll",getDefaultValue:()=>10000)
+            };
+        protected Option OptionMinimumBet() =>
+            new Option(new []{ "--minimum-bet" }, "Minimum bet on each spin.") {
+                Argument = new Argument<int>(name: "minimum-bet")
+            };
+        protected Option OptionMaximumBet() =>
+            new Option(new[] { "--maximum-bet" }, "Maximum bet on each spin.") {
+                Argument = new Argument<long>(name: "maximum-bet")
+            };
+        protected Option OptionAllowNegativeBankroll() =>
+            new Option(new[] { "--allow-negative-bankroll" }, "When enabled a negative bankroll will be allowed, otherwise the game will end when the bankroll gets to zero.") {
+                Argument = new Argument<bool>(name: "allow-negative-bankroll")
             };
 
         private readonly string _rouletteText = @"

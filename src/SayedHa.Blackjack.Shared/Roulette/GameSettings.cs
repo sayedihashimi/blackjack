@@ -18,7 +18,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         [JsonIgnore]
         public string[] SpecialCells { get; set; } = new string[2] { "0", "00" };
         public int NumberOfSpins { get; set; } = 100;
-        public bool EnableConsoleLogger { get; set; } = true;
+        public bool EnableConsoleLogger { get; set; } = false;
         public bool EnableCsvFileOutput { get; set; } = false;
         public bool EnableNumberDetails { get; set; } = false;
         public bool EnableMartingale { get; set; } = false;
