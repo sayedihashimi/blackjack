@@ -10,51 +10,24 @@ namespace SayedHa.Roulette.Cli {
         public SimulateCommand(IReporter reporter) {
             _reporter = reporter;
         }
-        public Command CreateCommand2() =>
-            new Command(name: "simulate", description: "roulette simulator") {
-                CommandHandler.Create<string, int,RouletteType,bool,bool,string, bool>(async (settingsFilePath, numberOfSpins,rouletteType,enableCsvOutput,enableNumberDetails,outputPath, verbose) => {
-                    _reporter.EnableVerbose = verbose;
-                    _reporter.WriteLine(_rouletteText);
-                    _reporter.WriteLine(string.Empty);
-                    _reporter.WriteLine($"settingsFilePath: {settingsFilePath}");
-                    _reporter.WriteLine($"num spins: {numberOfSpins}");
-                    _reporter.WriteLine($"roulette type: {rouletteType}");
-                    _reporter.WriteLine($"enableCsv: {enableCsvOutput}");
-                    _reporter.WriteLine($"enableNumDetails: {enableNumberDetails}");
-                    _reporter.WriteLine($"outputPath: {outputPath}");
-                    _reporter.WriteLine($"verbose: {verbose}");
-                    _reporter.WriteVerbose("verbose message here");
-                    // added here to avoid async/await warning
-                    await Task.Delay(1000);
-                }),
+        public override Command CreateCommand() =>
+            new Command(name: "simulate", description: "roulette simulator2") {
+                CommandHandler.Create<SimulateCommandOptions>(ExecuteSimulateAsync),
+
+                OptionOutputPath(),
+                OptionFilenamePrefix(),
                 OptionSettingsFilePath(),
                 OptionNumberOfSpins(),
                 OptionRouletteType(),
                 OptionEnableCsvOutput(),
                 OptionEnableNumberDetails(),
-                OptionOutputPath(),
+                OptionEnableConsoleLogger(),
+                OptionEnableMartingale(),
+                OptionEnableBondMartingale(),
+                OptionEnableGreen(),
+                OptionStopWhenBankrupt(),
                 OptionVerbose()
-
             };
-
-        public override Command CreateCommand() {
-            var cmd = new Command(name: "simulate", description: "roulette simulator");
-            cmd.AddOption(OptionOutputPath());
-            cmd.AddOption(OptionFilenamePrefix());
-            cmd.AddOption(OptionSettingsFilePath());
-            cmd.AddOption(OptionNumberOfSpins());
-            cmd.AddOption(OptionRouletteType());
-            cmd.AddOption(OptionEnableCsvOutput());
-            cmd.AddOption(OptionEnableNumberDetails());
-            cmd.AddOption(OptionEnableConsoleLogger());
-            cmd.AddOption(OptionEnableMartingale());
-            cmd.AddOption(OptionEnableBondMartingale());
-            cmd.AddOption(OptionEnableGreen());
-            cmd.AddOption(OptionStopWhenBankrupt());
-            cmd.AddOption(OptionVerbose());
-            cmd.Handler = CommandHandler.Create<SimulateCommandOptions>(ExecuteSimulateAsync);
-            return cmd;
-        }
 
         private async Task ExecuteSimulateAsync(SimulateCommandOptions options) {
             _reporter.EnableVerbose = options.Verbose;
