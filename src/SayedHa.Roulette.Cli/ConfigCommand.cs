@@ -15,8 +15,11 @@ using SayedHa.Blackjack.Shared;
 namespace SayedHa.Roulette.Cli {
     public class ConfigCommand : CommandBase {
         private readonly IReporter _reporter;
-        public ConfigCommand(IReporter reporter) {
+        private readonly IDefaultGameSettingsFile _defaultGameSettingsFile;
+
+        public ConfigCommand(IReporter reporter, IDefaultGameSettingsFile defaultGameSettingsFile) {
             _reporter = reporter;
+            _defaultGameSettingsFile = defaultGameSettingsFile;
         }
 
         public override Command CreateCommand() =>
@@ -24,7 +27,7 @@ namespace SayedHa.Roulette.Cli {
                 // TODO: revisit how this is implemented, currently all settings are set
                 //       better would be to only apply the changes to values that are passed in.
                 CommandHandler.Create<ConfigCommandArgs>(async (config) => {
-                    var settings = await GetOrCreateExistingConfigSettingsFileAsync();
+                    var settings = await _defaultGameSettingsFile.GetOrCreateGameSettingsFileAsync();
                     // only set properties which have a non-null value
                     if(config.rouletteType != null) {
                         if(!Enum.TryParse(config.rouletteType,out RouletteType rouletteTypeConverted)) {
@@ -43,7 +46,7 @@ namespace SayedHa.Roulette.Cli {
                     settings.EnableCsvFileOutput = config.enableCsvFileOutput ?? settings.EnableCsvFileOutput;
 
                     // save the settings now
-                    await SaveGameSettingsConfigAsync(settings);
+                    await _defaultGameSettingsFile.SaveGameSettingsConfigAsync(settings);
 
                     var wasSettingPassed = config.initialBankroll == null && config.numSpins == null && config.stopWhenBankrupt == null && config.enableReportNumberDetails == null &&
                                             config.enablePlayerMartingale == null && config.enablePlayerBondMartingale == null && config.enablePlayerGreen == null &&
@@ -73,58 +76,6 @@ namespace SayedHa.Roulette.Cli {
                 OptionVerbose(),
             };
 
-        internal protected async Task<GameSettings> GetOrCreateExistingConfigSettingsFileAsync() {
-            string settingsFilepath = GetPathToSettingsFile();
-            Debug.Assert(!string.IsNullOrEmpty(settingsFilepath));
-
-            var settings = new GameSettings();
-            if (File.Exists(settingsFilepath)) {
-                // var contents = await File.ReadAllTextAsync(settingsFilepath);
-
-                try {
-                    var gsf = new GameSettingsFactory();
-                    settings = await gsf.ReadFromJsonFileAsync(settingsFilepath);
-                }
-                catch (JsonException je) {
-                    _reporter.WriteLine($"unable to read settings from file, loading default settings. filepath='{settingsFilepath}'.\njson Error:{je}");
-                    settings = new GameSettings();
-                }
-                catch (Exception ex) {
-                    _reporter.WriteLine($"unable to read settings from file, loading default settings. filepath='{settingsFilepath}'.\nError:{ex}");
-                    settings = new GameSettings();
-                }
-
-                //try {
-                //    settings = JsonConvert.DeserializeObject<GameSettings>(contents);
-                //}
-                //catch (JsonException je) {
-                //    Console.WriteLine($"unable to read settings from file, loading default settings. filepath='{settingsFilepath}'.\njson Error:{je.ToString()}");
-                //    settings = new GameSettings();
-                //}
-                //catch (Exception ex) {
-                //    Console.WriteLine($"unable to read settings from file, loading default settings. filepath='{settingsFilepath}'.\nError:{ex.ToString()}");
-                //    settings = new GameSettings();
-                //}
-            }
-
-            return settings;
-        }
-        internal protected async Task SaveGameSettingsConfigAsync(GameSettings configSettings) {
-            Debug.Assert(configSettings != null);
-            // TODO: This should be passed in
-            var gsf = new GameSettingsFactory();
-            await gsf.SaveSettingsToJsonFileAsync(GetPathToSettingsFile(), configSettings);
-        }
-
-        internal protected string GetPathToSettingsFile() {
-            // should work xplat, see: https://developers.redhat.com/blog/2018/11/07/dotnet-special-folder-api-linux#environment_getfolderpath
-            string appdata = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.DoNotVerify), "sayedha.roulette");
-            // ensure that the directory exists
-            Directory.CreateDirectory(appdata);
-
-            return Path.Combine(appdata, "roulette.settings.json");
-        }
-
         public Option OptionNumberOfSpins() =>
             new Option(new string[] { "--numSpins" }, "number of spins") {
                 Argument = new Argument<int>(name:"numSpins", getDefaultValue:()=>10000)
@@ -136,7 +87,7 @@ namespace SayedHa.Roulette.Cli {
         // Option with a default value, and the value needs to be selected from a listed of allowed values.
         public Option OptionRouletteType() {
             var opt = new Option(new String[] { "--rouletteType" }) {
-                Argument = new Argument<string>(name: "rouletteType", getDefaultValue: () => "American")
+                Argument = new Argument<string>(name: "rouletteType")
             };
 
             opt.Argument.FromAmong(new string[] { "American", "European" });

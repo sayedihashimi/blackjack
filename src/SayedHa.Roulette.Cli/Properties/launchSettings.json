@@ -2,7 +2,7 @@
   "profiles": {
     "SayedHa.Roulette.Cli": {
       "commandName": "Project",
-      "commandLineArgs": "simulate"
+      "commandLineArgs": "config --numSpins 100000 --printSettings"
     }
   }
 }

@@ -72,38 +72,43 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             SpecialCells = specialCells;
         }
     }
-    public class GameSettingsFactory {
+
+    public interface IGameSettingsFactory {
+        string GetJsonFor(GameSettings settings);
+        Task<GameSettings?> ReadFromJsonFileAsync(string filepath);
+        Task SaveSettingsToJsonFileAsync(string filepath, GameSettings settings);
+    }
+
+    public class GameSettingsFactory : IGameSettingsFactory {
 
         private JsonSerializerOptions _options = new JsonSerializerOptions {
             Converters ={
                 new JsonStringEnumConverter()
             }
         };
-        
+
         public async Task SaveSettingsToJsonFileAsync(string filepath, GameSettings settings) {
             using FileStream createStream = File.Create(filepath);
-            await System.Text.Json.JsonSerializer.SerializeAsync<GameSettings>(createStream, settings, _options);
+            await JsonSerializer.SerializeAsync<GameSettings>(createStream, settings, _options);
             await createStream.FlushAsync();
             await createStream.DisposeAsync();
         }
         public async Task<GameSettings?> ReadFromJsonFileAsync(string filepath) {
             Debug.Assert(!string.IsNullOrEmpty(filepath));
             using FileStream readStream = File.OpenRead(filepath);
-            try
-            {
+            try {
                 Console.WriteLine($"Reading settings file from '{filepath}'");
-                var settings = await System.Text.Json.JsonSerializer.DeserializeAsync<GameSettings>(readStream, _options);
+                var settings = await JsonSerializer.DeserializeAsync<GameSettings>(readStream, _options);
                 await readStream.DisposeAsync();
                 return settings;
             }
-            catch (Exception ex)
-            {
+            catch (Exception ex) {
                 Console.WriteLine($"Error reading settings file at '{filepath}'. Error:\n{ex}");
                 return null;
             }
         }
 
         public string GetJsonFor(GameSettings settings) =>
-           System.Text.Json.JsonSerializer.Serialize(settings);
+           JsonSerializer.Serialize(settings);
     }
 }

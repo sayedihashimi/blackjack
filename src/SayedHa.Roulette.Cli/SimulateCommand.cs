@@ -9,8 +9,11 @@ using static System.CommandLine.Help.DefaultHelpText;
 namespace SayedHa.Roulette.Cli {
     public class SimulateCommand : CommandBase {
         private IReporter _reporter;
-        public SimulateCommand(IReporter reporter) {
+        private readonly IDefaultGameSettingsFile _gameSettingsFile;
+
+        public SimulateCommand(IReporter reporter, IDefaultGameSettingsFile gameSettingsFile) {
             _reporter = reporter;
+            _gameSettingsFile = gameSettingsFile;
         }
         public override Command CreateCommand() =>
             new Command(name: "simulate", description: "This can be used to simulate a large number of spins on a roulette wheel and play using various method. Reports will be generated in the output folder.") {
@@ -37,7 +40,7 @@ namespace SayedHa.Roulette.Cli {
         private async Task ExecuteSimulateAsync(SimulateCommandOptions options) {
             _reporter.EnableVerbose = options.Verbose;
 
-            if(options.RouletteType != RouletteType.American && 
+            if (options.RouletteType != RouletteType.American &&
                 options.RouletteType != RouletteType.European) {
                 throw new ArgumentException($"Value for roulette type must be '{RouletteType.American}' or '{RouletteType.European}'");
             }
@@ -78,41 +81,41 @@ namespace SayedHa.Roulette.Cli {
 
         protected GameSettings GetGameSettingsFrom(SimulateCommandOptions options) {
             var gameSettings = new GameSettings();
-            
-            if(options.NumberOfSpins != null && options.NumberOfSpins.HasValue) {
+
+            if (options.NumberOfSpins != null && options.NumberOfSpins.HasValue) {
                 gameSettings.NumberOfSpins = options.NumberOfSpins.Value;
             }
-            if(options.EnableConsoleLogger != null && options.EnableConsoleLogger.HasValue) {
+            if (options.EnableConsoleLogger != null && options.EnableConsoleLogger.HasValue) {
                 gameSettings.EnableConsoleLogger = options.EnableConsoleLogger.Value;
             }
-            if(options.EnableCsvOutput != null && options.EnableCsvOutput.HasValue) {
+            if (options.EnableCsvOutput != null && options.EnableCsvOutput.HasValue) {
                 gameSettings.EnableCsvFileOutput = options.EnableCsvOutput.Value;
             }
-            if(options.EnableNumberDetails != null && options.EnableNumberDetails.HasValue) {
+            if (options.EnableNumberDetails != null && options.EnableNumberDetails.HasValue) {
                 gameSettings.EnableNumberDetails = options.EnableNumberDetails.Value;
             }
-            if(options.EnableMartingale != null && options.EnableMartingale.HasValue) {
+            if (options.EnableMartingale != null && options.EnableMartingale.HasValue) {
                 gameSettings.EnableMartingale = options.EnableMartingale.Value;
             }
             if (options.EnableBondMartingale != null && options.EnableBondMartingale.HasValue) {
                 gameSettings.EnableBondMartingale = options.EnableBondMartingale.Value;
             }
-            if(options.EnableGreen != null && options.EnableGreen.HasValue) {
+            if (options.EnableGreen != null && options.EnableGreen.HasValue) {
                 gameSettings.EnableGreen = options.EnableGreen.Value;
             }
-            if(options.EnableStopWhenBankrupt != null && options.EnableStopWhenBankrupt.HasValue) {
+            if (options.EnableStopWhenBankrupt != null && options.EnableStopWhenBankrupt.HasValue) {
                 gameSettings.StopWhenBankrupt = options.EnableStopWhenBankrupt.Value;
             }
-            if(options.AllowNegativeBankroll != null && options.AllowNegativeBankroll.HasValue) {
+            if (options.AllowNegativeBankroll != null && options.AllowNegativeBankroll.HasValue) {
                 gameSettings.AllowNegativeBankroll = options.AllowNegativeBankroll.Value;
             }
-            if(options.InitialBankroll != null && options.InitialBankroll.HasValue) {
+            if (options.InitialBankroll != null && options.InitialBankroll.HasValue) {
                 gameSettings.InitialBankroll = options.InitialBankroll.Value;
             }
-            if(options.MinimumBet != null && options.MinimumBet.HasValue) {
+            if (options.MinimumBet != null && options.MinimumBet.HasValue) {
                 gameSettings.MinimumBet = options.MinimumBet.Value;
             }
-            if(options.MaximumBet != null && options.MaximumBet.HasValue) {
+            if (options.MaximumBet != null && options.MaximumBet.HasValue) {
                 gameSettings.MaximumBet = options.MaximumBet.Value;
             }
 
@@ -160,7 +163,8 @@ namespace SayedHa.Roulette.Cli {
                 $"Sets the roulette type, values include 'American' and 'European', default is {RouletteType.American}") {
                 Argument = new Argument<RouletteType>(
                     name: "roulette-type",
-                    getDefaultValue: () => RouletteType.American)
+                    getDefaultValue: () => RouletteType.American).
+                FromAmong(RouletteType.American.ToString(), RouletteType.European.ToString())
             };
         protected Option OptionEnableCsvOutput() =>
             new Option(new string[] { "--enable-csv-output" }, "Enables output of a .csv file with all the spins.") {
@@ -196,18 +200,18 @@ namespace SayedHa.Roulette.Cli {
                 $"Path to folder where the results should be written. Default is the current directory.") {
                 Argument = new Argument<string>(
                     name: "output-path",
-                    getDefaultValue: ()=>Path.GetFullPath(Directory.GetCurrentDirectory()))
+                    getDefaultValue: () => Path.GetFullPath(Directory.GetCurrentDirectory()))
             };
         protected Option OptionFilenamePrefix() =>
-            new Option(new string[] {"--filename-prefix"}, "Prefix for all the files that are generated when the simulation is executed.") {
+            new Option(new string[] { "--filename-prefix" }, "Prefix for all the files that are generated when the simulation is executed.") {
                 Argument = new Argument<string>(name: "filename-prefix")
             };
         protected Option OptionInitialBankroll() =>
             new Option(new string[] { "--initial-bankroll" }, "The initial bankroll that the player has when starting the simulation.") {
-                Argument = new Argument<long>(name: "initial-bankroll",getDefaultValue:()=>10000)
+                Argument = new Argument<long>(name: "initial-bankroll", getDefaultValue: () => 10000)
             };
         protected Option OptionMinimumBet() =>
-            new Option(new []{ "--minimum-bet" }, "Minimum bet on each spin.") {
+            new Option(new[] { "--minimum-bet" }, "Minimum bet on each spin.") {
                 Argument = new Argument<int>(name: "minimum-bet")
             };
         protected Option OptionMaximumBet() =>
