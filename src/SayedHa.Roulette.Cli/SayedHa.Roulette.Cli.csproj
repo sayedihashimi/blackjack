@@ -16,7 +16,7 @@
 		<RepositoryUrl>https://github.com/sayedihashimi/sayedha.commands</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<PackageType>DotNetCliTool</PackageType>
-
+    <PackageReadmeFile>README.md</PackageReadmeFile>
 		<!-- tool related properties -->
 		<PackAsTool>true</PackAsTool>
 		<ToolCommandName>roulette</ToolCommandName>
@@ -28,6 +28,7 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\SayedHa.Blackjack.Shared\SayedHa.Blackjack.Shared.csproj" />
+    <None Include="README.md" Pack="true" PackagePath="\"/>
 	</ItemGroup>
 
 	<Target Name="InstallTool" DependsOnTargets="Pack">
