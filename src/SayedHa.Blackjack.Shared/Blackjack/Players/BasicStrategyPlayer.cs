@@ -188,7 +188,7 @@ namespace SayedHa.Blackjack.Shared.Players {
         protected (bool hasAce, HandAction nextAction) IfContainsAceReturnNextAction(Card card1, Card card2, Card dealerVisibleCard) {
             var cardsContainAce = IfContainsAceReturnOtherCard(card1, card2);
             var isDoubleEnabled = BlackjackSettings.GetBlackjackSettings().DoubleDownEnabled;
-            var isSplitEnabled = BlackjackSettings.GetBlackjackSettings().SplitEnabled;
+            // var isSplitEnabled = BlackjackSettings.GetBlackjackSettings().SplitEnabled;
             if (cardsContainAce.hasAce) {
                 var otherCard = cardsContainAce.otherCard!;
                 switch (otherCard.Number, dealerVisibleCard.Number) {
@@ -276,7 +276,7 @@ namespace SayedHa.Blackjack.Shared.Players {
 
                     default:
                         break;
-                }                
+                }
             }
             return (false, isDoubleEnabled ? HandAction.Split : HandAction.Hit);
         }
