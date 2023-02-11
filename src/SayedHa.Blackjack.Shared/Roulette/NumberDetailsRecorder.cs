@@ -45,9 +45,6 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         // public Dictionary<GameCell,NumberDetails> CellNumberDetailsMap { get; set; }
         public List<NumberDetails> CellNumberList { get; private init; }
         protected GameSettings GameSettings { get; set; }
-        public void Dispose() {
-            // nothing to do here
-        }
 
         protected long NumRedBlackSwaps { get; set; }
 
@@ -55,8 +52,8 @@ namespace SayedHa.Blackjack.Shared.Roulette {
 
         private long _numberOfSpins = 0;
 
-        private GameCellColor _lastColor;
-        public override async Task RecordSpinAsync(GameCell cell) {
+        private GameCellColor? _lastColor;
+        public override Task RecordSpinAsync(GameCell cell) {
             _numberOfSpins++;
             foreach(var item in CellNumberList) {
                 var key = item.Cell;
@@ -86,15 +83,19 @@ namespace SayedHa.Blackjack.Shared.Roulette {
                 }
             }
 
-            if(_numberOfSpins > 1 && 
-                cell.Color != GameCellColor.Green && 
-                _lastColor != GameCellColor.Green &&
-                cell.Color != _lastColor) {
+            if(_numberOfSpins > 1 &&
+                cell.Color != _lastColor &&
+                (cell.Color == GameCellColor.Black || cell.Color == GameCellColor.Red) &&
+                (_lastColor == GameCellColor.Black || _lastColor == GameCellColor.Red)) {
                 NumRedBlackSwaps++;
             }
+
+            _lastColor = cell.Color;
+
+            return Task.CompletedTask;
         }
-        public string GetFilepath()=> Path.Combine(OutputPath, !string.IsNullOrEmpty(FilenamePrefix) ? $"{FilenamePrefix}number-details.txt" : $"number-details.txt");
-        public string GetCsvFilepath() => Path.Combine(OutputPath, !string.IsNullOrEmpty(FilenamePrefix) ? $"{FilenamePrefix}number-details.csv" : $"number-details.csv");
+        public string GetFilepath()=> Path.Combine(OutputPath!, !string.IsNullOrEmpty(FilenamePrefix) ? $"{FilenamePrefix}number-details.txt" : $"number-details.txt");
+        public string GetCsvFilepath() => Path.Combine(OutputPath!, !string.IsNullOrEmpty(FilenamePrefix) ? $"{FilenamePrefix}number-details.csv" : $"number-details.csv");
 
         public async Task WriteReport() {
             if(!EnableFileOutput || string.IsNullOrEmpty(GetFilepath())) {

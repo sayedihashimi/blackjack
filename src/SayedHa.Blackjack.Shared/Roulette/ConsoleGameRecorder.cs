@@ -21,8 +21,9 @@ namespace SayedHa.Blackjack.Shared.Roulette {
 
         public override bool IsBankrupt => false;
 
-        public override async Task RecordSpinAsync(GameCell cell) {
+        public override Task RecordSpinAsync(GameCell cell) {
             RecordSpin(cell);
+            return Task.CompletedTask;
         }
         public void RecordSpin(GameCell cell) {
             if (Enabled) {

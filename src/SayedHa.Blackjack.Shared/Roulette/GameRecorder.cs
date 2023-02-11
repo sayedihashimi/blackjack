@@ -24,8 +24,8 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         public bool EnableFileOutput { get; set; }
         public Task RecordSpinAsync(GameCell cell);
         public Task GameCompleted();
-        public string OutputPath { get; set; }
-        public string FilenamePrefix { get; set; }
+        public string? OutputPath { get; set; }
+        public string? FilenamePrefix { get; set; }
         public bool StopWhenBankrupt { get; set; }
         public bool IsBankrupt { get; }
     }
@@ -48,8 +48,8 @@ namespace SayedHa.Blackjack.Shared.Roulette {
 
     public abstract class GameRecorderBase : IGameRecorder {
         public bool EnableFileOutput { get; set; } = true;
-        public string OutputPath { get; set; }
-        public string FilenamePrefix { get; set; }
+        public string? OutputPath { get; set; }
+        public string? FilenamePrefix { get; set; }
         public bool StopWhenBankrupt { get; set; } = true;
         public abstract bool IsBankrupt { get; }
         public int MinimumBet { get; init; } = 1;
@@ -67,7 +67,8 @@ namespace SayedHa.Blackjack.Shared.Roulette {
 
         public abstract Task RecordSpinAsync(GameCell cell);
 
-        public virtual async Task GameCompleted() {
+        public virtual Task GameCompleted() {
+            return Task.CompletedTask;
         }
     }
 }

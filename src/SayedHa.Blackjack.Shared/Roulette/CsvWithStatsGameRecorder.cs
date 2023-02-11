@@ -78,8 +78,8 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         }
 
         List<GameCellGroup> groupOuputOrder { get; init; }
-        public override string GetCsvFilePath() => Path.Combine(OutputPath, !string.IsNullOrEmpty(FilenamePrefix) ? $"{FilenamePrefix}stats.csv" : $"stats.csv");
-        public string GetCsvSummaryFilepath() => Path.Combine(OutputPath, !string.IsNullOrEmpty(FilenamePrefix) ? $"{FilenamePrefix}summary.txt" : $"summary.txt");
+        public override string GetCsvFilePath() => Path.Combine(OutputPath!, !string.IsNullOrEmpty(FilenamePrefix) ? $"{FilenamePrefix}stats.csv" : $"stats.csv");
+        public string GetCsvSummaryFilepath() => Path.Combine(OutputPath!, !string.IsNullOrEmpty(FilenamePrefix) ? $"{FilenamePrefix}summary.txt" : $"summary.txt");
         protected override async Task WriteHeaderAsync() {
             if (!EnableWriteCsvFile || !EnableFileOutput) {
                 return;
