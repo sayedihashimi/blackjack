@@ -31,6 +31,8 @@ namespace SayedHa.Blackjack.Cli {
             _parser = new CommandLineBuilder()
                         .AddCommand(
                             new AnalyzeCommand(GetFromServices<IReporter>()).CreateCommand())
+                        .AddCommand(
+                            new PlayCommand(GetFromServices<IReporter>()).CreateCommand())
                         .UseDefaults()
                         .Build();
 
