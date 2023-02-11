@@ -53,82 +53,64 @@ namespace SayedHa.Blackjack.Shared.Players {
 
             // now we handle the generic case
             int handScore = hand.GetScore();
-            switch (handScore, dealerHand.DealersVisibleCard!.Number) {
-                case ( >= 17, _):
-                    return HandAction.Stand;
-                
-                case (16, CardNumber.Two):
-                case (16, CardNumber.Three):
-                case (16, CardNumber.Four):
-                case (16, CardNumber.Five):
-                case (16, CardNumber.Six):
-                    return HandAction.Stand;
-                case (16, _):
-                    return HandAction.Hit;
 
-                case (15, CardNumber.Two):
-                case (15, CardNumber.Three):
-                case (15, CardNumber.Four):
-                case (15, CardNumber.Five):
-                case (15, CardNumber.Six):
-                    return HandAction.Stand;
-                case (15, _):
-                    return HandAction.Hit;
+            var nextHandAction = (handScore, dealerHand.DealersVisibleCard!.Number) switch {
+                ( >= 17, _) => HandAction.Stand,
+                (16, CardNumber.Two) => HandAction.Stand,
+                (16, CardNumber.Three) => HandAction.Stand,
+                (16, CardNumber.Four) => HandAction.Stand,
+                (16, CardNumber.Five) => HandAction.Stand,
+                (16, CardNumber.Six) => HandAction.Stand,
+                (16, _) => HandAction.Hit,
 
-                case (14, CardNumber.Two):
-                case (14, CardNumber.Three):
-                case (14, CardNumber.Four):
-                case (14, CardNumber.Five):
-                case (14, CardNumber.Six):
-                    return HandAction.Stand;
-                case (14, _):
-                    return HandAction.Hit;
+                (15, CardNumber.Two) => HandAction.Stand,
+                (15, CardNumber.Three) => HandAction.Stand,
+                (15, CardNumber.Four) => HandAction.Stand,
+                (15, CardNumber.Five) => HandAction.Stand,
+                (15, CardNumber.Six) => HandAction.Stand,
+                (15, _) => HandAction.Hit,
 
-                case (13, CardNumber.Two):
-                case (13, CardNumber.Three):
-                case (13, CardNumber.Four):
-                case (13, CardNumber.Five):
-                case (13, CardNumber.Six):
-                    return HandAction.Stand;
-                case (13, _):
-                    return HandAction.Hit;
+                (14, CardNumber.Two) => HandAction.Stand,
+                (14, CardNumber.Three) => HandAction.Stand,
+                (14, CardNumber.Four) => HandAction.Stand,
+                (14, CardNumber.Five) => HandAction.Stand,
+                (14, CardNumber.Six) => HandAction.Stand,
+                (14, _) => HandAction.Hit,
 
-                case (12, CardNumber.Four):
-                case (12, CardNumber.Five):
-                case (12, CardNumber.Six):
-                    return HandAction.Stand;
-                case(12, _):
-                    return HandAction.Hit;
+                (13, CardNumber.Two) => HandAction.Stand,
+                (13, CardNumber.Three) => HandAction.Stand,
+                (13, CardNumber.Four) => HandAction.Stand,
+                (13, CardNumber.Five) => HandAction.Stand,
+                (13, CardNumber.Six) => HandAction.Stand,
+                (13, _) => HandAction.Hit,
+
+                (12, CardNumber.Four) => HandAction.Stand,
+                (12, CardNumber.Five) => HandAction.Stand,
+                (12, CardNumber.Six) => HandAction.Stand,
+                (12, _) => HandAction.Hit,
 
                 // "Always double down on 11, always"
-                case (11, _):
-                    return isDoubleEnabled ? HandAction.Double : HandAction.Hit;
+                (11, _) => isDoubleEnabled ? HandAction.Double : HandAction.Hit,
 
-                case (10, CardNumber.Ten):
-                case (10, CardNumber.Jack):
-                case (10, CardNumber.Queen):
-                case (10, CardNumber.King):
-                case (10, CardNumber.Ace):
-                    return HandAction.Hit;
-                case (10, _):
-                    return isDoubleEnabled ? HandAction.Double : HandAction.Hit;
+                (10, CardNumber.Ten) => HandAction.Hit,
+                (10, CardNumber.Jack) => HandAction.Hit,
+                (10, CardNumber.Queen) => HandAction.Hit,
+                (10, CardNumber.King) => HandAction.Hit,
+                (10, CardNumber.Ace) => HandAction.Hit,
+                (10, _) => isDoubleEnabled ? HandAction.Double : HandAction.Hit,
 
-                case (9, CardNumber.Three):
-                case (9, CardNumber.Four):
-                case (9, CardNumber.Five):
-                case (9, CardNumber.Six):
-                    return isDoubleEnabled ? HandAction.Double : HandAction.Hit;
-                case (9, _):
-                    return HandAction.Hit;
+                (9, CardNumber.Three) => isDoubleEnabled ? HandAction.Double : HandAction.Hit,
+                (9, CardNumber.Four) => isDoubleEnabled ? HandAction.Double : HandAction.Hit,
+                (9, CardNumber.Five) => isDoubleEnabled ? HandAction.Double : HandAction.Hit,
+                (9, CardNumber.Six) => isDoubleEnabled ? HandAction.Double : HandAction.Hit,
 
-                case ( <= 8, _):
-                    return HandAction.Hit;
+                ( <= 8, _) => HandAction.Hit,
 
-                default:
-                    throw new ApplicationException("Shouldn't get here");
-            }
-            
-            throw new ApplicationException("Shouldn't get here");
+                // shouldn't get here
+                (_, _) => throw new ApplicationException("Error in GetNextAction")
+            };
+
+            return nextHandAction;
         }
         protected bool ShouldSplitWith(CardNumber card1, CardNumber card2,CardNumber dealerCard) {
             switch (card1, card2, dealerCard) {
