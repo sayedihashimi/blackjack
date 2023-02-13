@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with SayedHa.Blackjack.  If not, see <https://www.gnu.org/licenses/>.
 namespace SayedHa.Blackjack.Shared {
-    public interface IReporter {
+    public interface IReporter : ILogger {
         bool EnableVerbose { get; set; }
         void Write(string output);
         void WriteLine(string output);
@@ -26,6 +26,7 @@ namespace SayedHa.Blackjack.Shared {
 
     public class ConsoleReporter : IReporter {
         public bool EnableVerbose { get; set; }
+        public bool EnableConsoleLogger { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         public void WriteLine() {
             Console.WriteLine();
@@ -59,9 +60,34 @@ namespace SayedHa.Blackjack.Shared {
                 Write(output);
             }
         }
+
+        public void LogLine(string message) {
+            WriteVerboseLine(message);
+        }
+
+        public void Log(string message) {
+            WriteVerbose(message);
+        }
+
+        public void CloseFileLogger() {
+            // do nothing
+        }
     }
     public class NullReporter : IReporter {
         public bool EnableVerbose { get; set; } = false;
+        public bool EnableConsoleLogger { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+        public void CloseFileLogger() {
+            // do nothing
+        }
+
+        public void Log(string message) {
+            // do nothing
+        }
+
+        public void LogLine(string message) {
+            // do nothing
+        }
 
         public void Write(string output) {
             // do nothing

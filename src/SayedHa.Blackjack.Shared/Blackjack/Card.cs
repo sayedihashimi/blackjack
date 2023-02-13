@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with SayedHa.Blackjack.  If not, see <https://www.gnu.org/licenses/>.
 namespace SayedHa.Blackjack.Shared {
-public class Card {
+    public class Card {
         public CardSuit Suit { get; init; }
         public CardNumber Number { get; init; }
         public override bool Equals(object? obj) {
@@ -28,7 +28,11 @@ public class Card {
         }
 
         // note: these characters don't seem to be supported in the fonts used in the terminal
-        public override string ToString() => $"{Number.GetFriendlyString()}{Suit.GetFriendlyString()}";
+        public override string ToString() => 
+            $"{Number.GetFriendlyString()}{Suit.GetFriendlyString()}";
+
+        public string ToString(bool useSymbols) =>
+            $"{Number.GetFriendlyString()}{Suit.GetFriendlyString(useSymbols)}";
     }
 
     public enum CardSuit {
@@ -98,7 +102,20 @@ public class Card {
             CardSuit.Diamond => "(d)",
             CardSuit.Heart => "(h)",
             CardSuit.Spade => "(s)",
-            _ => throw new NotImplementedException()
+            _ => throw new ArgumentException()
         };
+        public static string GetFriendlyString(this CardSuit cardSuit, bool useSymbols) =>
+            (cardSuit, useSymbols) switch {
+                (CardSuit.Club, false) => "(c)",
+                (CardSuit.Club, true) => "♣",
+                (CardSuit.Diamond, false) => "C",
+                (CardSuit.Diamond, true) => "♦",
+                (CardSuit.Heart, false) => "(h)",
+                (CardSuit.Heart, true) => "♥",
+                (CardSuit.Spade, false) => "(s)",
+                (CardSuit.Spade, true) => "♠",
+
+                _ => throw new NotImplementedException()
+            };
     }
 }

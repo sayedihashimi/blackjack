@@ -56,6 +56,5 @@ namespace SayedHa.Blackjack.Shared {
             OpponentPlayStrategy.Random => new Opponent(new RandomPlayer(), BettingStrategy),
             _ => throw new ApplicationException($"unknown value for OpponentPlayStrategy: '{strategy}'")
         };
-
     }
 }

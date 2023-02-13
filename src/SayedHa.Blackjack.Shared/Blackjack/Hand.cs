@@ -51,11 +51,11 @@ namespace SayedHa.Blackjack.Shared {
         public float Bet { get; set; }
 
         private List<Card> _dealtCards = new List<Card>();
-        internal List<Card> DealtCards {
+        public List<Card> DealtCards {
             get {
                 return _dealtCards;
             }
-            set {
+            internal set {
                 _dealtCards = value;
                 _scoreCached = ComputeScore();
             }
@@ -149,6 +149,40 @@ namespace SayedHa.Blackjack.Shared {
             sb.Append(']');
             sb.Append($" Score={GetScore()}. Result={HandResult}");
             
+            return sb.ToString().Trim();
+        }
+        public string ToString(bool hideFirstCard, bool useSymbols,bool includeScore = false,bool includeBrackets = false, bool includeResult = false) {
+            var sb = new StringBuilder();
+            if (includeBrackets) {
+                sb.Append("[");
+            }            
+            for (var i = 0; i < DealtCards.Count; i++) {
+                if(hideFirstCard && i == 0) {
+                    sb.Append("??");
+                }
+                else {
+                    sb.Append(DealtCards[i].ToString(useSymbols));
+                }
+                
+                if (i < DealtCards.Count - 1) {
+                    sb.Append(",");
+                }
+            }
+            if (includeBrackets) {
+                sb.Append(']');
+            }
+            if (includeScore) {
+                if (hideFirstCard) {
+                    sb.Append($" Score=??.");
+                }
+                else {
+                    sb.Append($" Score={GetScore()}.");
+                }
+            }
+            if (includeResult) {
+                sb.Append($" Result={HandResult}");
+            }
+
             return sb.ToString().Trim();
         }
     }
