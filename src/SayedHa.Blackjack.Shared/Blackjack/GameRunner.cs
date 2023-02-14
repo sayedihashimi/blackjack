@@ -27,6 +27,8 @@ namespace SayedHa.Blackjack.Shared {
         private GameFactory gameFactory = new GameFactory();
 
         public event EventHandler NextActionSelected;
+        public event EventHandler DealerHasBlackjack;
+        public event EventHandler PlayerHasBlackjack;
 
         public Game CreateNewGame(int numDecks, int numOpponents, ParticipantFactory participantFactory, bool discardFirstCard) {
             var game = gameFactory.CreateNewGame(numDecks, numOpponents, participantFactory, BlackjackSettings.GetBlackjackSettings().ShuffleThresholdPercent, _logger);
@@ -105,7 +107,7 @@ namespace SayedHa.Blackjack.Shared {
             //  3) Regular play
 
             var bjPayoutMultiplier = BlackjackSettings.GetBlackjackSettings().BlackjackPayoutMultplier;
-            if (!DoesDealerHaveBlackjack(dealerHand)) {
+            if (!IsHandBlackjack(dealerHand)) {
                 // play each opponent now
                 foreach (var opponent in game.Opponents) {
                     PlayForParticipant(opponent, game.Dealer, game.Cards);
@@ -153,6 +155,7 @@ namespace SayedHa.Blackjack.Shared {
 
             }
             else {
+                DealerHasBlackjack?.Invoke(this, new DealerHasBlackjackEventArgs());
                 foreach (var op in game.Opponents) {
                     foreach (var hand in op.Hands) {
                         hand.SetHandResult(HandResult.DealerWon);
@@ -193,7 +196,7 @@ namespace SayedHa.Blackjack.Shared {
         /// </summary>
         /// <param name="dealerHand"></param>
         /// <returns></returns>
-        private bool DoesDealerHaveBlackjack(DealerHand dealerHand) => (dealerHand.DealersVisibleCard!.Number, dealerHand.DealersHiddenCard!.Number) switch {
+        private bool IsHandBlackjack(Hand dealerHand) => (dealerHand.DealtCards[0].Number, dealerHand.DealtCards[1].Number) switch {
             (CardNumber.Ace, CardNumber.Ten) => true,
             (CardNumber.Ace, CardNumber.Jack) => true,
             (CardNumber.Ace, CardNumber.Queen) => true,
@@ -209,6 +212,7 @@ namespace SayedHa.Blackjack.Shared {
             // if a split occurs, we need to create a new hand and play each hand seperately
             _logger.LogLine($"playing for {participant.Role}");
             if(!playForDealer) {
+                // TODO: Check for blackjack and pay it out. The dealer shouldn't have blackjack here, it should have been detected already.
                 PlayHand(participant.Hands[0], (dealer.Hands[0] as DealerHand)!, participant, cards);
             }
             else {
@@ -221,6 +225,15 @@ namespace SayedHa.Blackjack.Shared {
             Debug.Assert(hand != null);
             Debug.Assert(participant != null);
             Debug.Assert(cards != null);
+
+            if(IsHandBlackjack(hand)) {
+                var bjPayoutMultiplier = BlackjackSettings.GetBlackjackSettings().BlackjackPayoutMultplier;
+                hand.SetHandResult(HandResult.OpponentWon);
+                participant.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet * bjPayoutMultiplier, participant.Name);
+                PlayerHasBlackjack?.Invoke(this, new PlayerHasBlackjackEventArgs());
+                // TODO: Remove the win amount from the dealer?
+                return new List<Hand> { hand };
+            }
 
             var nextAction = participant.Player.GetNextAction(hand, dealerHand);
 
@@ -298,5 +311,11 @@ namespace SayedHa.Blackjack.Shared {
         public Hand DealerHand { get;private init; }
         public HandAction NextAction { get; private init; }
         public bool IsDealerHand { get; private init; }
+    }
+    public class DealerHasBlackjackEventArgs : EventArgs {
+
+    }
+    public class PlayerHasBlackjackEventArgs : EventArgs {
+
     }
 }

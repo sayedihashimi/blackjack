@@ -34,68 +34,6 @@ namespace SayedHa.Blackjack.Cli {
         private Task PlayGameAsync() {
             PlayGame();
             return Task.CompletedTask;
-
-            var numDecks = AnsiConsole.Prompt(
-                new SelectionPrompt<int>()
-                .Title("How many decks?")
-                .AddChoices(new[] { 2, 4, 6, 8, 10 })
-            );
-            var initialBankroll = AnsiConsole.Prompt(
-                new SelectionPrompt<int>()
-                .Title("Initial bankroll?")
-                .AddChoices(new[] { 1000, 10000, 100000 })
-            );
-            var betAmount = AnsiConsole.Prompt(
-                new SelectionPrompt<int>()
-                .Title("Initial bankroll?")
-                .AddChoices(new[] { 5, 10, 25, 50, 75, 100 })
-            );
-            // var numDecks = AnsiConsole.Ask<int
-            var cards = new CardDeckFactory().CreateCardDeck(numDecks, true);
-            AnsiConsole.WriteLine("Shuffling cards");
-
-            var pf = new ParticipantFactory(_reporter);
-
-            var bs = BettingStrategy.CreateNewDefaultBettingStrategy(new Bankroll(initialBankroll, _reporter));
-            pf = new ParticipantFactory(bs, OpponentPlayStrategy.BasicStrategy, _reporter);
-            var dealerPlayer = pf.GetDefaultDealer();
-            var humanPlayer = pf.CreateNewOpponent(OpponentPlayStrategy.BasicStrategy, _reporter);
-
-            var humanHand = new Hand(betAmount, _reporter);
-            var dealerHand = new DealerHand(_reporter);
-
-            // deal all cards out and then display the cards to the user
-            _ = humanHand.ReceiveCard(cards.GetCardAndMoveNext());
-            _ = dealerHand.ReceiveCard(cards.GetCardAndMoveNext());
-            _ = humanHand.ReceiveCard(cards.GetCardAndMoveNext());
-            _ = dealerHand.ReceiveCard(cards.GetCardAndMoveNext());
-
-            AnsiConsole.WriteLine("Dealing cards");
-            AnsiConsole.WriteLine("Dealing to player, face up.");
-
-            AnsiConsole.MarkupLine($"[red]Player[/] cards: {humanHand.ToString(hideFirstCard: false, useSymbols: true, includeScore: true, includeBrackets: false, includeResult: false).EscapeMarkup()}");
-            AnsiConsole.MarkupLine($"[red]Dealer[/] cards: {humanHand.ToString(hideFirstCard: true, useSymbols: true, includeScore: true, includeBrackets: false, includeResult: false).EscapeMarkup()}");
-
-            HandAction nextHandAction;
-            do {
-                nextHandAction = AnsiConsole.Prompt(
-                    new SelectionPrompt<HandAction>()
-                    .Title("Select your next action")
-                    .AddChoices(new[] { HandAction.Stand, HandAction.Hit, HandAction.Double, HandAction.Split })
-                    );
-                AnsiConsole.MarkupLine($"Selected action: {nextHandAction}");
-
-                if (nextHandAction == HandAction.Hit) {
-                    _ = humanHand.ReceiveCard(cards.GetCardAndMoveNext());
-                    AnsiConsole.MarkupLine($"[red]Player[/] cards: {humanHand.ToString(hideFirstCard: false, useSymbols: true, includeScore: true, includeBrackets: false, includeResult: false).EscapeMarkup()}");
-                }
-                if (humanHand.GetScore() > BlackjackSettings.GetBlackjackSettings().MaxScore) {
-                    AnsiConsole.MarkupLine($"BUSTED");
-                    humanHand.MarkHandAsClosed();
-                }
-
-            } while (nextHandAction != HandAction.Stand && humanHand.Status != HandStatus.Closed);
-            AnsiConsole.WriteLine("done");
         }
 
         private void PlayGame() {
@@ -109,16 +47,18 @@ namespace SayedHa.Blackjack.Cli {
                 .Title("Initial bankroll?")
                 .AddChoices(new[] { 1000, 10000, 100000 })
             );
-            var betAmount = AnsiConsole.Prompt(
-                new SelectionPrompt<int>()
-                .Title("Initial bankroll?")
-                .AddChoices(new[] { 5, 10, 25, 50, 75, 100 })
-            );
+            //var betAmount = AnsiConsole.Prompt(
+            //    new SelectionPrompt<int>()
+            //    .Title("Initial bankroll?")
+            //    .AddChoices(new[] { 5, 10, 25, 50, 75, 100 })
+            //);
 
             BlackjackSettings.GetBlackjackSettings().CreateBettingStrategy = (bankroll) => new SpectreConsoleBettingStrategy(bankroll);
 
             var gameRunner = new GameRunner(_reporter);
             gameRunner.NextActionSelected += GameRunner_NextActionSelected;
+            gameRunner.DealerHasBlackjack += GameRunner_DealerHasBlackjack;
+            gameRunner.PlayerHasBlackjack += GameRunner_PlayerHasBlackjack;
             var bankroll = new Bankroll(initialBankroll, _reporter);
             var bettingStrategy = new SpectreConsoleBettingStrategy(bankroll);
             var pf = new SpectreConsoleParticipantFactory(bettingStrategy, _reporter);
@@ -139,7 +79,15 @@ namespace SayedHa.Blackjack.Cli {
             }
 
             //AnsiConsole.MarkupLine($"{game.Opponents[0].BettingStrategy.Bankroll}");
-            AnsiConsole.MarkupLine($"Balance = {gameResult.OpponentRemaining[0].remaining}, Change from original balance:{gameResult.OpponentRemaining[0].diff}");
+            AnsiConsole.MarkupLine($"Balance = {gameResult.OpponentRemaining[0].remaining:C0}, Change from original balance:{gameResult.OpponentRemaining[0].diff:C0}");
+        }
+
+        private void GameRunner_PlayerHasBlackjack(object sender, EventArgs e) {
+            AnsiConsole.MarkupLine($"[red]Player has blackjack[/]");
+        }
+
+        private void GameRunner_DealerHasBlackjack(object sender, EventArgs e) {
+            AnsiConsole.MarkupLine($"[red]Dealer has blackjack[/]");
         }
 
         private void GameRunner_NextActionSelected(object sender, EventArgs e) {
@@ -163,7 +111,6 @@ namespace SayedHa.Blackjack.Cli {
             }
 
             AnsiConsole.WriteLine(sb.ToString().EscapeMarkup());
-            //AnsiConsole.MarkupLine($"Your hand:{hand.ToString(hideFirstCard: false, useSymbols: true, includeScore: true, includeBrackets: false, includeResult: false).EscapeMarkup()},Action:{nextActionArgs.NextAction}\n");
         }
 
         private HandAction GetNextActionFromUser(Hand hand) => AnsiConsole.Prompt(
