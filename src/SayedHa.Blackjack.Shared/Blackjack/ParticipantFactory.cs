@@ -41,7 +41,7 @@ namespace SayedHa.Blackjack.Shared {
         public OpponentPlayStrategy OpponentPlayStrategy { get; protected init; }
         
 
-        public Participant CreateNewOpponent(OpponentPlayStrategy strategy, ILogger logger) => strategy switch {
+        public virtual Participant CreateNewOpponent(OpponentPlayStrategy strategy, ILogger logger) => strategy switch {
             OpponentPlayStrategy.BasicStrategy => new Opponent(new BasicStrategyPlayer(logger), BettingStrategy),
             OpponentPlayStrategy.StandOn12 => new Opponent(new StandOnValuePlayer(12, ParticipantRole.Player), BettingStrategy),
             OpponentPlayStrategy.StandOn13 => new Opponent(new StandOnValuePlayer(13, ParticipantRole.Player), BettingStrategy),

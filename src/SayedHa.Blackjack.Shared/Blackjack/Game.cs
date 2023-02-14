@@ -112,6 +112,7 @@ namespace SayedHa.Blackjack.Shared {
         StandOn19,
         StandOn20,
         AlwaysStand,
-        Random
+        Random,
+        UserInput
     }
 }

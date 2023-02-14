@@ -18,7 +18,7 @@ using System.Diagnostics;
 
 namespace SayedHa.Blackjack.Shared {
     public class Participant {
-        public Participant(ParticipantRole role, Player player,BettingStrategy bettingStrategy) {
+        public Participant(ParticipantRole role, Player player, BettingStrategy bettingStrategy) {
             Role = role;
             Player = player;
 
@@ -35,7 +35,7 @@ namespace SayedHa.Blackjack.Shared {
         /// It needs to be a list because a split can create multiple hands
         /// </summary>
         public List<Hand> Hands { get; set; } = new List<Hand>();
-        public LinkedList<Hand>AllHands { get; set; } = new LinkedList<Hand>();
+        public LinkedList<Hand> AllHands { get; set; } = new LinkedList<Hand>();
 
 
         /// <summary>
