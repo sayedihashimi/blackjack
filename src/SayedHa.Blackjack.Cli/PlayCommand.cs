@@ -53,34 +53,35 @@ namespace SayedHa.Blackjack.Cli {
             //    .AddChoices(new[] { 5, 10, 25, 50, 75, 100 })
             //);
 
-            BlackjackSettings.GetBlackjackSettings().CreateBettingStrategy = (bankroll) => new SpectreConsoleBettingStrategy(bankroll);
-
+            var bankroll = new Bankroll(initialBankroll, _reporter);
             var gameRunner = new GameRunner(_reporter);
             gameRunner.NextActionSelected += GameRunner_NextActionSelected;
             gameRunner.DealerHasBlackjack += GameRunner_DealerHasBlackjack;
             gameRunner.PlayerHasBlackjack += GameRunner_PlayerHasBlackjack;
-            var bankroll = new Bankroll(initialBankroll, _reporter);
             var bettingStrategy = new SpectreConsoleBettingStrategy(bankroll);
             var pf = new SpectreConsoleParticipantFactory(bettingStrategy, _reporter);
+            BlackjackSettings.GetBlackjackSettings().CreateBettingStrategy = (bankroll) => new SpectreConsoleBettingStrategy(bankroll);
             // TODO: Make this into a setting or similar
             var discardFirstCard = true;
             var game = gameRunner.CreateNewGame(numDecks, 1, pf, discardFirstCard);
+            do {
+                var gameResult = gameRunner.PlayGame(game);
 
-            var gameResult = gameRunner.PlayGame(game);
+                // print out the results of each hand now.
+                foreach (var hand in gameResult.OpponentHands) {
+                    var sb = new StringBuilder();
+                    sb.Append($"Your hand:{hand.ToString(hideFirstCard: false, useSymbols: true, includeScore: true, includeBrackets: false, includeResult: false).EscapeMarkup()}");
+                    sb.AppendLine($",Dealer hand:{game.Dealer.Hands[0].ToString(hideFirstCard: false, useSymbols: true, includeScore: true, includeBrackets: false, includeResult: false).EscapeMarkup()}");
+                    sb.AppendLine($"Result = {hand.HandResult}");
 
-            // print out the results of each hand now.
-            foreach (var hand in gameResult.OpponentHands) {
-                var sb = new StringBuilder();
-                sb.Append($"Your hand:{hand.ToString(hideFirstCard: false, useSymbols: true, includeScore: true, includeBrackets: false, includeResult: false).EscapeMarkup()}");
-                sb.AppendLine($",Dealer hand:{game.Dealer.Hands[0].ToString(hideFirstCard: false, useSymbols: true, includeScore: true, includeBrackets: false, includeResult: false).EscapeMarkup()}");
-                sb.AppendLine($"Result = {hand.HandResult}");
+                    AnsiConsole.MarkupLine(sb.ToString().EscapeMarkup());
+                }
 
-                AnsiConsole.MarkupLine(sb.ToString().EscapeMarkup());
-            }
-
-            //AnsiConsole.MarkupLine($"{game.Opponents[0].BettingStrategy.Bankroll}");
-            AnsiConsole.MarkupLine($"Balance = {gameResult.OpponentRemaining[0].remaining:C0}, Change from original balance:{gameResult.OpponentRemaining[0].diff:C0}");
+                AnsiConsole.MarkupLine($"Balance = {gameResult.OpponentRemaining[0].remaining:C0}, Change from original balance:{gameResult.OpponentRemaining[0].diff:C0}");
+            } while (KeepPlaying());
         }
+
+        private bool KeepPlaying() => AnsiConsole.Confirm("Keep playing?");
 
         private void GameRunner_PlayerHasBlackjack(object sender, EventArgs e) {
             AnsiConsole.MarkupLine($"[red]Player has blackjack[/]");
