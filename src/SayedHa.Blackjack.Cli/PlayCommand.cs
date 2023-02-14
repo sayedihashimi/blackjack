@@ -3,6 +3,8 @@ using SayedHa.Blackjack.Shared.Betting;
 using Spectre.Console;
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.Diagnostics;
+using System.Text;
 
 namespace SayedHa.Blackjack.Cli {
     public class PlayCommand : CommandBase {
@@ -114,6 +116,7 @@ namespace SayedHa.Blackjack.Cli {
             );
 
             var gameRunner = new GameRunner(_reporter);
+            gameRunner.NextActionSelected += GameRunner_NextActionSelected;
             var bankroll = new Bankroll(initialBankroll, _reporter);
             var bettingStrategy = SpectreConsoleBettingStrategy.CreateNewDefaultBettingStrategy(bankroll);
             var pf = new SpectreConsoleParticipantFactory(bettingStrategy, _reporter);
@@ -125,8 +128,40 @@ namespace SayedHa.Blackjack.Cli {
 
             // print out the results of each hand now.
             foreach (var hand in gameResult.OpponentHands) {
-                AnsiConsole.MarkupLine($"{hand.ToString(hideFirstCard: false, useSymbols: true, includeResult: true).EscapeMarkup()}");
+                var sb = new StringBuilder();
+                sb.Append($"Your hand:{hand.ToString(hideFirstCard: false, useSymbols: true, includeScore: true, includeBrackets: false, includeResult: false).EscapeMarkup()}");
+                sb.AppendLine($",Dealer hand:{game.Dealer.Hands[0].ToString(hideFirstCard: false, useSymbols: true, includeScore: true, includeBrackets: false, includeResult: false).EscapeMarkup()}");
+                sb.AppendLine($"Result = {hand.HandResult}");
+
+                AnsiConsole.MarkupLine(sb.ToString().EscapeMarkup());
             }
+
+            //AnsiConsole.MarkupLine($"{game.Opponents[0].BettingStrategy.Bankroll}");
+            AnsiConsole.MarkupLine($"Balance = {gameResult.OpponentRemaining[0].remaining}, Change from original balance:{gameResult.OpponentRemaining[0].diff}");
+        }
+
+        private void GameRunner_NextActionSelected(object sender, EventArgs e) {
+            var nextActionArgs = e as NextActionSelectedEventArgs;
+            if(nextActionArgs == null) {
+                throw new ApplicationException("Error, nextActionArgs is null");
+            }
+            Debug.Assert(nextActionArgs.Hand != null);
+            Debug.Assert(nextActionArgs.DealerHand != null);
+
+            var sb = new StringBuilder();
+            if (!nextActionArgs.IsDealerHand) {
+                sb.Append($"Your hand:{nextActionArgs.Hand.ToString(hideFirstCard: false, useSymbols: true, includeScore: true, includeBrackets: false, includeResult: false).EscapeMarkup()}");
+                sb.Append($",Dealer hand:{nextActionArgs.DealerHand.ToString(hideFirstCard: true, useSymbols: true, includeScore: true, includeBrackets: false, includeResult: false).EscapeMarkup()}");
+                sb.AppendLine($",Action={nextActionArgs.NextAction}");
+            }
+            else {
+                sb.Append("Dealer playing.");
+                sb.Append($" Dealer hand:{nextActionArgs.DealerHand.ToString(hideFirstCard: false, useSymbols: true, includeScore: true, includeBrackets: false, includeResult: false).EscapeMarkup()}");
+                sb.AppendLine($",Action={nextActionArgs.NextAction}");
+            }
+
+            AnsiConsole.WriteLine(sb.ToString().EscapeMarkup());
+            //AnsiConsole.MarkupLine($"Your hand:{hand.ToString(hideFirstCard: false, useSymbols: true, includeScore: true, includeBrackets: false, includeResult: false).EscapeMarkup()},Action:{nextActionArgs.NextAction}\n");
         }
 
         private HandAction GetNextActionFromUser(Hand hand) => AnsiConsole.Prompt(

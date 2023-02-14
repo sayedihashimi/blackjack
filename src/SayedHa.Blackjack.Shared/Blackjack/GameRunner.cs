@@ -26,6 +26,8 @@ namespace SayedHa.Blackjack.Shared {
         private ILogger _logger = new NullLogger();
         private GameFactory gameFactory = new GameFactory();
 
+        public event EventHandler NextActionSelected;
+
         public Game CreateNewGame(int numDecks, int numOpponents, ParticipantFactory participantFactory, bool discardFirstCard) {
             var game = gameFactory.CreateNewGame(numDecks, numOpponents, participantFactory, BlackjackSettings.GetBlackjackSettings().ShuffleThresholdPercent, _logger);
 
@@ -110,7 +112,7 @@ namespace SayedHa.Blackjack.Shared {
                 }
 
                 // now play for the dealer
-                PlayForParticipant(game.Dealer, game.Dealer, game.Cards);
+                PlayForParticipant(game.Dealer, game.Dealer, game.Cards, true);
 
                 // now determine the results of the game
                 var dealerScore = game.Dealer.Hands[0].GetScore();
@@ -199,14 +201,19 @@ namespace SayedHa.Blackjack.Shared {
             _ => false
         };
 
-        protected void PlayForParticipant(Participant participant, Participant dealer, CardDeck cards) {
+        protected void PlayForParticipant(Participant participant, Participant dealer, CardDeck cards, bool playForDealer = false) {
             Debug.Assert(participant != null);
             Debug.Assert(participant.Hands != null);
             Debug.Assert(participant.Hands.Count == 1);
             // we need to play the hand for the opponent now
             // if a split occurs, we need to create a new hand and play each hand seperately
             _logger.LogLine($"playing for {participant.Role}");
-            PlayHand(participant.Hands[0], (dealer.Hands[0] as DealerHand)!, participant, cards);
+            if(!playForDealer) {
+                PlayHand(participant.Hands[0], (dealer.Hands[0] as DealerHand)!, participant, cards);
+            }
+            else {
+                PlayHand(participant.Hands[0], (dealer.Hands[0] as DealerHand)!, dealer, cards);
+            }
         }
 
         // returns a list because a hand can be split
@@ -217,6 +224,9 @@ namespace SayedHa.Blackjack.Shared {
 
             var nextAction = participant.Player.GetNextAction(hand, dealerHand);
 
+            bool isDealerHand = hand as DealerHand is object;
+
+            NextActionSelected?.Invoke(this, new NextActionSelectedEventArgs(hand, dealerHand, nextAction, isDealerHand));
             // if the nextAction is to split we need to create two hands and deal a new card to each hand
             if (nextAction == HandAction.Split) {
                 _logger.LogLine($"action = split. Hand={hand}");
@@ -242,16 +252,15 @@ namespace SayedHa.Blackjack.Shared {
             int maxNumIterations = 20;
             int numIterations = 0;
             while (hand.Status != HandStatus.Closed && (numIterations++ < maxNumIterations)) {
-                PlayNextAction(hand, dealerHand, participant, cards);
+                PlayNextAction(nextAction, hand, dealerHand, participant, cards);
             }
 
             return new List<Hand> { hand };
-            // return participant.Hands;
         }
-        protected void PlayNextAction(Hand hand, DealerHand dealerHand, Participant participant, CardDeck cards) {
+        protected void PlayNextAction(HandAction nextAction, Hand hand, DealerHand dealerHand, Participant participant, CardDeck cards) {
             // next action at this point shouldn't be split.
             // splits should have already been taken care of at this point
-            var nextAction = participant.Player.GetNextAction(hand, dealerHand);
+            var isDealerHand = hand as DealerHand is object;
             _logger.LogLine($"  {nextAction}, Hand={hand}");
             switch (nextAction) {
                 case HandAction.Split: throw new ApplicationException("no splits here");
@@ -260,8 +269,10 @@ namespace SayedHa.Blackjack.Shared {
                     break;
                 case HandAction.Hit:
                     hand.ReceiveCard(cards.GetCardAndMoveNext()!);
+                    var newNextAction = participant.Player.GetNextAction(hand, dealerHand);
+                    NextActionSelected?.Invoke(this, new NextActionSelectedEventArgs(hand, dealerHand, newNextAction, isDealerHand));
                     // note: recursion below
-                    PlayNextAction(hand, dealerHand, participant, cards);
+                    PlayNextAction(newNextAction, hand, dealerHand, participant, cards);
                     break;
                 case HandAction.Double:
                     var card = cards.GetCardAndMoveNext()!;
@@ -275,5 +286,17 @@ namespace SayedHa.Blackjack.Shared {
             }
         }
     }
+    public class NextActionSelectedEventArgs : EventArgs {
+        public NextActionSelectedEventArgs(Hand hand, Hand dealerHand, HandAction nextAction, bool isDealerHand) {
+            Hand = hand;
+            DealerHand = dealerHand;
+            NextAction = nextAction;
+            IsDealerHand = isDealerHand;
+        }
 
+        public Hand Hand { get; private init; }
+        public Hand DealerHand { get;private init; }
+        public HandAction NextAction { get; private init; }
+        public bool IsDealerHand { get; private init; }
+    }
 }

@@ -173,10 +173,10 @@ namespace SayedHa.Blackjack.Shared {
             }
             if (includeScore) {
                 if (hideFirstCard) {
-                    sb.Append($" Score=??.");
+                    sb.Append($" Score=??");
                 }
                 else {
-                    sb.Append($" Score={GetScore()}.");
+                    sb.Append($" Score={GetScore()}");
                 }
             }
             if (includeResult) {
