@@ -49,7 +49,7 @@ namespace SayedHa.Blackjack.Shared {
         public bool SplitEnabled { get; protected init; }
 
         // TODO: Need to come up with a better way to do this that doesn't require a func hopefully.
-        public Func<Bankroll,BettingStrategy> CreateBettingStrategy { get; protected init; }
+        public Func<Bankroll,BettingStrategy> CreateBettingStrategy { get; set; }
 
         private List<OpponentPlayStrategy> GetDefaultStrategiesToPlay() => new List<OpponentPlayStrategy>() {
             OpponentPlayStrategy.BasicStrategy,

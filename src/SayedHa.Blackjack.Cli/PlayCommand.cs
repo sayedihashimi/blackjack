@@ -115,10 +115,12 @@ namespace SayedHa.Blackjack.Cli {
                 .AddChoices(new[] { 5, 10, 25, 50, 75, 100 })
             );
 
+            BlackjackSettings.GetBlackjackSettings().CreateBettingStrategy = (bankroll) => new SpectreConsoleBettingStrategy(bankroll);
+
             var gameRunner = new GameRunner(_reporter);
             gameRunner.NextActionSelected += GameRunner_NextActionSelected;
             var bankroll = new Bankroll(initialBankroll, _reporter);
-            var bettingStrategy = SpectreConsoleBettingStrategy.CreateNewDefaultBettingStrategy(bankroll);
+            var bettingStrategy = new SpectreConsoleBettingStrategy(bankroll);
             var pf = new SpectreConsoleParticipantFactory(bettingStrategy, _reporter);
             // TODO: Make this into a setting or similar
             var discardFirstCard = true;
