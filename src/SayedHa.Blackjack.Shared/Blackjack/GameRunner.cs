@@ -151,7 +151,6 @@ namespace SayedHa.Blackjack.Shared {
                     }
                     _logger.LogLine(sb.ToString());
                 }
-
             }
             else {
                 DealerHasBlackjack?.Invoke(this, new DealerHasBlackjackEventArgs());

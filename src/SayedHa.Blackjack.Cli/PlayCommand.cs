@@ -4,6 +4,7 @@ using Spectre.Console;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Diagnostics;
+using System.Globalization;
 using System.Text;
 
 namespace SayedHa.Blackjack.Cli {
@@ -37,17 +38,23 @@ namespace SayedHa.Blackjack.Cli {
         }
 
         private void PlayGame() {
+            // TODO: move this somewhere else
+            // change negative numbers from ($123) to -$123
+            CultureInfo.CurrentCulture = CultureInfo.CurrentCulture.Clone() as CultureInfo;
+            CultureInfo.CurrentCulture.NumberFormat.CurrencyNegativePattern = 1;
+
             var numDecks = AnsiConsole.Prompt(
                 new SelectionPrompt<int>()
                 .Title("How many decks?")
                 .AddChoices(new[] { 2, 4, 6, 8, 10 })
             );
+            AnsiConsole.MarkupLine($"{numDecks} decks");
             var initialBankroll = AnsiConsole.Prompt(
                 new SelectionPrompt<int>()
                 .Title("Initial bankroll?")
                 .AddChoices(new[] { 1000, 10000, 100000 })
             );
-
+            AnsiConsole.MarkupLine($"Initial bankroll: {initialBankroll}");
             var bankroll = new Bankroll(initialBankroll, _reporter);
             var gameRunner = new GameRunner(_reporter);
             gameRunner.NextActionSelected += GameRunner_NextActionSelected;
