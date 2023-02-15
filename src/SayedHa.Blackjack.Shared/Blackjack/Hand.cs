@@ -151,7 +151,7 @@ namespace SayedHa.Blackjack.Shared {
             
             return sb.ToString().Trim();
         }
-        public string ToString(bool hideFirstCard, bool useSymbols,bool includeScore = false,bool includeBrackets = false, bool includeResult = false) {
+        public string ToString(bool hideFirstCard=true, bool useSymbols=true,bool includeScore = false,bool includeBrackets = false, bool includeResult = false) {
             var sb = new StringBuilder();
             if (includeBrackets) {
                 sb.Append("[");

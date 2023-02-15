@@ -1,5 +1,5 @@
-﻿using SayedHa.Blackjack.Shared;
-using SayedHa.Blackjack.Shared.Betting;
+﻿using SayedHa.Blackjack.Cli.Extensions;
+using SayedHa.Blackjack.Shared;
 using Spectre.Console;
 using System.CommandLine;
 using System.CommandLine.Invocation;
@@ -47,11 +47,6 @@ namespace SayedHa.Blackjack.Cli {
                 .Title("Initial bankroll?")
                 .AddChoices(new[] { 1000, 10000, 100000 })
             );
-            //var betAmount = AnsiConsole.Prompt(
-            //    new SelectionPrompt<int>()
-            //    .Title("Initial bankroll?")
-            //    .AddChoices(new[] { 5, 10, 25, 50, 75, 100 })
-            //);
 
             var bankroll = new Bankroll(initialBankroll, _reporter);
             var gameRunner = new GameRunner(_reporter);
@@ -70,11 +65,11 @@ namespace SayedHa.Blackjack.Cli {
                 // print out the results of each hand now.
                 foreach (var hand in gameResult.OpponentHands) {
                     var sb = new StringBuilder();
-                    sb.Append($"Your hand:{hand.ToString(hideFirstCard: false, useSymbols: true, includeScore: true, includeBrackets: false, includeResult: false).EscapeMarkup()}");
-                    sb.AppendLine($",Dealer hand:{game.Dealer.Hands[0].ToString(hideFirstCard: false, useSymbols: true, includeScore: true, includeBrackets: false, includeResult: false).EscapeMarkup()}");
-                    sb.AppendLine($"Result = {hand.HandResult}");
+                    sb.Append($"Your hand:{hand.GetSpectreString(hideFirstCard: false, includeScore: true)}");
+                    sb.AppendLine($",Dealer hand:{game.Dealer.Hands[0].GetSpectreString(hideFirstCard: false, includeScore: true)}");
+                    sb.Append($"Result = {hand.HandResult.ToString()}");
 
-                    AnsiConsole.MarkupLine(sb.ToString().EscapeMarkup());
+                    AnsiConsole.MarkupLine(sb.ToString());
                 }
 
                 AnsiConsole.MarkupLine($"Balance = {gameResult.OpponentRemaining[0].remaining:C0}, Change from original balance:{gameResult.OpponentRemaining[0].diff:C0}");
@@ -101,22 +96,22 @@ namespace SayedHa.Blackjack.Cli {
 
             var sb = new StringBuilder();
             if (!nextActionArgs.IsDealerHand) {
-                sb.Append($"Your hand:{nextActionArgs.Hand.ToString(hideFirstCard: false, useSymbols: true, includeScore: true, includeBrackets: false, includeResult: false).EscapeMarkup()}");
-                sb.Append($",Dealer hand:{nextActionArgs.DealerHand.ToString(hideFirstCard: true, useSymbols: true, includeScore: true, includeBrackets: false, includeResult: false).EscapeMarkup()}");
-                sb.AppendLine($",Action={nextActionArgs.NextAction}");
+                sb.Append($"Your hand:{nextActionArgs.Hand.GetSpectreString(hideFirstCard: false, includeScore: true)}");
+                sb.Append($",Dealer hand:{nextActionArgs.DealerHand.GetSpectreString(hideFirstCard: true, includeScore: true)}");
+                sb.Append($",Action={nextActionArgs.NextAction}");
             }
             else {
                 sb.Append("Dealer playing.");
-                sb.Append($" Dealer hand:{nextActionArgs.DealerHand.ToString(hideFirstCard: false, useSymbols: true, includeScore: true, includeBrackets: false, includeResult: false).EscapeMarkup()}");
-                sb.AppendLine($",Action={nextActionArgs.NextAction}");
+                sb.Append($" Dealer hand:{nextActionArgs.DealerHand.GetSpectreString(hideFirstCard: false, includeScore: true)}");
+                sb.Append($",Action={nextActionArgs.NextAction}");
             }
 
-            AnsiConsole.WriteLine(sb.ToString().EscapeMarkup());
+            AnsiConsole.MarkupLine(sb.ToString());
         }
 
         private HandAction GetNextActionFromUser(Hand hand) => AnsiConsole.Prompt(
             new SelectionPrompt<HandAction>()
-            .Title($"Your hand:{hand.ToString(hideFirstCard: false, useSymbols: true, includeScore: true, includeBrackets: false, includeResult: false).EscapeMarkup()}\nSelect your next action.")
+            .Title($"Your hand:{hand.GetSpectreString(hideFirstCard: false, includeScore: true)}\nSelect your next action.")
             .AddChoices(new[] { HandAction.Stand, HandAction.Hit, HandAction.Double, HandAction.Split })
             );
 

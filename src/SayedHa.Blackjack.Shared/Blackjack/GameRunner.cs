@@ -75,8 +75,6 @@ namespace SayedHa.Blackjack.Shared {
                 throw new ApplicationException();
             }
 
-            // TODO: move this
-            // int betAmount = 5;
             Card? tempCard = null;
             // deal two cards to each opponent
             // TODO: move index to participant, maybe make a name property or something
@@ -107,6 +105,7 @@ namespace SayedHa.Blackjack.Shared {
             //  3) Regular play
 
             var bjPayoutMultiplier = BlackjackSettings.GetBlackjackSettings().BlackjackPayoutMultplier;
+            // check to see if the dealer has blackjack and if so end the game.
             if (!IsHandBlackjack(dealerHand)) {
                 // play each opponent now
                 foreach (var opponent in game.Opponents) {
