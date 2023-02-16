@@ -29,6 +29,7 @@ namespace SayedHa.Blackjack.Shared {
         public event EventHandler NextActionSelected;
         public event EventHandler DealerHasBlackjack;
         public event EventHandler PlayerHasBlackjack;
+        public event EventHandler BetAmountConfigured;
 
         public Game CreateNewGame(int numDecks, int numOpponents, ParticipantFactory participantFactory, bool discardFirstCard) {
             var game = gameFactory.CreateNewGame(numDecks, numOpponents, participantFactory, BlackjackSettings.GetBlackjackSettings().ShuffleThresholdPercent, _logger);
@@ -81,6 +82,7 @@ namespace SayedHa.Blackjack.Shared {
             int index = 1;
             foreach (var opponent in game.Opponents) {
                 int betAmount = opponent.BettingStrategy.GetNextBetAmount(game);
+                BetAmountConfigured?.Invoke(this, new BetAmountConfiguredEventArgs(betAmount));
                 var newhand = new Hand(betAmount, _logger);
                 tempCard = newhand.ReceiveCard(game.Cards.GetCardAndMoveNext()!);
                 tempCard = newhand.ReceiveCard(game.Cards.GetCardAndMoveNext()!);
@@ -315,5 +317,12 @@ namespace SayedHa.Blackjack.Shared {
     }
     public class PlayerHasBlackjackEventArgs : EventArgs {
 
+    }
+    public class BetAmountConfiguredEventArgs : EventArgs {
+        public BetAmountConfiguredEventArgs(int betAmount) {
+            BetAmount = betAmount;
+        }
+
+        public int BetAmount { get; set; }
     }
 }

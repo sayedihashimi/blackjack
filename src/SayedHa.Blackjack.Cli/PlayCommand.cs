@@ -54,12 +54,14 @@ namespace SayedHa.Blackjack.Cli {
                 .Title("Initial bankroll?")
                 .AddChoices(new[] { 1000, 10000, 100000 })
             );
-            AnsiConsole.MarkupLine($"Initial bankroll: {initialBankroll}");
+            AnsiConsole.MarkupLine($"Initial bankroll: [green]{initialBankroll:C0}[/]");
             var bankroll = new Bankroll(initialBankroll, _reporter);
             var gameRunner = new GameRunner(_reporter);
+            // connect event handlers
             gameRunner.NextActionSelected += GameRunner_NextActionSelected;
             gameRunner.DealerHasBlackjack += GameRunner_DealerHasBlackjack;
             gameRunner.PlayerHasBlackjack += GameRunner_PlayerHasBlackjack;
+            gameRunner.BetAmountConfigured += GameRunner_BetAmountConfigured;
             var bettingStrategy = new SpectreConsoleBettingStrategy(bankroll);
             var pf = new SpectreConsoleParticipantFactory(bettingStrategy, _reporter);
             BlackjackSettings.GetBlackjackSettings().CreateBettingStrategy = (bankroll) => new SpectreConsoleBettingStrategy(bankroll);
@@ -81,6 +83,13 @@ namespace SayedHa.Blackjack.Cli {
 
                 AnsiConsole.MarkupLine($"Balance = {gameResult.OpponentRemaining[0].remaining:C0}, Change from original balance:{gameResult.OpponentRemaining[0].diff:C0}");
             } while (KeepPlaying());
+        }
+
+        private void GameRunner_BetAmountConfigured(object sender, EventArgs e) {
+            BetAmountConfiguredEventArgs be = e as BetAmountConfiguredEventArgs;
+            if(be is object) {
+                AnsiConsole.MarkupLine($"Bet amount: [green]{be.BetAmount:C0}[/]");
+            }
         }
 
         private bool KeepPlaying() => AnsiConsole.Confirm("Keep playing?");
