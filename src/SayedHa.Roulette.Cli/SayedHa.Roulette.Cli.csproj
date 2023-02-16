@@ -12,8 +12,8 @@
 		<Copyright>Copyright 2022 © Sayed Ibrahim Hashimi. All rights reserved.</Copyright>
 		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
 		<PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
-		<PackageProjectUrl>https://github.com/sayedihashimi/sayedha.commands</PackageProjectUrl>
-		<RepositoryUrl>https://github.com/sayedihashimi/sayedha.commands</RepositoryUrl>
+		<PackageProjectUrl>https://github.com/sayedihashimi/blackjack</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/sayedihashimi/blackjack</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<PackageType>DotNetCliTool</PackageType>
     <PackageReadmeFile>README.md</PackageReadmeFile>

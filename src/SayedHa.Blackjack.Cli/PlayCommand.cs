@@ -90,7 +90,7 @@ namespace SayedHa.Blackjack.Cli {
                     // AnsiConsole.MarkupLine(sb.ToString());
                 }
 
-                AnsiConsole.MarkupLine($"Balance = {gameResult.OpponentRemaining[0].remaining:C0}, Change from original balance:{gameResult.OpponentRemaining[0].diff:C0}");
+                // AnsiConsole.MarkupLine($"Balance = {gameResult.OpponentRemaining[0].remaining:C0}, Change from original balance:{gameResult.OpponentRemaining[0].diff:C0}");
             } while (KeepPlaying());
         }
 

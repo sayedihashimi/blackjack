@@ -12,11 +12,11 @@
 		<Copyright>Copyright 2022 © Sayed Ibrahim Hashimi. All rights reserved.</Copyright>
 		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
 		<PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
-		<PackageProjectUrl>https://github.com/sayedihashimi/sayedha.commands</PackageProjectUrl>
-		<RepositoryUrl>https://github.com/sayedihashimi/sayedha.commands</RepositoryUrl>
+		<PackageProjectUrl>https://github.com/sayedihashimi/blackjack</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/sayedihashimi/blackjack</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<PackageType>DotNetCliTool</PackageType>
-
+    <PackageReadmeFile>README.md</PackageReadmeFile>
 		<!-- tool related properties -->
 		<PackAsTool>true</PackAsTool>
 		<ToolCommandName>blackjack</ToolCommandName>
@@ -29,6 +29,7 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\SayedHa.Blackjack.Shared\SayedHa.Blackjack.Shared.csproj" />
+    <None Include="README.md" Pack="true" PackagePath="\"/>
 	</ItemGroup>
 
 	<Target Name="InstallTool" DependsOnTargets="Pack">

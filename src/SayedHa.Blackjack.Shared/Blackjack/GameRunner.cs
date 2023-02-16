@@ -117,7 +117,7 @@ namespace SayedHa.Blackjack.Shared {
 
             var bjPayoutMultiplier = BlackjackSettings.GetBlackjackSettings().BlackjackPayoutMultplier;
             // check to see if the dealer has blackjack and if so end the game.
-            if (!IsHandBlackjack(dealerHand)) {
+            if (!DoesDealerHaveBlackjack(dealerHand)) {
                 // play each opponent now
                 foreach (var opponent in game.Opponents) {
                     PlayForParticipant(opponent, game.Dealer, game.Cards);
@@ -207,14 +207,14 @@ namespace SayedHa.Blackjack.Shared {
         /// </summary>
         /// <param name="dealerHand"></param>
         /// <returns></returns>
-        private bool IsHandBlackjack(Hand dealerHand) => (dealerHand.DealtCards[0].Number, dealerHand.DealtCards[1].Number) switch {
+        private bool DoesDealerHaveBlackjack(Hand dealerHand) => (dealerHand.DealtCards[0].Number, dealerHand.DealtCards[1].Number) switch {
             (CardNumber.Ace, CardNumber.Ten) => true,
             (CardNumber.Ace, CardNumber.Jack) => true,
             (CardNumber.Ace, CardNumber.Queen) => true,
             (CardNumber.Ace, CardNumber.King) => true,
             _ => false
         };
-
+        
         protected void PlayForParticipant(Participant participant, Participant dealer, CardDeck cards, bool playForDealer = false) {
             Debug.Assert(participant != null);
             Debug.Assert(participant.Hands != null);
@@ -237,7 +237,11 @@ namespace SayedHa.Blackjack.Shared {
             Debug.Assert(participant != null);
             Debug.Assert(cards != null);
 
-            if(IsHandBlackjack(hand)) {
+            if(DoesHandHaveBlackjack(hand)) {
+
+            }
+
+            if(DoesDealerHaveBlackjack(hand)) {
                 var bjPayoutMultiplier = BlackjackSettings.GetBlackjackSettings().BlackjackPayoutMultplier;
                 hand.SetHandResult(HandResult.OpponentWon);
                 participant.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet * bjPayoutMultiplier, participant.Name);
