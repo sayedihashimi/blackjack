@@ -5,6 +5,8 @@ using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Diagnostics;
 using System.Globalization;
+using System.Reflection.Metadata;
+using System.Runtime.ConstrainedExecution;
 using System.Text;
 
 namespace SayedHa.Blackjack.Cli {
@@ -62,12 +64,15 @@ namespace SayedHa.Blackjack.Cli {
             gameRunner.DealerHasBlackjack += GameRunner_DealerHasBlackjack;
             gameRunner.PlayerHasBlackjack += GameRunner_PlayerHasBlackjack;
             gameRunner.BetAmountConfigured += GameRunner_BetAmountConfigured;
+            gameRunner.CardReceived += GameRunner_CardReceived;
+
             var bettingStrategy = new SpectreConsoleBettingStrategy(bankroll);
             var pf = new SpectreConsoleParticipantFactory(bettingStrategy, _reporter);
             BlackjackSettings.GetBlackjackSettings().CreateBettingStrategy = (bankroll) => new SpectreConsoleBettingStrategy(bankroll);
             // TODO: Make this into a setting or similar
             var discardFirstCard = true;
             var game = gameRunner.CreateNewGame(numDecks, 1, pf, discardFirstCard);
+            PrintUI(game, ShouldHideFirstCard(game));
             do {
                 var gameResult = gameRunner.PlayGame(game);
 
@@ -85,9 +90,50 @@ namespace SayedHa.Blackjack.Cli {
             } while (KeepPlaying());
         }
 
+        private void GameRunner_CardReceived(object sender, EventArgs e) {
+            var ge = e as GameEventArgs;
+            if(ge is object) {
+                PrintUI(ge.Game, ShouldHideFirstCard(ge.Game));
+            }
+        }
+        private bool ShouldHideFirstCard(Game game) => game.Status switch {
+            GameStatus.InPlay => true,
+            GameStatus.DealerPlaying => false,
+            GameStatus.Finished => false,
+            _ => throw new ApplicationException($"Unknown value for GameStatus: '{game.Status}'")
+        };
+
+        private void PrintUI(Game game, bool hideDealerFirstCard) {
+            Debug.Assert(game != null);
+            Debug.Assert(game.Opponents?.Count > 0);
+            Debug.Assert(game.Dealer != null);
+
+            Console.Clear();
+            var cardTable = new Table();
+            foreach(var player in  game.Opponents) {
+                cardTable.AddColumn(new TableColumn($"{player.Name} cards"));
+                if(player.Hands?.Count > 0) {
+                    foreach (var hand in player.Hands) {
+                        var cardsStr = hand.GetSpectreString(hideFirstCard: false);
+                        cardTable.AddRow(new Panel(cardsStr));
+                    }
+                }
+            }
+            AnsiConsole.Write(cardTable);
+            // dealer table
+            var dealerCardsTable = new Table();
+            dealerCardsTable.AddColumn(new TableColumn($"Dealer cards"));
+            if(game.Dealer?.Hands?.Count > 0) {
+                var dealerCardsStr = game.Dealer.Hands[0].GetSpectreString(hideFirstCard: true);
+                dealerCardsTable.AddRow(new Panel(dealerCardsStr));
+            }
+            AnsiConsole.Write(dealerCardsTable);
+        }
+
         private void GameRunner_BetAmountConfigured(object sender, EventArgs e) {
             BetAmountConfiguredEventArgs be = e as BetAmountConfiguredEventArgs;
             if(be is object) {
+                PrintUI(be.Game, ShouldHideFirstCard(be.Game));
                 AnsiConsole.MarkupLine($"Bet amount: [green]{be.BetAmount:C0}[/]");
             }
         }
@@ -95,10 +141,18 @@ namespace SayedHa.Blackjack.Cli {
         private bool KeepPlaying() => AnsiConsole.Confirm("Keep playing?");
 
         private void GameRunner_PlayerHasBlackjack(object sender, EventArgs e) {
+            var ge = e as GameEventArgs;
+            if(ge is object) {
+                PrintUI(ge.Game,ShouldHideFirstCard(ge.Game));
+            }
             AnsiConsole.MarkupLine($"[red]Player has blackjack[/]");
         }
 
         private void GameRunner_DealerHasBlackjack(object sender, EventArgs e) {
+            var ge = e as GameEventArgs;
+            if (ge is object) {
+                PrintUI(ge.Game, ShouldHideFirstCard(ge.Game));
+            }
             AnsiConsole.MarkupLine($"[red]Dealer has blackjack[/]");
         }
 
@@ -123,13 +177,17 @@ namespace SayedHa.Blackjack.Cli {
             }
 
             AnsiConsole.MarkupLine(sb.ToString());
+            var ge = e as GameEventArgs;
+            if (ge is object) {
+                PrintUI(ge.Game, ShouldHideFirstCard(ge.Game));
+            }
         }
 
-        private HandAction GetNextActionFromUser(Hand hand) => AnsiConsole.Prompt(
-            new SelectionPrompt<HandAction>()
-            .Title($"Your hand:{hand.GetSpectreString(hideFirstCard: false, includeScore: true)}\nSelect your next action.")
-            .AddChoices(new[] { HandAction.Stand, HandAction.Hit, HandAction.Double, HandAction.Split })
-            );
+        //private HandAction GetNextActionFromUser(Hand hand) => AnsiConsole.Prompt(
+        //    new SelectionPrompt<HandAction>()
+        //    .Title($"Your hand:{hand.GetSpectreString(hideFirstCard: false, includeScore: true)}\nSelect your next action.")
+        //    .AddChoices(new[] { HandAction.Stand, HandAction.Hit, HandAction.Double, HandAction.Split })
+        //    );
 
         private int GetNumDecks() {
             var numDecks = AnsiConsole.Prompt(

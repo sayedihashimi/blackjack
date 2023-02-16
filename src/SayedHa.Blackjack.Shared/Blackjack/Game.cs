@@ -39,6 +39,7 @@ namespace SayedHa.Blackjack.Shared {
     }
     public enum GameStatus {
         InPlay,
+        DealerPlaying,
         Finished
     }
 
