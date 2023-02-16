@@ -101,13 +101,14 @@ namespace SayedHa.Blackjack.Shared {
 
             // deal two cards to the dealer
             var dealerHand = new DealerHand(_logger);
+            game.Dealer.Hands.Add(dealerHand);
             tempCard = dealerHand.ReceiveCard(game.Cards.GetCardAndMoveNext()!);
             CardReceived?.Invoke(this, new CardReceivedEventArgs(game));
             tempCard = dealerHand.ReceiveCard(game.Cards.GetCardAndMoveNext()!);
             CardReceived?.Invoke(this, new CardReceivedEventArgs(game));
 
             _logger.LogLine($"Dealing to Dealer: {dealerHand} (2nd card visible)");
-            game.Dealer.Hands.Add(dealerHand);
+            
 
             // TODO: Change how the flow works should be more like:
             //  1) Does dealer have blackjack? => game over
@@ -164,6 +165,7 @@ namespace SayedHa.Blackjack.Shared {
                 }
             }
             else {
+                game.Status = GameStatus.Finished;
                 DealerHasBlackjack?.Invoke(this, new DealerHasBlackjackEventArgs(game));
                 foreach (var op in game.Opponents) {
                     foreach (var hand in op.Hands) {
@@ -176,7 +178,6 @@ namespace SayedHa.Blackjack.Shared {
                 }
             }
 
-            var gameResults = new List<GameResult>();
             var allHands = new List<Hand>();
             foreach (var op in game.Opponents) {
                 allHands.AddRange(op.Hands);
@@ -185,8 +186,8 @@ namespace SayedHa.Blackjack.Shared {
                     op.AllHands.AddLast(hand);
                 }
             }
-            game.Status = GameStatus.Finished;
 
+            game.Status = GameStatus.Finished;
             return new GameResult(game.Dealer.Hands[0], allHands,game.Dealer, game.Opponents);
         }
 
@@ -291,6 +292,7 @@ namespace SayedHa.Blackjack.Shared {
                 case HandAction.Split: throw new ApplicationException("no splits here");
                 case HandAction.Stand:
                     hand.MarkHandAsClosed();
+                    NextActionSelected?.Invoke(this, new NextActionSelectedEventArgs(CurrentGame, hand, dealerHand, HandAction.Stand, isDealerHand));
                     break;
                 case HandAction.Hit:
                     hand.ReceiveCard(cards.GetCardAndMoveNext()!);
@@ -307,6 +309,7 @@ namespace SayedHa.Blackjack.Shared {
                     hand.MarkHandAsClosed();
                     CardReceived?.Invoke(this, new CardReceivedEventArgs(CurrentGame));
                     _logger.LogLine($"    Hit, Hand={hand}, Bet=${hand.Bet:F0}");
+                    NextActionSelected?.Invoke(this, new NextActionSelectedEventArgs(CurrentGame, hand, dealerHand, HandAction.Double, isDealerHand));
                     break;
                 default:
                     throw new ApplicationException($"unknown value for nextAction:'{nextAction}'");

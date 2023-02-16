@@ -14,6 +14,8 @@ namespace SayedHa.Blackjack.Cli {
         /// TODO: move this to CommandBase
         private readonly IReporter _reporter;
 
+        private int NumDecks { get; set; }
+
         public PlayCommand(IReporter reporter) {
             _reporter = reporter;
         }
@@ -45,12 +47,13 @@ namespace SayedHa.Blackjack.Cli {
             CultureInfo.CurrentCulture = CultureInfo.CurrentCulture.Clone() as CultureInfo;
             CultureInfo.CurrentCulture.NumberFormat.CurrencyNegativePattern = 1;
 
-            var numDecks = AnsiConsole.Prompt(
+            NumDecks = AnsiConsole.Prompt(
                 new SelectionPrompt<int>()
                 .Title("How many decks?")
                 .AddChoices(new[] { 2, 4, 6, 8, 10 })
             );
-            AnsiConsole.MarkupLine($"{numDecks} decks");
+
+            AnsiConsole.MarkupLine($"{NumDecks} decks");
             var initialBankroll = AnsiConsole.Prompt(
                 new SelectionPrompt<int>()
                 .Title("Initial bankroll?")
@@ -71,31 +74,34 @@ namespace SayedHa.Blackjack.Cli {
             BlackjackSettings.GetBlackjackSettings().CreateBettingStrategy = (bankroll) => new SpectreConsoleBettingStrategy(bankroll);
             // TODO: Make this into a setting or similar
             var discardFirstCard = true;
-            var game = gameRunner.CreateNewGame(numDecks, 1, pf, discardFirstCard);
+            var game = gameRunner.CreateNewGame(NumDecks, 1, pf, discardFirstCard);
             PrintUI(game, ShouldHideFirstCard(game));
             do {
                 var gameResult = gameRunner.PlayGame(game);
-
+                PrintUI(game, false);
                 // print out the results of each hand now.
                 foreach (var hand in gameResult.OpponentHands) {
                     var sb = new StringBuilder();
-                    sb.Append($"Your hand:{hand.GetSpectreString(hideFirstCard: false, includeScore: true)}");
+                    sb.Append($"Your hand2:{hand.GetSpectreString(hideFirstCard: false, includeScore: true)}");
                     sb.AppendLine($",Dealer hand:{game.Dealer.Hands[0].GetSpectreString(hideFirstCard: false, includeScore: true)}");
                     sb.Append($"Result = {hand.HandResult.ToString()}");
 
-                    AnsiConsole.MarkupLine(sb.ToString());
+                    AnsiConsole.MarkupLine(GetResultSpectreString(hand.HandResult));
+                    // AnsiConsole.MarkupLine(sb.ToString());
                 }
 
                 AnsiConsole.MarkupLine($"Balance = {gameResult.OpponentRemaining[0].remaining:C0}, Change from original balance:{gameResult.OpponentRemaining[0].diff:C0}");
             } while (KeepPlaying());
         }
 
-        private void GameRunner_CardReceived(object sender, EventArgs e) {
-            var ge = e as GameEventArgs;
-            if(ge is object) {
-                PrintUI(ge.Game, ShouldHideFirstCard(ge.Game));
-            }
-        }
+        private string GetResultSpectreString(HandResult handResult) => handResult switch {
+            HandResult.OpponentWon => "[bold green]You won[/]",
+            HandResult.DealerWon => "[bold red]Dealer won[/]",
+            HandResult.Push => "[bold green]Push ==[/]",
+            HandResult.InPlay => "In play",
+            
+            _ => throw new ApplicationException($"Unknown value for HandResult: '{handResult}'")
+        };
         private bool ShouldHideFirstCard(Game game) => game.Status switch {
             GameStatus.InPlay => true,
             GameStatus.DealerPlaying => false,
@@ -108,38 +114,73 @@ namespace SayedHa.Blackjack.Cli {
             Debug.Assert(game.Opponents?.Count > 0);
             Debug.Assert(game.Dealer != null);
 
+            if(game.Opponents?.Count == 0 || game.Opponents?[0].Hands?.Count == 0 || game.Opponents?[0].Hands?[0].DealtCards?.Count == 0) {
+                // wait until the hand is initialized to start printing the ui
+                return;
+            }
+
             Console.Clear();
+
+            var containerTable = new Table();
+            containerTable.AddColumn("Player");
+            containerTable.AddColumn("Dealer");
+            containerTable.AddColumn("Stats");
+
             var cardTable = new Table();
+            var cardsSb = new StringBuilder();
             foreach(var player in  game.Opponents) {
                 cardTable.AddColumn(new TableColumn($"{player.Name} cards"));
                 if(player.Hands?.Count > 0) {
                     foreach (var hand in player.Hands) {
                         var cardsStr = hand.GetSpectreString(hideFirstCard: false);
+                        cardsSb.AppendLine(cardsStr);
                         cardTable.AddRow(new Panel(cardsStr));
                     }
                 }
             }
-            AnsiConsole.Write(cardTable);
+
             // dealer table
             var dealerCardsTable = new Table();
+            string dealerCardsStr = string.Empty;
             dealerCardsTable.AddColumn(new TableColumn($"Dealer cards"));
             if(game.Dealer?.Hands?.Count > 0) {
-                var dealerCardsStr = game.Dealer.Hands[0].GetSpectreString(hideFirstCard: true);
+                dealerCardsStr = game.Dealer.Hands[0].GetSpectreString(hideFirstCard: hideDealerFirstCard);
                 dealerCardsTable.AddRow(new Panel(dealerCardsStr));
             }
-            AnsiConsole.Write(dealerCardsTable);
-        }
 
-        private void GameRunner_BetAmountConfigured(object sender, EventArgs e) {
-            BetAmountConfiguredEventArgs be = e as BetAmountConfiguredEventArgs;
-            if(be is object) {
-                PrintUI(be.Game, ShouldHideFirstCard(be.Game));
-                AnsiConsole.MarkupLine($"Bet amount: [green]{be.BetAmount:C0}[/]");
+            // stats
+            var statsTable = new Table();
+            statsTable.AddColumn("");
+            statsTable.AddColumn("");
+            var bankroll = game.Opponents?[0]?.BettingStrategy?.Bankroll;
+            if(bankroll != null) {
+                statsTable.AddRow(new[] { "Number of decks", NumDecks.ToString() });
+                statsTable.AddRow(new[] { "Initial bankroll", bankroll.InitialBankroll.ToString("C0") });
+                statsTable.AddRow(new[] { "Current bankroll", $"{bankroll.DollarsRemaining:C0} ({bankroll.DollarsRemaining - bankroll.InitialBankroll:C0})" });
+                statsTable.ShowHeaders = false;
             }
+            
+
+            containerTable.AddRow(new Panel(cardsSb.ToString()),new Panel(dealerCardsStr), statsTable);
+            // containerTable.AddRow(cardTable, dealerCardsTable);
+            AnsiConsole.Write(containerTable);
         }
 
         private bool KeepPlaying() => AnsiConsole.Confirm("Keep playing?");
 
+        private void GameRunner_CardReceived(object sender, EventArgs e) {
+            var ge = e as GameEventArgs;
+            if (ge is object) {
+                PrintUI(ge.Game, ShouldHideFirstCard(ge.Game));
+            }
+        }
+        private void GameRunner_BetAmountConfigured(object sender, EventArgs e) {
+            BetAmountConfiguredEventArgs be = e as BetAmountConfiguredEventArgs;
+            if (be is object) {
+                PrintUI(be.Game, ShouldHideFirstCard(be.Game));
+                AnsiConsole.MarkupLine($"Bet amount: [green]{be.BetAmount:C0}[/]");
+            }
+        }
         private void GameRunner_PlayerHasBlackjack(object sender, EventArgs e) {
             var ge = e as GameEventArgs;
             if(ge is object) {
@@ -166,7 +207,7 @@ namespace SayedHa.Blackjack.Cli {
 
             var sb = new StringBuilder();
             if (!nextActionArgs.IsDealerHand) {
-                sb.Append($"Your hand:{nextActionArgs.Hand.GetSpectreString(hideFirstCard: false, includeScore: true)}");
+                sb.Append($"Your hand3:{nextActionArgs.Hand.GetSpectreString(hideFirstCard: false, includeScore: true)}");
                 sb.Append($",Dealer hand:{nextActionArgs.DealerHand.GetSpectreString(hideFirstCard: true, includeScore: true)}");
                 sb.Append($",Action={nextActionArgs.NextAction}");
             }

@@ -8,8 +8,7 @@ namespace SayedHa.Blackjack.Cli {
         bool IncludeScoreInOutput { get;set; } = true;
         public override HandAction GetNextAction(Hand hand, DealerHand dealerHand) => AnsiConsole.Prompt(
             new SelectionPrompt<HandAction>()
-            .Title($@"Your hand:{hand.GetSpectreString(hideFirstCard: false, includeScore: IncludeScoreInOutput)} Dealer hand: {dealerHand.ToString(hideFirstCard: true)}
-Select your next action.")
+            .Title($@"Select your next action.")
             .AddChoices(new[] { HandAction.Stand, HandAction.Hit, HandAction.Double, HandAction.Split })
             );
     }
