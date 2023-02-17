@@ -68,6 +68,7 @@ namespace SayedHa.Blackjack.Shared {
             Debug.Assert(game != null);
             Debug.Assert(game.Cards != null);
 
+            game.Status = GameStatus.InPlay;
             // need to reset the hands
             game.Dealer.Hands.Clear();
             foreach(var op in game.Opponents) {

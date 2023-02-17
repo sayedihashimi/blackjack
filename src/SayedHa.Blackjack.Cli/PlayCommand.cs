@@ -76,7 +76,6 @@ namespace SayedHa.Blackjack.Cli {
             var game = gameRunner.CreateNewGame(NumDecks, 1, pf, discardFirstCard);
             PrintUI(game, ShouldHideFirstCard(game));
             do {
-                game.Status = GameStatus.InPlay;
                 var gameResult = gameRunner.PlayGame(game);
                 PrintUI(game, false);
             } while (KeepPlaying());
@@ -161,6 +160,12 @@ namespace SayedHa.Blackjack.Cli {
                 statsTable.AddRow(new[] { "Initial bankroll", bankroll.InitialBankroll.ToString("C0") });
                 statsTable.AddRow(new[] { "Current bankroll", $"{bankroll.DollarsRemaining:C0} ({bankroll.DollarsRemaining - bankroll.InitialBankroll:C0})" });
                 statsTable.AddRow(new[] { "[bold green]Current bet:[/]",$"[bold green]{BetAmount:C0}[/]"});
+
+                var remainingCardsBarChart = new BarChart()
+                    .Width(60)
+                    .WithMaxValue(game.Cards.GetTotalNumCards())
+                    .AddItem("Remaining deck",game.Cards.GetNumRemainingCards(), Color.Orange1);
+                statsTable.AddRow(remainingCardsBarChart);
             }
             statsTable.Border = TableBorder.None;
 
