@@ -129,9 +129,11 @@ namespace SayedHa.Blackjack.Shared {
             return sumSingleValueCards;
         }
 
-        public IList<HandAction> GetValidActions() => (this.Status,this.GetScore()) switch {
-            (HandStatus.Closed, _) => new List<HandAction>() { HandAction.Stand },
-            (_, > 21) => new List<HandAction>() { HandAction.Stand },
+        public IList<HandAction> GetValidActions() => (this.Status,this.GetScore(),this.DealtCards.Count) switch {
+            (HandStatus.Closed, _, _) => new List<HandAction>() { HandAction.Stand },
+            (_, >= 21, _) => new List<HandAction>() { HandAction.Stand },
+            (HandStatus.InPlay, <21, <=2) => new List<HandAction> { HandAction.Stand,HandAction.Hit, HandAction.Double, HandAction.Split},
+            (HandStatus.InPlay, <21, >2) => new List<HandAction> { HandAction.Stand, HandAction.Hit },
             _ => throw new NotImplementedException()
         };
         public override string ToString() {

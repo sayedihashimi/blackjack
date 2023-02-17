@@ -15,7 +15,7 @@ namespace SayedHa.Blackjack.Cli {
             return AnsiConsole.Prompt(
             new SelectionPrompt<HandAction>()
             .Title($@"Select your next action. ({hand.GetSpectreString(false, includeScore: true)})")
-            .AddChoices(new[] { HandAction.Stand, HandAction.Hit, HandAction.Double, HandAction.Split })
+            .AddChoices(hand.GetValidActions().ToArray())
             );
         }
     }
