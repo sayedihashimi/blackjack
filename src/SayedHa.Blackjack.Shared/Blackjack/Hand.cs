@@ -35,14 +35,6 @@ namespace SayedHa.Blackjack.Shared {
             Bet = bet;
             _logger = logger ?? new NullLogger();
         }
-        //public Hand(List<Card> cards) {
-        //    Debug.Assert(cards != null);
-        //    if (cards != null && cards.Count > 0) {
-        //        foreach (var card in cards) {
-        //            ReceiveCard(card);
-        //        }
-        //    }
-        //}
 
         // TODO: Still not sure if this property is needed, let's see.
         public HandStatus Status { get; protected set; } = HandStatus.InPlay;
@@ -137,6 +129,11 @@ namespace SayedHa.Blackjack.Shared {
             return sumSingleValueCards;
         }
 
+        public IList<HandAction> GetValidActions() => (this.Status,this.GetScore()) switch {
+            (HandStatus.Closed, _) => new List<HandAction>() { HandAction.Stand },
+            (_, > 21) => new List<HandAction>() { HandAction.Stand },
+            _ => throw new NotImplementedException()
+        };
         public override string ToString() {
             var sb = new StringBuilder();
             sb.Append("[");

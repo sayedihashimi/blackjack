@@ -30,10 +30,17 @@ namespace SayedHa.Blackjack.Cli.Extensions {
                 }
             }
             if (includeResult) {
-                sb.Append($" Result={hand.HandResult}");
+                sb.Append($" [bold]({GetSpectreHandResultString(hand.HandResult)})[/]");
             }
 
             return sb.ToString().Trim();
         }
+        public static string GetSpectreHandResultString(this HandResult handResult) => handResult switch {
+            HandResult.InPlay => "In play",
+            HandResult.Push => "Push",
+            HandResult.DealerWon => "Dealer won",
+            HandResult.OpponentWon => "You won",
+            _ => throw new ApplicationException($"Unknown value for HandResult: '{handResult}'")
+        };
     }
 }

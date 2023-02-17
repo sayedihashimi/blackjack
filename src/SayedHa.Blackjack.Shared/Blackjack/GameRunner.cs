@@ -103,7 +103,7 @@ namespace SayedHa.Blackjack.Shared {
             var dealerHand = new DealerHand(_logger);
             game.Dealer.Hands.Add(dealerHand);
             tempCard = dealerHand.ReceiveCard(game.Cards.GetCardAndMoveNext()!);
-            CardReceived?.Invoke(this, new CardReceivedEventArgs(game));
+            CardReceived?.Invoke(this, new CardReceivedEventArgs(game,updateUi: false));
             tempCard = dealerHand.ReceiveCard(game.Cards.GetCardAndMoveNext()!);
             CardReceived?.Invoke(this, new CardReceivedEventArgs(game));
 
@@ -208,10 +208,10 @@ namespace SayedHa.Blackjack.Shared {
         /// <param name="dealerHand"></param>
         /// <returns></returns>
         private bool DoesDealerHaveBlackjack(Hand dealerHand) => (dealerHand.DealtCards[0].Number, dealerHand.DealtCards[1].Number) switch {
-            (CardNumber.Ace, CardNumber.Ten) => true,
-            (CardNumber.Ace, CardNumber.Jack) => true,
-            (CardNumber.Ace, CardNumber.Queen) => true,
-            (CardNumber.Ace, CardNumber.King) => true,
+            (CardNumber.Ten, CardNumber.Ace) => true,
+            (CardNumber.Jack, CardNumber.Ace) => true,
+            (CardNumber.Queen, CardNumber.Ace) => true,
+            (CardNumber.King, CardNumber.Ace) => true,
             _ => false
         };
         
@@ -238,10 +238,6 @@ namespace SayedHa.Blackjack.Shared {
             Debug.Assert(cards != null);
 
             if(DoesHandHaveBlackjack(hand)) {
-
-            }
-
-            if(DoesDealerHaveBlackjack(hand)) {
                 var bjPayoutMultiplier = BlackjackSettings.GetBlackjackSettings().BlackjackPayoutMultplier;
                 hand.SetHandResult(HandResult.OpponentWon);
                 participant.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet * bjPayoutMultiplier, participant.Name);
@@ -250,10 +246,8 @@ namespace SayedHa.Blackjack.Shared {
                 return new List<Hand> { hand };
             }
 
-            var nextAction = participant.Player.GetNextAction(hand, dealerHand);
-
             bool isDealerHand = hand as DealerHand is object;
-
+            var nextAction = participant.Player.GetNextAction(hand, dealerHand);
             NextActionSelected?.Invoke(this, new NextActionSelectedEventArgs(CurrentGame,hand, dealerHand, nextAction, isDealerHand));
             // if the nextAction is to split we need to create two hands and deal a new card to each hand
             if (nextAction == HandAction.Split) {
@@ -266,7 +260,7 @@ namespace SayedHa.Blackjack.Shared {
 
                 // deal a card to each hand now
                 hand.ReceiveCard(cards.GetCardAndMoveNext()!);
-                CardReceived?.Invoke(this, new CardReceivedEventArgs(CurrentGame));
+                CardReceived?.Invoke(this, new CardReceivedEventArgs(CurrentGame, updateUi: false));
                 newHand.ReceiveCard(cards.GetCardAndMoveNext()!);
                 CardReceived?.Invoke(this, new CardReceivedEventArgs(CurrentGame));
 
@@ -300,7 +294,7 @@ namespace SayedHa.Blackjack.Shared {
                     break;
                 case HandAction.Hit:
                     hand.ReceiveCard(cards.GetCardAndMoveNext()!);
-                    CardReceived?.Invoke(this, new CardReceivedEventArgs(CurrentGame));
+                    CardReceived?.Invoke(this, new CardReceivedEventArgs(CurrentGame, !isDealerHand));
                     var newNextAction = participant.Player.GetNextAction(hand, dealerHand);
                     NextActionSelected?.Invoke(this, new NextActionSelectedEventArgs(CurrentGame, hand, dealerHand, newNextAction, isDealerHand));
                     // note: recursion below
@@ -334,11 +328,14 @@ namespace SayedHa.Blackjack.Shared {
         public bool IsDealerHand { get; private init; }
     }
     public class GameEventArgs : EventArgs {
-        public GameEventArgs(Game game) {
+        public GameEventArgs(Game game) : this(game, true) { }
+        public GameEventArgs(Game game, bool updateUi) {
             Game = game;
+            UpdateUi = updateUi;
         }
 
         public Game Game { get; set; }
+        public bool UpdateUi { get; set; }
     }
     public class DealerHasBlackjackEventArgs : GameEventArgs {
         public DealerHasBlackjackEventArgs(Game game): base(game) { }
@@ -354,8 +351,7 @@ namespace SayedHa.Blackjack.Shared {
         public int BetAmount { get; set; }
     }
     public class CardReceivedEventArgs : GameEventArgs {
-        public CardReceivedEventArgs(Game game) : base(game) {
-            Game = game;
+        public CardReceivedEventArgs(Game game, bool updateUi = true) : base(game, updateUi) {
         }
     }
 }
