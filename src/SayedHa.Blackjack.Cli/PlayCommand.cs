@@ -152,44 +152,35 @@ namespace SayedHa.Blackjack.Cli {
             }
 
             // stats
-            var statsTable = new Table();
             var statsGrid = new Grid();
+            var overallGrid = new Grid();
             BarChart remainingCardsBarChart = null;
-            statsTable.AddColumn("");
-            statsTable.AddColumn("");
             var bankroll = game.Opponents?[0]?.BettingStrategy?.Bankroll;
-            statsTable.ShowHeaders = false;
-            if (bankroll != null) {
-                statsTable.AddRow(new[] { "Number of decks", NumDecks.ToString() });
-                statsTable.AddRow(new[] { "Initial bankroll", bankroll.InitialBankroll.ToString("C0") });
-                statsTable.AddRow(new[] { "Current bankroll", $"{bankroll.DollarsRemaining:C0} ({bankroll.DollarsRemaining - bankroll.InitialBankroll:C0})" });
-                // statsTable.AddRow(new[] { "[bold green]Current bet:[/]",$"[bold green]{BetAmount:C0}[/]"});
 
+            if (bankroll != null) {
                 remainingCardsBarChart = new BarChart()
                     .Width(60)
                     .WithMaxValue(game.Cards.GetTotalNumCards())
                     .HideValues()
-                    .AddItem("Remaining deck",game.Cards.GetNumRemainingCards(), Color.Orange1);
-                statsTable.AddRow(remainingCardsBarChart);
-                //statsTable.AddRow(new Markup("Remaining deck"), remainingCardsBarChart);
+                    .AddItem("Remaining deck  ",game.Cards.GetNumRemainingCards(), Color.Orange1);
 
                 statsGrid
                 .Width(60)
                 .AddColumn()
-                .AddColumn()
-                .AddRow(new[] { "Number of decks", NumDecks.ToString() })
-                .AddRow(new[] { "Initial bankroll", bankroll.InitialBankroll.ToString("C0") })
-                .AddRow(new[] { "Current bankroll", $"{bankroll.DollarsRemaining:C0} ({bankroll.DollarsRemaining - bankroll.InitialBankroll:C0})" });
+
+                .AddRow(new[] { $"Number of decks   {NumDecks}"})
+                .AddRow(new[] { $"Initial bankroll  {bankroll.InitialBankroll:C0}"})
+                .AddRow(new[] { $"Current bankroll  {bankroll.DollarsRemaining:C0} ({bankroll.DollarsRemaining - bankroll.InitialBankroll:C0})" });
+
+                overallGrid = new Grid()
+                    .AddColumn()
+                    .AddRow(statsGrid)
+                    .AddRow(remainingCardsBarChart);
             }
-            statsTable.Border = TableBorder.None;
 
-            // containerTable.AddRow(new Panel(cardsSb.ToString()),new Panel(dealerCardsStr), statsTable);
-            containerTable.AddRow(new Panel(cardsSb.ToString()), new Panel(dealerCardsStr), statsGrid);
-
-            containerTable.AddRow(new Markup(string.Empty),new Markup(string.Empty), remainingCardsBarChart);
+            containerTable.AddRow(new Panel(cardsSb.ToString()), new Panel(dealerCardsStr), overallGrid);
 
             containerTable.Border = TableBorder.Minimal;
-            // containerTable.AddRow(cardTable, dealerCardsTable);
             AnsiConsole.Write(containerTable);
             if(game.Status == GameStatus.DealerPlaying) {
                 AnsiConsole.MarkupLine("Dealer playing");
