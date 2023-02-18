@@ -85,7 +85,7 @@ namespace SayedHa.Blackjack.Cli {
             do {
                 var gameResult = gameRunner.PlayGame(game);
                 PrintUI(game, false);
-            } while (KeepPlaying());
+            } while (KeepPlaying(bankroll, game));
         }
 
         private string GetResultSpectreString(HandResult handResult) => handResult switch {
@@ -161,7 +161,7 @@ namespace SayedHa.Blackjack.Cli {
                 remainingCardsBarChart = new BarChart()
                     .Width(60)
                     .WithMaxValue(game.Cards.GetTotalNumCards())
-                    .HideValues()
+                    // .HideValues()
                     .AddItem("Remaining deck  ",game.Cards.GetNumRemainingCards(), Color.Orange1);
 
                 statsGrid
@@ -187,7 +187,18 @@ namespace SayedHa.Blackjack.Cli {
             }
         }
 
-        private bool KeepPlaying() => AnsiConsole.Confirm("Keep playing?");
+        private bool KeepPlaying(Bankroll bankroll, Game game) {
+            if(bankroll.DollarsRemaining < 5) {
+                var result = AnsiConsole.Confirm("[bold red]You don't have enough money to continue.[/]\nDo you want to reset back to your initial bankroll?");
+                if (result) {
+                    bankroll.DollarsRemaining = bankroll.InitialBankroll;
+                    PrintUI(game, false);
+                    AnsiConsole.MarkupInterpolated($"Your balance has been restored to [red]{bankroll.DollarsRemaining:C0}[/]\n");
+                }
+            }
+
+            return AnsiConsole.Confirm("Keep playing?");
+        }
 
         private void GameRunner_CardReceived(object sender, EventArgs e) {
             var ge = e as GameEventArgs;

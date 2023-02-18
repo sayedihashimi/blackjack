@@ -112,21 +112,45 @@ namespace SayedHa.Blackjack.Shared {
 
             // calculate all scores and return the best value
             var sumSingleValueCards = cardsWithSingleValue.Sum(card => card.Number.GetValues()[0]);
-            foreach (var card in cardsWithMultipleValues) {
-                // assume that the high value is first in the array
-                var values = card.Number.GetValues();
-                Debug.Assert(values.Length == 2);
-                Debug.Assert(values[0] > values[1]);
 
-                if (sumSingleValueCards + values[0] <= BlackjackSettings.GetBlackjackSettings().MaxScore) {
-                    sumSingleValueCards += values[0];
+            // TODO: Compute all possible scores and then return the best score.
+            //       The current implementation has a bug with a hand like A,A,2,8. Where the A,A was the original dealt cards.
+            //foreach (var card in cardsWithMultipleValues) {
+            //    // assume that the high value is first in the array
+            //    var values = card.Number.GetValues();
+            //    Debug.Assert(values.Length == 2);
+            //    Debug.Assert(values[0] > values[1]);
+
+            //    if (sumSingleValueCards + values[0] <= BlackjackSettings.GetBlackjackSettings().MaxScore) {
+            //        sumSingleValueCards += values[0];
+            //    }
+            //    else {
+            //        sumSingleValueCards += values[1];
+            //    }
+            //}
+            //return sumSingleValueCards;
+
+            var bestScore = sumSingleValueCards;
+
+            if (cardsWithMultipleValues.Count > 0) {
+                IList<int> allScores = new List<int>();
+                foreach (var card in cardsWithMultipleValues) {
+                    foreach (var value in card.Number.GetValues()) {
+                        allScores.Add(sumSingleValueCards + value);
+                    }
                 }
-                else {
-                    sumSingleValueCards += values[1];
+
+                allScores = allScores.OrderByDescending(x => x).ToList();
+                
+                foreach (var score in allScores) {
+                    bestScore = score;
+                    if (score <= BlackjackSettings.GetBlackjackSettings().MaxScore) {
+                        break;
+                    }
                 }
             }
 
-            return sumSingleValueCards;
+            return bestScore;
         }
 
         public IList<HandAction> GetValidActions(int dollarsRemaining) {
@@ -145,6 +169,10 @@ namespace SayedHa.Blackjack.Shared {
             }
             if (dollarsRemaining < (int)Math.Floor(Bet) * 2 &&
                 actions.Contains(HandAction.Split)) {
+                actions.Remove(HandAction.Split);
+            }
+            if(actions.Contains(HandAction.Split) && 
+                (DealtCards.Count != 2 || DealtCards[0].Number != DealtCards[1].Number)) {
                 actions.Remove(HandAction.Split);
             }
 
