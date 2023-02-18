@@ -29,6 +29,11 @@ namespace SayedHa.Blackjack.Cli {
 
         private async Task HandlePlayCommand(PlayCommandOptions options) {
             // wait for the user to start the game
+            AnsiConsole.Write(
+                new FigletText("Blackjack")
+                    .LeftJustified()
+                    .Color(Color.Red));
+
             if (AnsiConsole.Confirm("Ready to get started?")) {
                 await PlayGameAsync();
             }
@@ -53,11 +58,13 @@ namespace SayedHa.Blackjack.Cli {
                 .Title("How many decks?")
                 .AddChoices(new[] { 2, 4, 6, 8, 10 })
             );
-            var initialBankroll = AnsiConsole.Prompt(
-                new SelectionPrompt<int>()
+
+            var initBankrollPrompt = new SelectionPrompt<int>()
                 .Title("Initial bankroll?")
-                .AddChoices(new[] { 1000, 10000, 100000 })
-            );
+                .AddChoices(new[] { 1000, 10000, 100000 });
+            initBankrollPrompt.Converter = amount => amount.ToString("C0");
+
+            var initialBankroll = AnsiConsole.Prompt(initBankrollPrompt);
 
             var bankroll = new Bankroll(initialBankroll, _reporter);
             var gameRunner = new GameRunner(_reporter);
@@ -106,13 +113,7 @@ namespace SayedHa.Blackjack.Cli {
                 return;
             }
 
-            //AnsiConsole.Status()
-            //    .Start("Dealing...", ctx => {
-            //        ctx.Spinner = Spinner.Known.Clock;
-            //        Task.Delay(200).Wait();
-            //    });
             AnsiConsole.Clear();
-            // Console.Clear();
 
             var containerTable = new Table();
             containerTable.AddColumn("Player").Width(100);
@@ -152,6 +153,8 @@ namespace SayedHa.Blackjack.Cli {
 
             // stats
             var statsTable = new Table();
+            var statsGrid = new Grid();
+            BarChart remainingCardsBarChart = null;
             statsTable.AddColumn("");
             statsTable.AddColumn("");
             var bankroll = game.Opponents?[0]?.BettingStrategy?.Bankroll;
@@ -162,17 +165,29 @@ namespace SayedHa.Blackjack.Cli {
                 statsTable.AddRow(new[] { "Current bankroll", $"{bankroll.DollarsRemaining:C0} ({bankroll.DollarsRemaining - bankroll.InitialBankroll:C0})" });
                 // statsTable.AddRow(new[] { "[bold green]Current bet:[/]",$"[bold green]{BetAmount:C0}[/]"});
 
-                var remainingCardsBarChart = new BarChart()
+                remainingCardsBarChart = new BarChart()
                     .Width(60)
                     .WithMaxValue(game.Cards.GetTotalNumCards())
                     .HideValues()
-                    .AddItem("Remaining deck:",game.Cards.GetNumRemainingCards(), Color.Orange1);
+                    .AddItem("Remaining deck",game.Cards.GetNumRemainingCards(), Color.Orange1);
                 statsTable.AddRow(remainingCardsBarChart);
                 //statsTable.AddRow(new Markup("Remaining deck"), remainingCardsBarChart);
+
+                statsGrid
+                .Width(60)
+                .AddColumn()
+                .AddColumn()
+                .AddRow(new[] { "Number of decks", NumDecks.ToString() })
+                .AddRow(new[] { "Initial bankroll", bankroll.InitialBankroll.ToString("C0") })
+                .AddRow(new[] { "Current bankroll", $"{bankroll.DollarsRemaining:C0} ({bankroll.DollarsRemaining - bankroll.InitialBankroll:C0})" });
             }
             statsTable.Border = TableBorder.None;
 
-            containerTable.AddRow(new Panel(cardsSb.ToString()),new Panel(dealerCardsStr), statsTable);
+            // containerTable.AddRow(new Panel(cardsSb.ToString()),new Panel(dealerCardsStr), statsTable);
+            containerTable.AddRow(new Panel(cardsSb.ToString()), new Panel(dealerCardsStr), statsGrid);
+
+            containerTable.AddRow(new Markup(string.Empty),new Markup(string.Empty), remainingCardsBarChart);
+
             containerTable.Border = TableBorder.Minimal;
             // containerTable.AddRow(cardTable, dealerCardsTable);
             AnsiConsole.Write(containerTable);
