@@ -4,7 +4,7 @@ using System.Text;
 
 namespace SayedHa.Blackjack.Cli.Extensions {
     public static class HandExtensions {
-        public static string GetSpectreString(this Hand hand, bool hideFirstCard = true, bool includeScore = false, bool includeResult = false) {
+        public static string GetSpectreString(this Hand hand, bool hideFirstCard = true, bool includeScore = false, bool includeResult = false, bool includeBet = false) {
             Debug.Assert(hand != null);
             var sb = new StringBuilder();
 
@@ -29,8 +29,11 @@ namespace SayedHa.Blackjack.Cli.Extensions {
                     sb.Append($" Score={hand.GetScore()}");
                 }
             }
+            if(includeBet) {
+                sb.Append($" ({hand.Bet:C0})");
+            }
             if (includeResult) {
-                sb.Append($" [bold]({GetSpectreHandResultString(hand.HandResult)})[/]");
+                sb.Append($" [bold]{GetSpectreHandResultString(hand.HandResult)}[/]");
             }
 
             return sb.ToString().Trim();
@@ -38,8 +41,8 @@ namespace SayedHa.Blackjack.Cli.Extensions {
         public static string GetSpectreHandResultString(this HandResult handResult) => handResult switch {
             HandResult.InPlay => "In play",
             HandResult.Push => "Push",
-            HandResult.DealerWon => "Dealer won",
-            HandResult.OpponentWon => "You won",
+            HandResult.DealerWon => "[bold red]Dealer won[/]",
+            HandResult.OpponentWon => "[bold green]You won[/]",
             _ => throw new ApplicationException($"Unknown value for HandResult: '{handResult}'")
         };
     }

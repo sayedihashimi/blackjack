@@ -8,7 +8,7 @@
 		<!-- nuget related properties -->
 		<Authors>Sayed Ibrahim Hashimi</Authors>
 		<Description>Blackjack simulator</Description>
-		<Version>0.0.3</Version>
+		<Version>0.0.4</Version>
 		<Copyright>Copyright 2022 © Sayed Ibrahim Hashimi. All rights reserved.</Copyright>
 		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
 		<PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>

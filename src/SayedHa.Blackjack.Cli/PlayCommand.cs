@@ -106,12 +106,13 @@ namespace SayedHa.Blackjack.Cli {
                 return;
             }
 
-            AnsiConsole.Status()
-                .Start("Dealing...", ctx => {
-                    ctx.Spinner = Spinner.Known.Clock;
-                    Task.Delay(200).Wait();
-                });
-            Console.Clear();
+            //AnsiConsole.Status()
+            //    .Start("Dealing...", ctx => {
+            //        ctx.Spinner = Spinner.Known.Clock;
+            //        Task.Delay(200).Wait();
+            //    });
+            AnsiConsole.Clear();
+            // Console.Clear();
 
             var containerTable = new Table();
             containerTable.AddColumn("Player").Width(100);
@@ -126,7 +127,7 @@ namespace SayedHa.Blackjack.Cli {
                     for(int index = 0;index< player.Hands.Count; index++) {
                         var hand = player.Hands[index];
                         bool showResult = game.Status == GameStatus.Finished;
-                        var cardsStr = hand.GetSpectreString(hideFirstCard: false, includeResult: showResult);
+                        var cardsStr = hand.GetSpectreString(hideFirstCard: false, includeResult: showResult, includeBet: true);
 
                         if(index < player.Hands.Count - 1) {
                             cardsSb.AppendLine(cardsStr);
@@ -159,13 +160,15 @@ namespace SayedHa.Blackjack.Cli {
                 statsTable.AddRow(new[] { "Number of decks", NumDecks.ToString() });
                 statsTable.AddRow(new[] { "Initial bankroll", bankroll.InitialBankroll.ToString("C0") });
                 statsTable.AddRow(new[] { "Current bankroll", $"{bankroll.DollarsRemaining:C0} ({bankroll.DollarsRemaining - bankroll.InitialBankroll:C0})" });
-                statsTable.AddRow(new[] { "[bold green]Current bet:[/]",$"[bold green]{BetAmount:C0}[/]"});
+                // statsTable.AddRow(new[] { "[bold green]Current bet:[/]",$"[bold green]{BetAmount:C0}[/]"});
 
                 var remainingCardsBarChart = new BarChart()
                     .Width(60)
                     .WithMaxValue(game.Cards.GetTotalNumCards())
-                    .AddItem("Remaining deck",game.Cards.GetNumRemainingCards(), Color.Orange1);
+                    .HideValues()
+                    .AddItem("Remaining deck:",game.Cards.GetNumRemainingCards(), Color.Orange1);
                 statsTable.AddRow(remainingCardsBarChart);
+                //statsTable.AddRow(new Markup("Remaining deck"), remainingCardsBarChart);
             }
             statsTable.Border = TableBorder.None;
 
