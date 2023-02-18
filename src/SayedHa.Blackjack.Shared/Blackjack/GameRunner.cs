@@ -248,7 +248,7 @@ namespace SayedHa.Blackjack.Shared {
             }
 
             bool isDealerHand = hand as DealerHand is object;
-            var nextAction = participant.Player.GetNextAction(hand, dealerHand);
+            var nextAction = participant.Player.GetNextAction(hand, dealerHand, (int)Math.Floor(participant.BettingStrategy.Bankroll.DollarsRemaining));
             NextActionSelected?.Invoke(this, new NextActionSelectedEventArgs(CurrentGame,hand, dealerHand, nextAction, isDealerHand));
             // if the nextAction is to split we need to create two hands and deal a new card to each hand
             if (nextAction == HandAction.Split) {
@@ -296,7 +296,7 @@ namespace SayedHa.Blackjack.Shared {
                 case HandAction.Hit:
                     hand.ReceiveCard(cards.GetCardAndMoveNext()!);
                     CardReceived?.Invoke(this, new CardReceivedEventArgs(CurrentGame, !isDealerHand));
-                    var newNextAction = participant.Player.GetNextAction(hand, dealerHand);
+                    var newNextAction = participant.Player.GetNextAction(hand, dealerHand, (int)Math.Floor(participant.BettingStrategy.Bankroll.DollarsRemaining));
                     NextActionSelected?.Invoke(this, new NextActionSelectedEventArgs(CurrentGame, hand, dealerHand, newNextAction, isDealerHand));
                     // note: recursion below
                     PlayNextAction(newNextAction, hand, dealerHand, participant, cards);

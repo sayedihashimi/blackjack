@@ -28,7 +28,7 @@ namespace SayedHa.Blackjack.Shared.Players {
             _logger = logger;
         }
         private ILogger _logger = new NullLogger();
-        public override HandAction GetNextAction(Hand hand, DealerHand dealerHand) {
+        public override HandAction GetNextAction(Hand hand, DealerHand dealerHand, int dollarsRemaining) {
             bool isDoubleEnabled = BlackjackSettings.GetBlackjackSettings().DoubleDownEnabled;
             bool isSplitEnabled = BlackjackSettings.GetBlackjackSettings().SplitEnabled;
             // if only two cards, first check to see if the action should be split

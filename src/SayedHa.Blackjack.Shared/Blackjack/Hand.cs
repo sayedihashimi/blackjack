@@ -129,13 +129,28 @@ namespace SayedHa.Blackjack.Shared {
             return sumSingleValueCards;
         }
 
-        public IList<HandAction> GetValidActions() => (this.Status,this.GetScore(),this.DealtCards.Count) switch {
-            (HandStatus.Closed, _, _) => new List<HandAction>() { HandAction.Stand },
-            (_, >= 21, _) => new List<HandAction>() { HandAction.Stand },
-            (HandStatus.InPlay, <21, <=2) => new List<HandAction> { HandAction.Stand,HandAction.Hit, HandAction.Double, HandAction.Split},
-            (HandStatus.InPlay, <21, >2) => new List<HandAction> { HandAction.Stand, HandAction.Hit },
-            _ => throw new NotImplementedException()
-        };
+        public IList<HandAction> GetValidActions(int dollarsRemaining) {
+            var actions = (this.Status, this.GetScore(), this.DealtCards.Count) switch {
+                (HandStatus.Closed, _, _) => new List<HandAction>() { HandAction.Stand },
+                (_, >= 21, _) => new List<HandAction>() { HandAction.Stand },
+                (HandStatus.InPlay, < 21, <= 2) => new List<HandAction> { HandAction.Stand, HandAction.Hit, HandAction.Double, HandAction.Split },
+                (HandStatus.InPlay, < 21, > 2) => new List<HandAction> { HandAction.Stand, HandAction.Hit },
+                _ => throw new NotImplementedException()
+            };
+
+            // filter out the double down or split if the DollarsRemaining don't allow it
+            if (dollarsRemaining < (int)Math.Floor(Bet)*2 &&
+                actions.Contains(HandAction.Double)) {
+                actions.Remove(HandAction.Double);
+            }
+            if (dollarsRemaining < (int)Math.Floor(Bet) * 2 &&
+                actions.Contains(HandAction.Split)) {
+                actions.Remove(HandAction.Split);
+            }
+
+            return actions;
+        }
+
         public override string ToString() {
             var sb = new StringBuilder();
             sb.Append("[");

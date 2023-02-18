@@ -30,7 +30,7 @@ namespace SayedHa.Blackjack.Shared.Players {
         public ParticipantRole Role { get; protected init; }
 
         public int MinScoreToStand { get; protected init; }
-        public override HandAction GetNextAction(Hand hand, DealerHand dealerHand) {
+        public override HandAction GetNextAction(Hand hand, DealerHand dealerHand, int dollarsRemaining) {
             Debug.Assert(hand != null);
 
             if (hand.Status == HandStatus.Closed) {
@@ -42,7 +42,7 @@ namespace SayedHa.Blackjack.Shared.Players {
     }
 
     public class RandomPlayer : Player {
-        public override HandAction GetNextAction(Hand hand, DealerHand dealerHand) {
+        public override HandAction GetNextAction(Hand hand, DealerHand dealerHand, int dollarsRemaining) {
             if (hand.Status == HandStatus.Closed || hand.GetScore() >= BlackjackSettings.GetBlackjackSettings().MaxScore) {
                 return HandAction.Stand;
             }
