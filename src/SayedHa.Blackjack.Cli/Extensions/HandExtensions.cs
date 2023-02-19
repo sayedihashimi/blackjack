@@ -37,7 +37,7 @@ namespace SayedHa.Blackjack.Cli.Extensions {
 
             if ( (!isDealerHand && hand.DoesHandHaveBlackjack()) ||
                 (isDealerHand && hand.DoesDealerHaveBlackjack())) {
-                sb.Append(" [bold red slowblink]BLACKJACK :fireworks:[/]");
+                sb.Append(" [bold red slowblink]BLACKJACK[/]");
             }
 
             if (hand.GetScore() > BlackjackSettings.GetBlackjackSettings().MaxScore) {

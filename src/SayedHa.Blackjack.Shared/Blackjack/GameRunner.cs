@@ -31,6 +31,7 @@ namespace SayedHa.Blackjack.Shared {
         public event EventHandler PlayerHasBlackjack;
         public event EventHandler BetAmountConfigured;
         public event EventHandler CardReceived;
+        public event EventHandler ShufflingCards;
 
         private Game CurrentGame { get; set; }
 
@@ -49,13 +50,14 @@ namespace SayedHa.Blackjack.Shared {
             Debug.Assert(game != null);
             Debug.Assert(game.Cards != null);
             Debug.Assert(game.Cards.GetNumRemainingCards() > 0);
-            
+
             var cards = game.Cards;
 
             // if the discarded # of cards exceeds specified amount, shuffle the cards
             var percentRemainingCards = (float)cards.GetNumRemainingCards() / (float)cards.GetTotalNumCards();
             if (percentRemainingCards * 100 <= game.ShuffleThresholdPercent) {
                 _logger.LogLine("**** shuffling cards");
+                ShufflingCards?.Invoke(this, new ShufflingCardsEventArg(game));
                 game.Cards.ShuffleCards();
                 _logger.LogLine($"cards: [{game.Cards}]");
                 // discard the first card after every shuffle
@@ -330,5 +332,8 @@ namespace SayedHa.Blackjack.Shared {
     public class CardReceivedEventArgs : GameEventArgs {
         public CardReceivedEventArgs(Game game, bool updateUi = true) : base(game, updateUi) {
         }
+    }
+    public class ShufflingCardsEventArg: GameEventArgs {
+        public ShufflingCardsEventArg(Game game, bool updateUi = true):base(game, updateUi) { }
     }
 }

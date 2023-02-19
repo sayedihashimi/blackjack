@@ -88,6 +88,7 @@ namespace SayedHa.Blackjack.Cli {
             gameRunner.PlayerHasBlackjack += GameRunner_PlayerHasBlackjack;
             gameRunner.BetAmountConfigured += GameRunner_BetAmountConfigured;
             gameRunner.CardReceived += GameRunner_CardReceived;
+            gameRunner.ShufflingCards += GameRunner_ShufflingCards;
 
             var bettingStrategy = new SpectreConsoleBettingStrategy(bankroll);
             var pf = new SpectreConsoleParticipantFactory(bettingStrategy, _reporter);
@@ -100,6 +101,27 @@ namespace SayedHa.Blackjack.Cli {
                 var gameResult = gameRunner.PlayGame(game);
                 PrintUI(game, false);
             } while (KeepPlaying(bankroll, game));
+        }
+
+        private void GameRunner_ShufflingCards(object sender, EventArgs e) {
+            AnsiConsole.Progress()
+                .AutoRefresh(true)
+                .AutoClear(false)
+                .HideCompleted(false)
+                .Columns(
+                    new TaskDescriptionColumn(),
+                    new ProgressBarColumn(),
+                    new PercentageColumn(),
+                    new SpinnerColumn()
+                )
+                .Start(ctx => {
+                    var shuffletask = ctx.AddTask("shuffling cards");
+
+                    while (!ctx.IsFinished) {
+                        Thread.Sleep(100);
+                        shuffletask.Increment(10);
+                    }
+                });
         }
 
         private string GetResultSpectreString(HandResult handResult) => handResult switch {
