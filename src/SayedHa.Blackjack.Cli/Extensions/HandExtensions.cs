@@ -35,6 +35,10 @@ namespace SayedHa.Blackjack.Cli.Extensions {
                 }
             }
 
+            if (hand.GetScore() > BlackjackSettings.GetBlackjackSettings().MaxScore) {
+                sb.Append(" [bold red]BUSTED[/]");
+            }
+
             if (includeScore) {
                 if (hideFirstCard) {
                     sb.Append($" Score=??");
@@ -43,11 +47,11 @@ namespace SayedHa.Blackjack.Cli.Extensions {
                     sb.Append($" Score={hand.GetScore()}");
                 }
             }
-            if(includeBet) {
-                sb.Append($" ({hand.Bet:C0})");
-            }
             if (includeResult) {
                 sb.Append($" [bold]{GetSpectreHandResultString(hand.HandResult)}[/]");
+            }
+            if (includeBet) {
+                sb.Append($" [green]{hand.Bet:C0}[/]");
             }
 
             return sb.ToString().Trim();
@@ -55,7 +59,7 @@ namespace SayedHa.Blackjack.Cli.Extensions {
         public static string GetSpectreHandResultString(this HandResult handResult) => handResult switch {
             HandResult.InPlay => "In play",
             HandResult.Push => "Push",
-            HandResult.DealerWon => "[bold red]Dealer won[/]",
+            HandResult.DealerWon => "[bold red]You lost[/]",
             HandResult.OpponentWon => "[bold green]You won[/]",
             _ => throw new ApplicationException($"Unknown value for HandResult: '{handResult}'")
         };
