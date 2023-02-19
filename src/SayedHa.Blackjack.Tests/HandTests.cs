@@ -181,7 +181,7 @@ namespace SayedHa.Blackjack.Tests {
                     new Card{Number=CardNumber.King, Suit=CardSuit.Heart }
                 }
             };
-            Assert.Equal(22, hand1.GetScore());
+            Assert.Equal(12, hand1.GetScore());
 
             var hand2 = new Hand(5,new NullLogger()) {
                 DealtCards = new List<Card> {

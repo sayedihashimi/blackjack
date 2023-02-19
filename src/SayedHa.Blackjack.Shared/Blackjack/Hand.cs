@@ -113,35 +113,15 @@ namespace SayedHa.Blackjack.Shared {
             // calculate all scores and return the best value
             var sumSingleValueCards = cardsWithSingleValue.Sum(card => card.Number.GetValues()[0]);
 
-            // TODO: Compute all possible scores and then return the best score.
-            //       The current implementation has a bug with a hand like A,A,2,8. Where the A,A was the original dealt cards.
-            //foreach (var card in cardsWithMultipleValues) {
-            //    // assume that the high value is first in the array
-            //    var values = card.Number.GetValues();
-            //    Debug.Assert(values.Length == 2);
-            //    Debug.Assert(values[0] > values[1]);
-
-            //    if (sumSingleValueCards + values[0] <= BlackjackSettings.GetBlackjackSettings().MaxScore) {
-            //        sumSingleValueCards += values[0];
-            //    }
-            //    else {
-            //        sumSingleValueCards += values[1];
-            //    }
-            //}
-            //return sumSingleValueCards;
-
             var bestScore = sumSingleValueCards;
-
-            if (cardsWithMultipleValues.Count > 0) {
-                IList<int> allScores = new List<int>();
-                foreach (var card in cardsWithMultipleValues) {
-                    foreach (var value in card.Number.GetValues()) {
-                        allScores.Add(sumSingleValueCards + value);
-                    }
-                }
-
+            // TODO: Compute all possible scores and then return the best score.
+            var allScores = ComputeScoreForCardsWithMultipleValues(bestScore,cardsWithMultipleValues);
+            if(allScores.Count == 1) {
+                return allScores[0];
+            }
+            else {
                 allScores = allScores.OrderByDescending(x => x).ToList();
-                
+
                 foreach (var score in allScores) {
                     bestScore = score;
                     if (score <= BlackjackSettings.GetBlackjackSettings().MaxScore) {
@@ -149,8 +129,57 @@ namespace SayedHa.Blackjack.Shared {
                     }
                 }
             }
-
             return bestScore;
+        }
+
+        private List<int> ComputeScoreForCardsWithMultipleValues(int currentScore, List<Card> CardsWithMultipleValues) {
+            Debug.Assert(CardsWithMultipleValues != null);
+
+            var scoreList = new List<int>();
+            if(CardsWithMultipleValues?.Count == 0) {
+                return new List<int> { currentScore };
+            }
+
+            scoreList = ComputeScoreForCardsWithMultipleValues(CardsWithMultipleValues!, currentScore, new List<int>());
+
+            return scoreList;
+        }
+
+        // TODO: This can be improved to only return the new scores in the recursion, with the current
+        // implementation it adds a lot dupes to the list because previous scores are added a bunch.
+        private List<int> ComputeScoreForCardsWithMultipleValues(List<Card> CardsWithMultipleValues, int initialScore, List<int> previousScores) {
+            if(CardsWithMultipleValues?.Count == 0) {
+                return previousScores;
+            }
+            if(CardsWithMultipleValues.Count == 1) {
+                var newScores = new List<int>();
+                newScores.AddRange(previousScores);
+                foreach (var value in CardsWithMultipleValues[0].Number.GetValues()) {
+                    newScores.Add(initialScore + value);
+                }
+
+                return newScores;
+            }
+            var newScores1 = new List<int>();
+            newScores1.AddRange(previousScores);
+            // now we need to take off the first card and recurse to get the value
+            foreach(var value in CardsWithMultipleValues[0].Number.GetValues()) {
+                // iterate through the other cards to get the score of the remaining list
+                var remainingCards = new List<Card>();
+                for (int i = 1; i < CardsWithMultipleValues.Count; i++) {
+                    remainingCards.Add(CardsWithMultipleValues[i]);
+                }
+                newScores1.AddRange(ComputeScoreForCardsWithMultipleValues(remainingCards, initialScore + value, newScores1));
+            }
+
+            var scoresNoDupes = new List<int>();
+            foreach(var score in newScores1) {
+                if (!scoresNoDupes.Contains(score)) {
+                    scoresNoDupes.Add(score);
+                }
+            }
+
+            return newScores1;
         }
 
         public IList<HandAction> GetValidActions(int dollarsRemaining) {
