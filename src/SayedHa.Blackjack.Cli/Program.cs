@@ -14,4 +14,4 @@
 // along with SayedHa.Blackjack.  If not, see <https://www.gnu.org/licenses/>.
 using SayedHa.Blackjack.Cli;
 
-new TemplatesProgram().Execute(args);
+await new TemplatesProgram().Execute(args);

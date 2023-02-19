@@ -118,7 +118,7 @@ namespace SayedHa.Blackjack.Shared {
 
             var bjPayoutMultiplier = BlackjackSettings.GetBlackjackSettings().BlackjackPayoutMultplier;
             // check to see if the dealer has blackjack and if so end the game.
-            if (!DoesDealerHaveBlackjack(dealerHand)) {
+            if (!dealerHand.DoesDealerHaveBlackjack()) {
                 // play each opponent now
                 foreach (var opponent in game.Opponents) {
                     PlayForParticipant(opponent, game.Dealer, game.Cards);
@@ -149,7 +149,7 @@ namespace SayedHa.Blackjack.Shared {
                         }
                         else if (handScore > dealerScore || dealerScore > 21) {
                             hand.SetHandResult(HandResult.OpponentWon);
-                            float betMultiplier = DoesHandHaveBlackjack(hand) ? bjPayoutMultiplier : 1;
+                            float betMultiplier = hand.DoesHandHaveBlackjack() ? bjPayoutMultiplier : 1;
                             var amtToAdd = hand.Bet * betMultiplier;
                             opponent.BettingStrategy.Bankroll.AddToDollarsRemaining(amtToAdd, opponent.Name);
                             game.Dealer.BettingStrategy.Bankroll.AddToDollarsRemaining(amtToAdd* -1F, game.Dealer.Name);
@@ -192,30 +192,6 @@ namespace SayedHa.Blackjack.Shared {
             return new GameResult(game.Dealer.Hands[0], allHands,game.Dealer, game.Opponents);
         }
 
-        private bool DoesHandHaveBlackjack(Hand dealerHand) => (dealerHand.DealtCards[0].Number, dealerHand.DealtCards[1].Number) switch {
-            (CardNumber.Ace, CardNumber.Ten) => true,
-            (CardNumber.Ace, CardNumber.Jack) => true,
-            (CardNumber.Ace, CardNumber.Queen) => true,
-            (CardNumber.Ace, CardNumber.King) => true,
-            (CardNumber.Ten, CardNumber.Ace) => true,
-            (CardNumber.Jack, CardNumber.Ace) => true,
-            (CardNumber.Queen, CardNumber.Ace) => true,
-            (CardNumber.King, CardNumber.Ace) => true,
-            _ => false
-        };
-        /// <summary>
-        /// For the dealer to have blackjack the visible card must be an ace
-        /// </summary>
-        /// <param name="dealerHand"></param>
-        /// <returns></returns>
-        private bool DoesDealerHaveBlackjack(Hand dealerHand) => (dealerHand.DealtCards[0].Number, dealerHand.DealtCards[1].Number) switch {
-            (CardNumber.Ten, CardNumber.Ace) => true,
-            (CardNumber.Jack, CardNumber.Ace) => true,
-            (CardNumber.Queen, CardNumber.Ace) => true,
-            (CardNumber.King, CardNumber.Ace) => true,
-            _ => false
-        };
-        
         protected void PlayForParticipant(Participant participant, Participant dealer, CardDeck cards, bool playForDealer = false) {
             Debug.Assert(participant != null);
             Debug.Assert(participant.Hands != null);
@@ -238,7 +214,7 @@ namespace SayedHa.Blackjack.Shared {
             Debug.Assert(participant != null);
             Debug.Assert(cards != null);
 
-            if(DoesHandHaveBlackjack(hand)) {
+            if(hand.DoesHandHaveBlackjack()) {
                 var bjPayoutMultiplier = BlackjackSettings.GetBlackjackSettings().BlackjackPayoutMultplier;
                 hand.SetHandResult(HandResult.OpponentWon);
                 participant.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet * bjPayoutMultiplier, participant.Name);

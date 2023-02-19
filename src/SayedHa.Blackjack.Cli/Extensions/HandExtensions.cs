@@ -18,7 +18,7 @@ using System.Text;
 
 namespace SayedHa.Blackjack.Cli.Extensions {
     public static class HandExtensions {
-        public static string GetSpectreString(this Hand hand, bool hideFirstCard = true, bool includeScore = false, bool includeResult = false, bool includeBet = false) {
+        public static string GetSpectreString(this Hand hand, bool isDealerHand, bool hideFirstCard = true, bool includeScore = false, bool includeResult = false, bool includeBet = false) {
             Debug.Assert(hand != null);
             var sb = new StringBuilder();
 
@@ -33,6 +33,11 @@ namespace SayedHa.Blackjack.Cli.Extensions {
                 if (i < hand.DealtCards.Count - 1) {
                     sb.Append(",");
                 }
+            }
+
+            if ( (!isDealerHand && hand.DoesHandHaveBlackjack()) ||
+                (isDealerHand && hand.DoesDealerHaveBlackjack())) {
+                sb.Append(" [bold red slowblink]BLACKJACK :fireworks:[/]");
             }
 
             if (hand.GetScore() > BlackjackSettings.GetBlackjackSettings().MaxScore) {

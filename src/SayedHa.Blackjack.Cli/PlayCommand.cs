@@ -142,7 +142,7 @@ namespace SayedHa.Blackjack.Cli {
                     for(int index = 0;index< player.Hands.Count; index++) {
                         var hand = player.Hands[index];
                         bool showResult = game.Status == GameStatus.Finished;
-                        var cardsStr = hand.GetSpectreString(hideFirstCard: false, includeResult: showResult, includeBet: true);
+                        var cardsStr = hand.GetSpectreString(isDealerHand: false, hideFirstCard: false, includeResult: showResult, includeBet: true);
 
                         if(index < player.Hands.Count - 1) {
                             cardsSb.AppendLine(cardsStr);
@@ -161,7 +161,7 @@ namespace SayedHa.Blackjack.Cli {
             string dealerCardsStr = string.Empty;
             dealerCardsTable.AddColumn(new TableColumn($"Dealer cards"));
             if(game.Dealer?.Hands?.Count > 0) {
-                dealerCardsStr = game.Dealer.Hands[0].GetSpectreString(hideFirstCard: hideDealerFirstCard);
+                dealerCardsStr = game.Dealer.Hands[0].GetSpectreString(isDealerHand: true, hideFirstCard: hideDealerFirstCard);
                 dealerCardsTable.AddRow(new Panel(dealerCardsStr));
             }
 

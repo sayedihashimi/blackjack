@@ -208,6 +208,28 @@ namespace SayedHa.Blackjack.Shared {
             return actions;
         }
 
+        public bool DoesHandHaveBlackjack() => (DealtCards[0].Number, DealtCards[1].Number) switch {
+            (CardNumber.Ace, CardNumber.Ten) => true,
+            (CardNumber.Ace, CardNumber.Jack) => true,
+            (CardNumber.Ace, CardNumber.Queen) => true,
+            (CardNumber.Ace, CardNumber.King) => true,
+            (CardNumber.Ten, CardNumber.Ace) => true,
+            (CardNumber.Jack, CardNumber.Ace) => true,
+            (CardNumber.Queen, CardNumber.Ace) => true,
+            (CardNumber.King, CardNumber.Ace) => true,
+            _ => false
+        };
+        /// <summary>
+        /// For the dealer to have blackjack the visible card must be an ace
+        /// </summary>
+        /// <returns></returns>
+        public bool DoesDealerHaveBlackjack() => (DealtCards[0].Number, DealtCards[1].Number) switch {
+            (CardNumber.Ten, CardNumber.Ace) => true,
+            (CardNumber.Jack, CardNumber.Ace) => true,
+            (CardNumber.Queen, CardNumber.Ace) => true,
+            (CardNumber.King, CardNumber.Ace) => true,
+            _ => false
+        };
         public override string ToString() {
             var sb = new StringBuilder();
             sb.Append("[");
