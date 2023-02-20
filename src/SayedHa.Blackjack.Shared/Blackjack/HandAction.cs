@@ -25,4 +25,16 @@ namespace SayedHa.Blackjack.Shared {
         Split,
         Double
     }
+
+    public class HandActionAndReason {
+        public HandActionAndReason(HandAction handAction, string reason) {
+            HandAction = handAction;
+            Reason = reason;
+        }
+
+        public HandActionAndReason(HandAction handAction) : this(handAction, string.Empty) { }
+
+        public HandAction HandAction { get; protected init; }
+        public string Reason { get; set; }
+    }
 }

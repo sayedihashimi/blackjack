@@ -257,16 +257,16 @@ namespace SayedHa.Blackjack.Shared {
             int maxCancels = 1000;
             int numCancels = 0;
             bool isDealerHand = hand as DealerHand is object;
-            HandAction? nextAction = null;
+            HandActionAndReason? nextAction = null;
             if (participant.ValidateNextAction && !isDealerHand) {
                 bool isPlayCorrect = false;
                 var correctAction = BasicStrategyPlayer.GetNextAction(hand, dealerHand, (int)Math.Floor(participant.BettingStrategy.Bankroll.DollarsRemaining));
                 do {
                     nextAction = participant.Player.GetNextAction(hand, dealerHand, (int)Math.Floor(participant.BettingStrategy.Bankroll.DollarsRemaining));
-                    isPlayCorrect = nextAction == correctAction;
+                    isPlayCorrect = nextAction.HandAction == correctAction.HandAction;
 
                     if (!isPlayCorrect) {
-                        WrongNextActionSelected?.Invoke(this, new WrongNextActionSelected(CurrentGame, nextAction.Value, correctAction, "Wrong choice", true));
+                        WrongNextActionSelected?.Invoke(this, new WrongNextActionSelected(CurrentGame, nextAction.HandAction, correctAction, true));
                     }
 
                     numCancels++;
@@ -280,9 +280,9 @@ namespace SayedHa.Blackjack.Shared {
                 nextAction = participant.Player.GetNextAction(hand, dealerHand, (int)Math.Floor(participant.BettingStrategy.Bankroll.DollarsRemaining));
             }
 
-            NextActionSelected?.Invoke(this, new NextActionSelectedEventArgs(CurrentGame,hand, dealerHand, nextAction.Value, isDealerHand));
+            NextActionSelected?.Invoke(this, new NextActionSelectedEventArgs(CurrentGame,hand, dealerHand, nextAction.HandAction, isDealerHand));
             // if the nextAction is to split we need to create two hands and deal a new card to each hand
-            if (nextAction == HandAction.Split) {
+            if (nextAction.HandAction == HandAction.Split) {
                 _logger.LogLine($"action = split. Hand={hand}");
 
                 var newHand = new Hand(hand.Bet, _logger);
@@ -308,7 +308,7 @@ namespace SayedHa.Blackjack.Shared {
             int maxNumIterations = 20;
             int numIterations = 0;
             while (hand.Status != HandStatus.Closed && (numIterations++ < maxNumIterations)) {
-                PlayNextAction(nextAction.Value, hand, dealerHand, participant, cards);
+                PlayNextAction(nextAction.HandAction, hand, dealerHand, participant, cards);
             }
 
             return new List<Hand> { hand };
@@ -328,9 +328,9 @@ namespace SayedHa.Blackjack.Shared {
                     hand.ReceiveCard(cards.GetCardAndMoveNext()!);
                     CardReceived?.Invoke(this, new CardReceivedEventArgs(CurrentGame, !isDealerHand));
                     var newNextAction = participant.Player.GetNextAction(hand, dealerHand, (int)Math.Floor(participant.BettingStrategy.Bankroll.DollarsRemaining));
-                    NextActionSelected?.Invoke(this, new NextActionSelectedEventArgs(CurrentGame, hand, dealerHand, newNextAction, isDealerHand));
+                    NextActionSelected?.Invoke(this, new NextActionSelectedEventArgs(CurrentGame, hand, dealerHand, newNextAction.HandAction, isDealerHand));
                     // note: recursion below
-                    PlayNextAction(newNextAction, hand, dealerHand, participant, cards);
+                    PlayNextAction(newNextAction.HandAction, hand, dealerHand, participant, cards);
                     break;
                 case HandAction.Double:
                     var card = cards.GetCardAndMoveNext()!;
@@ -390,11 +390,11 @@ namespace SayedHa.Blackjack.Shared {
         public ShufflingCardsEventArg(Game game, bool updateUi = true):base(game, updateUi) { }
     }
     public class WrongNextActionSelected : GameEventArgs {
-        public WrongNextActionSelected(Game game, HandAction nextActionSelected, HandAction correctAction, string userMessage, bool updateUi = true) : base(game, updateUi) {
+        public WrongNextActionSelected(Game game, HandAction nextActionSelected, HandActionAndReason correctAction, bool updateUi = true) : base(game, updateUi) {
             CorrectAction = correctAction;
             NextActionSelected = nextActionSelected;
         }
-        public HandAction CorrectAction { get; protected init; }
+        public HandActionAndReason CorrectAction { get; protected init; }
         public HandAction NextActionSelected { get; protected init; }
 
 

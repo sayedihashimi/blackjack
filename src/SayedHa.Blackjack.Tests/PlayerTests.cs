@@ -40,7 +40,7 @@ namespace SayedHa.Blackjack.Tests {
             var randomPlayer = new RandomPlayer();
 
             var result = randomPlayer.GetNextAction(playerHand, dealerHand, 1000);
-            Assert.Equal(HandAction.Stand, result);
+            Assert.Equal(HandAction.Stand, result.HandAction);
             
         }
     }

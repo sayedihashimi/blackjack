@@ -28,13 +28,14 @@ namespace SayedHa.Blackjack.Shared.Players {
             _logger = logger;
         }
         private ILogger _logger = new NullLogger();
-        public override HandAction GetNextAction(Hand hand, DealerHand dealerHand, int dollarsRemaining) {
+        public override HandActionAndReason GetNextAction(Hand hand, DealerHand dealerHand, int dollarsRemaining) {
             bool isDoubleEnabled = BlackjackSettings.GetBlackjackSettings().DoubleDownEnabled;
             bool isSplitEnabled = BlackjackSettings.GetBlackjackSettings().SplitEnabled;
             // if only two cards, first check to see if the action should be split
-            if(isSplitEnabled && hand.DealtCards.Count == 2) {
-                if (ShouldSplitWith(hand.DealtCards[0].Number, hand.DealtCards[1].Number, dealerHand.DealersVisibleCard!.Number)) {
-                    return HandAction.Split;
+            if (isSplitEnabled && hand.DealtCards.Count == 2) {
+                var splitResult = ShouldSplitWith(hand.DealtCards[0].Number, hand.DealtCards[1].Number, dealerHand.DealersVisibleCard!.Number);
+                if (splitResult != null) {
+                    return splitResult!;
                 }
             }
             // if we get to this point the action is not split
@@ -44,9 +45,9 @@ namespace SayedHa.Blackjack.Shared.Players {
             // if one of the two cards is an Ace return the next action
             if (hand.DealtCards.Count == 2) {
                 var nextActionIfHasAce = IfContainsAceReturnNextAction(hand.DealtCards[0], hand.DealtCards[1], dealerHand.DealersVisibleCard!);
-                
+
                 if (nextActionIfHasAce.hasAce) {
-                    Debug.Assert(nextActionIfHasAce.nextAction != HandAction.Split);
+                    Debug.Assert(nextActionIfHasAce.nextAction.HandAction != HandAction.Split);
                     return nextActionIfHasAce.nextAction;
                 }
             }
@@ -55,56 +56,68 @@ namespace SayedHa.Blackjack.Shared.Players {
             int handScore = hand.GetScore();
 
             var nextHandAction = (handScore, dealerHand.DealersVisibleCard!.Number) switch {
-                ( >= 17, _) => HandAction.Stand,
-                (16, CardNumber.Two) => HandAction.Stand,
-                (16, CardNumber.Three) => HandAction.Stand,
-                (16, CardNumber.Four) => HandAction.Stand,
-                (16, CardNumber.Five) => HandAction.Stand,
-                (16, CardNumber.Six) => HandAction.Stand,
-                (16, _) => HandAction.Hit,
+                ( >= 17, _) => new HandActionAndReason(HandAction.Stand, "Always stand on 17 or above.."),
+                (16, CardNumber.Two) => new HandActionAndReason(HandAction.Stand, "Stand on 16 when dealer shows 6 or below."),
+                (16, CardNumber.Three) => new HandActionAndReason(HandAction.Stand, "Stand on 16 when dealer shows 6 or below."),
+                (16, CardNumber.Four) => new HandActionAndReason(HandAction.Stand, "Stand on 16 when dealer shows 6 or below."),
+                (16, CardNumber.Five) => new HandActionAndReason(HandAction.Stand, "Stand on 16 when dealer shows 6 or below."),
+                (16, CardNumber.Six) => new HandActionAndReason(HandAction.Stand, "Stand on 16 when dealer shows 6 or below."),
+                (16, _) => new HandActionAndReason(HandAction.Hit, "Hit on 16 when dealer shows 7 or above."),
 
-                (15, CardNumber.Two) => HandAction.Stand,
-                (15, CardNumber.Three) => HandAction.Stand,
-                (15, CardNumber.Four) => HandAction.Stand,
-                (15, CardNumber.Five) => HandAction.Stand,
-                (15, CardNumber.Six) => HandAction.Stand,
-                (15, _) => HandAction.Hit,
+                (15, CardNumber.Two) => new HandActionAndReason(HandAction.Stand, "Stand on 15 when dealer shows 6 or below."),
+                (15, CardNumber.Three) => new HandActionAndReason(HandAction.Stand, "Stand on 15 when dealer shows 6 or below."),
+                (15, CardNumber.Four) => new HandActionAndReason(HandAction.Stand, "Stand on 15 when dealer shows 6 or below."),
+                (15, CardNumber.Five) => new HandActionAndReason(HandAction.Stand, "Stand on 15 when dealer shows 6 or below."),
+                (15, CardNumber.Six) => new HandActionAndReason(HandAction.Stand, "Stand on 15 when dealer shows 6 or below."),
+                (15, _) => new HandActionAndReason(HandAction.Hit, "Hit on 15 when dealer shows 7 or above."),
 
-                (14, CardNumber.Two) => HandAction.Stand,
-                (14, CardNumber.Three) => HandAction.Stand,
-                (14, CardNumber.Four) => HandAction.Stand,
-                (14, CardNumber.Five) => HandAction.Stand,
-                (14, CardNumber.Six) => HandAction.Stand,
-                (14, _) => HandAction.Hit,
+                (14, CardNumber.Two) => new HandActionAndReason(HandAction.Stand, "Stand on 14 when dealer shows 6 or below."),
+                (14, CardNumber.Three) => new HandActionAndReason(HandAction.Stand, "Stand on 14 when dealer shows 6 or below."),
+                (14, CardNumber.Four) => new HandActionAndReason(HandAction.Stand, "Stand on 14 when dealer shows 6 or below."),
+                (14, CardNumber.Five) => new HandActionAndReason(HandAction.Stand, "Stand on 14 when dealer shows 6 or below."),
+                (14, CardNumber.Six) => new HandActionAndReason(HandAction.Stand, "Stand on 14 when dealer shows 6 or below."),
+                (14, _) => new HandActionAndReason(HandAction.Hit, "Hit on 14 when dealer shows 7 or above."),
 
-                (13, CardNumber.Two) => HandAction.Stand,
-                (13, CardNumber.Three) => HandAction.Stand,
-                (13, CardNumber.Four) => HandAction.Stand,
-                (13, CardNumber.Five) => HandAction.Stand,
-                (13, CardNumber.Six) => HandAction.Stand,
-                (13, _) => HandAction.Hit,
+                (13, CardNumber.Two) => new HandActionAndReason(HandAction.Stand, "Stand on 13 when dealer shows 6 or below."),
+                (13, CardNumber.Three) => new HandActionAndReason(HandAction.Stand, "Stand on 13 when dealer shows 6 or below."),
+                (13, CardNumber.Four) => new HandActionAndReason(HandAction.Stand, "Stand on 13 when dealer shows 6 or below."),
+                (13, CardNumber.Five) => new HandActionAndReason(HandAction.Stand, "Stand on 13 when dealer shows 6 or below."),
+                (13, CardNumber.Six) => new HandActionAndReason(HandAction.Stand, "Stand on 13 when dealer shows 6 or below."),
+                (13, _) => new HandActionAndReason(HandAction.Hit, "Hit on 13 when dealer shows 7 or above."),
 
-                (12, CardNumber.Four) => HandAction.Stand,
-                (12, CardNumber.Five) => HandAction.Stand,
-                (12, CardNumber.Six) => HandAction.Stand,
-                (12, _) => HandAction.Hit,
+                (12, CardNumber.Four) => new HandActionAndReason(HandAction.Stand, "Stand on 12 when dealer shows 4,5 or 6."),
+                (12, CardNumber.Five) => new HandActionAndReason(HandAction.Stand, "Stand on 12 when dealer shows 4,5 or 6."),
+                (12, CardNumber.Six) => new HandActionAndReason(HandAction.Stand, "Stand on 12 when dealer shows 4,5 or 6."),
+                (12, _) => new HandActionAndReason(HandAction.Hit, "Hit on 12 unless dealer shows 4,5 or 6 when you stand."),
 
                 // "Always double down on 11, always"
-                (11, _) => isDoubleEnabled ? HandAction.Double : HandAction.Hit,
+                (11, _) => isDoubleEnabled ? 
+                new HandActionAndReason(HandAction.Double, "Always double down on 11, always") : 
+                new HandActionAndReason(HandAction.Hit, "Hit since double not available. Always double down on 11, always"),
 
-                (10, CardNumber.Ten) => HandAction.Hit,
-                (10, CardNumber.Jack) => HandAction.Hit,
-                (10, CardNumber.Queen) => HandAction.Hit,
-                (10, CardNumber.King) => HandAction.Hit,
-                (10, CardNumber.Ace) => HandAction.Hit,
-                (10, _) => isDoubleEnabled ? HandAction.Double : HandAction.Hit,
+                (10, CardNumber.Ten) => new HandActionAndReason(HandAction.Hit, "Hit on 10 when dealer shows 10 or Ace, otherwise double down."),
+                (10, CardNumber.Jack) => new HandActionAndReason(HandAction.Hit, "Hit on 10 when dealer shows 10 or Ace, otherwise double down."),
+                (10, CardNumber.Queen) => new HandActionAndReason(HandAction.Hit, "Hit on 10 when dealer shows 10 or Ace, otherwise double down."),
+                (10, CardNumber.King) => new HandActionAndReason(HandAction.Hit, "Hit on 10 when dealer shows 10 or Ace, otherwise double down."),
+                (10, CardNumber.Ace) => new HandActionAndReason(HandAction.Hit, "Hit on 10 when dealer shows 10 or Ace, otherwise double down.Hit on 10 when dealer shows 10 or Ace, otherwise double down."),
+                (10, _) => isDoubleEnabled ? 
+                        new HandActionAndReason(HandAction.Double, "Double on 10 unless dealer shows 10 or Ace when you hit.") :
+                        new HandActionAndReason(HandAction.Hit, "Hit since double not available. Double on 10 unless dealer shows 10 or Ace when you hit."),
 
-                (9, CardNumber.Three) => isDoubleEnabled ? HandAction.Double : HandAction.Hit,
-                (9, CardNumber.Four) => isDoubleEnabled ? HandAction.Double : HandAction.Hit,
-                (9, CardNumber.Five) => isDoubleEnabled ? HandAction.Double : HandAction.Hit,
-                (9, CardNumber.Six) => isDoubleEnabled ? HandAction.Double : HandAction.Hit,
+                (9, CardNumber.Three) => isDoubleEnabled ? 
+                        new HandActionAndReason(HandAction.Double, "Double on 9 when dealer shows 3, 4, 5 or 6.") : 
+                        new HandActionAndReason(HandAction.Hit, "Hit since double not available. Double on 9 when dealer shows 3, 4, 5 or 6."),
+                (9, CardNumber.Four) => isDoubleEnabled ?
+                        new HandActionAndReason(HandAction.Double, "Double on 9 when dealer shows 3, 4, 5 or 6.") :
+                        new HandActionAndReason(HandAction.Hit, "Hit since double not available. Double on 9 when dealer shows 3, 4, 5 or 6."),
+                (9, CardNumber.Five) => isDoubleEnabled ?
+                        new HandActionAndReason(HandAction.Double, "Double on 9 when dealer shows 3, 4, 5 or 6.") :
+                        new HandActionAndReason(HandAction.Hit, "Hit since double not available. Double on 9 when dealer shows 3, 4, 5 or 6."),
+                (9, CardNumber.Six) => isDoubleEnabled ?
+                        new HandActionAndReason(HandAction.Double, "Double on 9 when dealer shows 3, 4, 5 or 6.") :
+                        new HandActionAndReason(HandAction.Hit, "Hit since double not available. Double on 9 when dealer shows 3, 4, 5 or 6."),
 
-                ( <= 8, _) => HandAction.Hit,
+                ( <= 8, _) => new HandActionAndReason(HandAction.Hit, "Always hit on 8 or less."),
 
                 // shouldn't get here
                 (_, _) => throw new ApplicationException("Error in GetNextAction")
@@ -112,10 +125,10 @@ namespace SayedHa.Blackjack.Shared.Players {
 
             return nextHandAction;
         }
-        protected bool ShouldSplitWith(CardNumber card1, CardNumber card2,CardNumber dealerCard) {
+        protected HandActionAndReason? ShouldSplitWith(CardNumber card1, CardNumber card2, CardNumber dealerCard) {
             switch (card1, card2, dealerCard) {
                 case (CardNumber.Ace, CardNumber.Ace, _):
-                    return true;
+                    return new HandActionAndReason(HandAction.Split,"Always split on Ace Ace");
 
                 case (CardNumber.Nine, CardNumber.Nine, CardNumber.Two):
                 case (CardNumber.Nine, CardNumber.Nine, CardNumber.Three):
@@ -125,10 +138,10 @@ namespace SayedHa.Blackjack.Shared.Players {
                 // skip seven
                 case (CardNumber.Nine, CardNumber.Nine, CardNumber.Eight):
                 case (CardNumber.Nine, CardNumber.Nine, CardNumber.Nine):
-                    return true;
+                    return new HandActionAndReason(HandAction.Split, "Split on 9 9 except when dealer shows 7, 10 or Ace.");
 
                 case (CardNumber.Eight, CardNumber.Eight, _):
-                    return true;
+                    return new HandActionAndReason(HandAction.Split, "Always split on 8 8.");
 
                 case (CardNumber.Seven, CardNumber.Seven, CardNumber.Two):
                 case (CardNumber.Seven, CardNumber.Seven, CardNumber.Three):
@@ -136,18 +149,18 @@ namespace SayedHa.Blackjack.Shared.Players {
                 case (CardNumber.Seven, CardNumber.Seven, CardNumber.Five):
                 case (CardNumber.Seven, CardNumber.Seven, CardNumber.Six):
                 case (CardNumber.Seven, CardNumber.Seven, CardNumber.Seven):
-                    return true;
+                    return new HandActionAndReason(HandAction.Split, "Split on 7 7 when the dealer shows 2 - 7.");
 
                 case (CardNumber.Six, CardNumber.Six, CardNumber.Two):
                 case (CardNumber.Six, CardNumber.Six, CardNumber.Three):
                 case (CardNumber.Six, CardNumber.Six, CardNumber.Four):
                 case (CardNumber.Six, CardNumber.Six, CardNumber.Five):
                 case (CardNumber.Six, CardNumber.Six, CardNumber.Six):
-                    return true;
+                    return new HandActionAndReason(HandAction.Split, "Split on 6 6 when the dealer shows 2 - 6.");
 
                 case (CardNumber.Four, CardNumber.Four, CardNumber.Five):
                 case (CardNumber.Four, CardNumber.Four, CardNumber.Six):
-                    return true;
+                    return new HandActionAndReason(HandAction.Split, "Split on 4 4 when double after split is available, otherwise hit.");
 
                 case (CardNumber.Three, CardNumber.Three, CardNumber.Two):
                 case (CardNumber.Three, CardNumber.Three, CardNumber.Three):
@@ -155,7 +168,7 @@ namespace SayedHa.Blackjack.Shared.Players {
                 case (CardNumber.Three, CardNumber.Three, CardNumber.Five):
                 case (CardNumber.Three, CardNumber.Three, CardNumber.Six):
                 case (CardNumber.Three, CardNumber.Three, CardNumber.Seven):
-                    return true;
+                    return new HandActionAndReason(HandAction.Split, "Split on 3 3 when the dealer shows 2 - 7.");
 
                 case (CardNumber.Two, CardNumber.Two, CardNumber.Two):
                 case (CardNumber.Two, CardNumber.Two, CardNumber.Three):
@@ -163,13 +176,13 @@ namespace SayedHa.Blackjack.Shared.Players {
                 case (CardNumber.Two, CardNumber.Two, CardNumber.Five):
                 case (CardNumber.Two, CardNumber.Two, CardNumber.Six):
                 case (CardNumber.Two, CardNumber.Two, CardNumber.Seven):
-                    return true;
+                    return new HandActionAndReason(HandAction.Split, "Split on 2 2 when the dealer shows 2 - 7.");
 
                 default:
                     break;
             }
 
-            return false;
+            return null;
         }
 
         protected (bool hasAce, Card? otherCard) IfContainsAceReturnOtherCard(Card card1, Card card2) {
@@ -185,7 +198,7 @@ namespace SayedHa.Blackjack.Shared.Players {
 
             return (false, null);
         }
-        protected (bool hasAce, HandAction nextAction) IfContainsAceReturnNextAction(Card card1, Card card2, Card dealerVisibleCard) {
+        protected (bool hasAce, HandActionAndReason nextAction) IfContainsAceReturnNextAction(Card card1, Card card2, Card dealerVisibleCard) {
             var cardsContainAce = IfContainsAceReturnOtherCard(card1, card2);
             var isDoubleEnabled = BlackjackSettings.GetBlackjackSettings().DoubleDownEnabled;
             // var isSplitEnabled = BlackjackSettings.GetBlackjackSettings().SplitEnabled;
@@ -198,9 +211,9 @@ namespace SayedHa.Blackjack.Shared.Players {
                     case (CardNumber.Jack, _):
                     case (CardNumber.Queen, _):
                     case (CardNumber.King, _):
-                        return (true, HandAction.Stand);
+                        return (true, new HandActionAndReason(HandAction.Stand, "Stand on Ace 9 or above."));
 
-                    // stand when Ace + 8 execpt if the dealer has 6, then double down
+                    // stand when Ace + 8 except if the dealer has 6, then double down
                     case (CardNumber.Eight, CardNumber.Two):
                     case (CardNumber.Eight, CardNumber.Three):
                     case (CardNumber.Eight, CardNumber.Four):
@@ -213,20 +226,27 @@ namespace SayedHa.Blackjack.Shared.Players {
                     case (CardNumber.Eight, CardNumber.Queen):
                     case (CardNumber.Eight, CardNumber.King):
                     case (CardNumber.Eight, CardNumber.Ace):
-                        return (true, HandAction.Stand);
+                        return (true, new HandActionAndReason(HandAction.Stand, "Stand on Ace 8 except if dealer shows 6."));
                     case (CardNumber.Eight, CardNumber.Six):
-                        return (true, isDoubleEnabled ? HandAction.Double : HandAction.Hit);
+                        return (true, isDoubleEnabled ?
+                            new HandActionAndReason(HandAction.Double, "Double on Ace 8 when the dealer shows 6.") :
+                            new HandActionAndReason(HandAction.Hit, "Since double isn't available hit on Ace 8 when the dealer shows 6."));
 
                     // Ace + 7:
-                    //  Double 2 - 6, stand otherwise
+                    //  Double 2 - 6, stand 7 & 8, hit otherwise
                     case (CardNumber.Seven, CardNumber.Two):
                     case (CardNumber.Seven, CardNumber.Three):
                     case (CardNumber.Seven, CardNumber.Four):
                     case (CardNumber.Seven, CardNumber.Five):
                     case (CardNumber.Seven, CardNumber.Six):
-                        return (true, isDoubleEnabled ? HandAction.Double : HandAction.Hit);
+                        return (true, isDoubleEnabled ?
+                            new HandActionAndReason(HandAction.Double, "Double on Ace 7 when dealer shows 2 - 6.") :
+                            new HandActionAndReason(HandAction.Hit, "Since double isn't available hit on Ace 7 when dealer shows 2 - 6."));
+                    case (CardNumber.Seven, CardNumber.Seven):
+                    case (CardNumber.Seven, CardNumber.Eight):
+                        return (true, new HandActionAndReason(HandAction.Stand, "Stand on Ace 7 when dealer shows a 7 or 8."));
                     case (CardNumber.Seven, _):
-                        return (true, HandAction.Stand);
+                        return (true, new HandActionAndReason(HandAction.Stand, "Hit on Ace 7 when the dealer shows 9, 10 or Ace."));
 
                     // Ace + 6
                     //  Double when 3-6, otherwise Hit
@@ -234,51 +254,63 @@ namespace SayedHa.Blackjack.Shared.Players {
                     case (CardNumber.Six, CardNumber.Four):
                     case (CardNumber.Six, CardNumber.Five):
                     case (CardNumber.Six, CardNumber.Six):
-                        return (true, isDoubleEnabled ? HandAction.Double : HandAction.Hit);
+                        return (true, isDoubleEnabled ?
+                            new HandActionAndReason(HandAction.Double, "Double on Ace 6 when the dealer shows 3, 4, 5 or 6, hit otherwise.") :
+                            new HandActionAndReason(HandAction.Hit, "Since double isn't available hit. Double on Ace + 6 when the dealer shows 3, 4, 5 or 6, hit otherwise."));
                     case (CardNumber.Six, _):
-                        return (true, HandAction.Hit);
+                        return (true, new HandActionAndReason(HandAction.Hit, "Hit on Ace 6 unless dealer shows 3, 4, 5 or 6 when you double."));
 
                     // Ace + 5
                     //  Double when 4 - 6, otherwise Hit
                     case (CardNumber.Five, CardNumber.Four):
                     case (CardNumber.Five, CardNumber.Five):
                     case (CardNumber.Five, CardNumber.Six):
-                        return (true, isDoubleEnabled ? HandAction.Double : HandAction.Hit);
+                        return (true, isDoubleEnabled ? 
+                            new HandActionAndReason(HandAction.Double,"Double on Ace 5 when dealer shows 4, 5 or 6, otherwise hit.") : 
+                            new HandActionAndReason(HandAction.Hit,"Since double isn't available hit. Double on Ace 5 when dealer shows 4, 5 or 6, otherwise hit."));
                     case (CardNumber.Five, _):
-                        return (true, HandAction.Hit);
+                        return (true, new HandActionAndReason(HandAction.Hit,"Hit on Ace 5 unless dealer shows 4, 5 or 6 when you double."));
 
                     // Ace + 4
                     //  Double when 4 - 6, otherwise Hit
                     case (CardNumber.Four, CardNumber.Four):
                     case (CardNumber.Four, CardNumber.Five):
                     case (CardNumber.Four, CardNumber.Six):
-                        return (true, isDoubleEnabled ? HandAction.Double : HandAction.Hit);
+                        return (true, isDoubleEnabled ?
+                            new HandActionAndReason(HandAction.Double, "Double on Ace 4 when dealer shows 4, 5 or 6, otherwise hit.") :
+                            new HandActionAndReason(HandAction.Hit, "Since double isn't available hit. Double on Ace 4 when dealer shows 4, 5 or 6, otherwise hit."));
                     case (CardNumber.Four, _):
-                        return (true, HandAction.Hit);
+                        return (true, new HandActionAndReason(HandAction.Hit,"Hit on Ace 4 unless dealer shows 4, 5 or 6 when you double."));
 
                     // Ace + 3
                     //  Double if 5,6 otherwise Hit
                     case (CardNumber.Three, CardNumber.Five):
                     case (CardNumber.Three, CardNumber.Six):
-                        return (true, isDoubleEnabled ? HandAction.Double : HandAction.Hit);
+                        return (true, isDoubleEnabled ? 
+                            new HandActionAndReason(HandAction.Double,"Double on Ace 3 when dealer shows 5 or 6, otherwise hit.") : 
+                            new HandActionAndReason(HandAction.Hit,"Since double isn't available hit. Double on Ace 3 when dealer shows 5 or 6, otherwise hit."));
                     case (CardNumber.Three, _):
-                        return (true, HandAction.Hit);
+                        return (true, new HandActionAndReason(HandAction.Hit,"Hit on Ace 3 unless dealer shows 5 or 6 when you double."));
 
                     // Ace + 2
                     //  Double if 5,6 otherwise Hit
                     case (CardNumber.Two, CardNumber.Five):
                     case (CardNumber.Two, CardNumber.Six):
-                        return (true, isDoubleEnabled ? HandAction.Double : HandAction.Hit);
+                        return (true, isDoubleEnabled ?
+                            new HandActionAndReason(HandAction.Double, "Double on Ace 2 when dealer shows 5 or 6, otherwise hit.") :
+                            new HandActionAndReason(HandAction.Hit, "Since double isn't available hit. Double on Ace 2 when dealer shows 5 or 6, otherwise hit."));
                     case (CardNumber.Two, _):
-                        return (true, HandAction.Hit);
-
-
+                        return (true, new HandActionAndReason(HandAction.Hit,"Hit on Ace 2 unless dealer shows 5 or 6 when you double."));
 
                     default:
                         break;
                 }
             }
-            return (false, isDoubleEnabled ? HandAction.Split : HandAction.Hit);
+
+            // these values shouldn't be used by the caller
+            return (false, isDoubleEnabled ? 
+                new HandActionAndReason(HandAction.Split,"") : 
+                new HandActionAndReason(HandAction.Hit,""));
         }
     }
 }

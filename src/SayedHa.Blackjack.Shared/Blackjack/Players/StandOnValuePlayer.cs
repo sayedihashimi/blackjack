@@ -30,27 +30,27 @@ namespace SayedHa.Blackjack.Shared.Players {
         public ParticipantRole Role { get; protected init; }
 
         public int MinScoreToStand { get; protected init; }
-        public override HandAction GetNextAction(Hand hand, DealerHand dealerHand, int dollarsRemaining) {
+        public override HandActionAndReason GetNextAction(Hand hand, DealerHand dealerHand, int dollarsRemaining) {
             Debug.Assert(hand != null);
 
             if (hand.Status == HandStatus.Closed) {
-                return HandAction.Stand;
+                return new (HandAction.Stand,"");
             }
 
-            return hand.GetScore() < MinScoreToStand ? HandAction.Hit : HandAction.Stand;
+            return hand.GetScore() < MinScoreToStand ? new (HandAction.Hit,"") : new (HandAction.Stand,"");
         }
     }
 
     public class RandomPlayer : Player {
-        public override HandAction GetNextAction(Hand hand, DealerHand dealerHand, int dollarsRemaining) {
+        public override HandActionAndReason GetNextAction(Hand hand, DealerHand dealerHand, int dollarsRemaining) {
             if (hand.Status == HandStatus.Closed || hand.GetScore() >= BlackjackSettings.GetBlackjackSettings().MaxScore) {
-                return HandAction.Stand;
+                return new (HandAction.Stand,"");
             }
 
             var randomNum = new Random().Next(0, 10000);
             var shouldHit = randomNum % 2 == 0 ? true : false;
 
-            return shouldHit ? HandAction.Hit : HandAction.Stand;
+            return shouldHit ? new (HandAction.Hit,"") : new (HandAction.Stand,"");
         }
     }
 }

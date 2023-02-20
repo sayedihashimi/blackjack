@@ -116,7 +116,7 @@ namespace SayedHa.Blackjack.Cli {
         private void GameRunner_WrongNextActionSelected(object sender, EventArgs e) {
             var wncEa = e as WrongNextActionSelected;
             if(wncEa is object) {
-                AnsiConsole.MarkupLineInterpolated($"Correct action is [bold green]'{wncEa.CorrectAction}'[/], you selected [bold red]'{wncEa.NextActionSelected}[/]'. Try again.\n");
+                AnsiConsole.MarkupLineInterpolated($"Correct action is [bold green]'{wncEa.CorrectAction.HandAction}'[/], you selected [bold red]'{wncEa.NextActionSelected}[/]'\n[italic]{wncEa.CorrectAction.Reason}[/]\n\nTry again.\n");
             }
         }
 
@@ -166,6 +166,7 @@ namespace SayedHa.Blackjack.Cli {
                 return;
             }
 
+            
             AnsiConsole.Clear();
 
             var containerTable = new Table();

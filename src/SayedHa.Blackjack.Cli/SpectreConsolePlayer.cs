@@ -19,18 +19,20 @@ using Spectre.Console;
 
 namespace SayedHa.Blackjack.Cli {
     public class SpectreConsolePlayer : Player {
-        bool IncludeScoreInOutput { get;set; } = true;
-        public override HandAction GetNextAction(Hand hand, DealerHand dealerHand, int dollarsRemaining) {
+        bool IncludeScoreInOutput { get; set; } = true;
+        public override HandActionAndReason GetNextAction(Hand hand, DealerHand dealerHand, int dollarsRemaining) {
             var handScore = hand.GetScore();
-            if(handScore >= 21) {
-                return HandAction.Stand;
+            if (handScore >= 21) {
+                return new(HandAction.Stand, "player choice");
             }
 
-            return AnsiConsole.Prompt(
-            new SelectionPrompt<HandAction>()
-            .Title($@"Select your next action. ({hand.GetSpectreString(isDealerHand: false, hideFirstCard:false, includeScore: true)})")
-            .AddChoices(hand.GetValidActions(dollarsRemaining).ToArray())
-            );
+            var action = AnsiConsole.Prompt(
+                new SelectionPrompt<HandAction>()
+                .Title($@"Select your next action. ({hand.GetSpectreString(isDealerHand: false, hideFirstCard: false, includeScore: true)})")
+                .AddChoices(hand.GetValidActions(dollarsRemaining).ToArray())
+                );
+
+            return new(action, "player choice");
         }
     }
 }

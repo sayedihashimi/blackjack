@@ -24,6 +24,6 @@ namespace SayedHa.Blackjack.Shared.Players {
         /// Each player is free to implement whatever playing
         /// style they prefer.
         /// </summary>
-        public abstract HandAction GetNextAction(Hand hand, DealerHand dealerHand, int dollarsRemaining);
+        public abstract HandActionAndReason GetNextAction(Hand hand, DealerHand dealerHand, int dollarsRemaining);
     }
 }
