@@ -12,6 +12,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with SayedHa.Blackjack.  If not, see <https://www.gnu.org/licenses/>.
+using SayedHa.Blackjack.Shared.Players;
 using System.Diagnostics;
 using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
@@ -21,6 +22,7 @@ namespace SayedHa.Blackjack.Shared {
     public class GameRunner {
         public GameRunner(ILogger logger) {
             _logger = logger;
+            BasicStrategyPlayer = new BasicStrategyPlayer(_logger);
         }
 
         private ILogger _logger = new NullLogger();
@@ -32,9 +34,10 @@ namespace SayedHa.Blackjack.Shared {
         public event EventHandler BetAmountConfigured;
         public event EventHandler CardReceived;
         public event EventHandler ShufflingCards;
+        public event EventHandler WrongNextActionSelected;
 
         private Game CurrentGame { get; set; }
-
+        private Player BasicStrategyPlayer { get; init; }
         public Game CreateNewGame(int numDecks, int numOpponents, ParticipantFactory participantFactory, bool discardFirstCard) {
             var game = gameFactory.CreateNewGame(numDecks, numOpponents, participantFactory, BlackjackSettings.GetBlackjackSettings().ShuffleThresholdPercent, _logger);
 
@@ -128,43 +131,70 @@ namespace SayedHa.Blackjack.Shared {
 
                 // now play for the dealer
                 game.Status = GameStatus.DealerPlaying;
-                PlayForParticipant(game.Dealer, game.Dealer, game.Cards, true);
 
-                // now determine the results of the game
-                var dealerScore = game.Dealer.Hands[0].GetScore();
+                bool allHandsBusted = true;
+                bool allHandsBlackjack = true;
 
-                foreach (var opponent in game.Opponents) {
-                    var sb = new StringBuilder();
-                    sb.Append("Result: ");
-                    foreach (var hand in opponent.Hands) {
-                        var handScore = hand.GetScore();
-                        if (handScore > 21) {
+                // check all hands for being busted as well as blackjack
+                foreach(var op in game.Opponents) {
+                    foreach(var hand in op.Hands) {
+                        if (hand.GetScore() > BlackjackSettings.GetBlackjackSettings().MaxScore) {
                             hand.SetHandResult(HandResult.DealerWon);
-                            opponent.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet * -1F, opponent.Name);
-                            game.Dealer.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet, game.Dealer.Name);
-                            sb.Append($"↓Busted ${hand.Bet:F0} ");
-                        }
-                        else if (handScore == dealerScore) {
-                            hand.SetHandResult(HandResult.Push);
-                            // no change to any bankroll on a push
-                            sb.Append("=Push ");
-                        }
-                        else if (handScore > dealerScore || dealerScore > 21) {
-                            hand.SetHandResult(HandResult.OpponentWon);
-                            float betMultiplier = hand.DoesHandHaveBlackjack() ? bjPayoutMultiplier : 1;
-                            var amtToAdd = hand.Bet * betMultiplier;
-                            opponent.BettingStrategy.Bankroll.AddToDollarsRemaining(amtToAdd, opponent.Name);
-                            game.Dealer.BettingStrategy.Bankroll.AddToDollarsRemaining(amtToAdd* -1F, game.Dealer.Name);
-                            sb.Append($"↑Win ${amtToAdd:F0}");
                         }
                         else {
-                            hand.SetHandResult(HandResult.DealerWon);
-                            opponent.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet * -1F, opponent.Name);
-                            game.Dealer.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet, game.Dealer.Name);
-                            sb.Append($"↓Lose ${hand.Bet:F0} ");
+                            allHandsBusted = false;
+                        }
+
+                        if (hand.DoesHandHaveBlackjack()) {
+                            hand.SetHandResult(HandResult.OpponentWon);
+                        }
+                        else {
+                            allHandsBlackjack = false;
                         }
                     }
-                    _logger.LogLine(sb.ToString());
+                }
+
+                if (allHandsBusted || allHandsBlackjack) {
+                    game.Status = GameStatus.Finished;
+                }
+                else {
+                    PlayForParticipant(game.Dealer, game.Dealer, game.Cards, true);
+                    // now determine the results of the game
+                    var dealerScore = game.Dealer.Hands[0].GetScore();
+
+                    foreach (var opponent in game.Opponents) {
+                        var sb = new StringBuilder();
+                        sb.Append("Result: ");
+                        foreach (var hand in opponent.Hands) {
+                            var handScore = hand.GetScore();
+                            if (handScore > 21) {
+                                hand.SetHandResult(HandResult.DealerWon);
+                                opponent.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet * -1F, opponent.Name);
+                                game.Dealer.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet, game.Dealer.Name);
+                                sb.Append($"↓Busted ${hand.Bet:F0} ");
+                            }
+                            else if (handScore == dealerScore) {
+                                hand.SetHandResult(HandResult.Push);
+                                // no change to any bankroll on a push
+                                sb.Append("=Push ");
+                            }
+                            else if (handScore > dealerScore || dealerScore > 21) {
+                                hand.SetHandResult(HandResult.OpponentWon);
+                                float betMultiplier = hand.DoesHandHaveBlackjack() ? bjPayoutMultiplier : 1;
+                                var amtToAdd = hand.Bet * betMultiplier;
+                                opponent.BettingStrategy.Bankroll.AddToDollarsRemaining(amtToAdd, opponent.Name);
+                                game.Dealer.BettingStrategy.Bankroll.AddToDollarsRemaining(amtToAdd * -1F, game.Dealer.Name);
+                                sb.Append($"↑Win ${amtToAdd:F0}");
+                            }
+                            else {
+                                hand.SetHandResult(HandResult.DealerWon);
+                                opponent.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet * -1F, opponent.Name);
+                                game.Dealer.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet, game.Dealer.Name);
+                                sb.Append($"↓Lose ${hand.Bet:F0} ");
+                            }
+                        }
+                        _logger.LogLine(sb.ToString());
+                    }
                 }
             }
             else {
@@ -216,7 +246,7 @@ namespace SayedHa.Blackjack.Shared {
             Debug.Assert(participant != null);
             Debug.Assert(cards != null);
 
-            if(hand.DoesHandHaveBlackjack()) {
+            if (hand.DoesHandHaveBlackjack()) {
                 var bjPayoutMultiplier = BlackjackSettings.GetBlackjackSettings().BlackjackPayoutMultplier;
                 hand.SetHandResult(HandResult.OpponentWon);
                 participant.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet * bjPayoutMultiplier, participant.Name);
@@ -224,10 +254,33 @@ namespace SayedHa.Blackjack.Shared {
                 // TODO: Remove the win amount from the dealer?
                 return new List<Hand> { hand };
             }
-
+            int maxCancels = 1000;
+            int numCancels = 0;
             bool isDealerHand = hand as DealerHand is object;
-            var nextAction = participant.Player.GetNextAction(hand, dealerHand, (int)Math.Floor(participant.BettingStrategy.Bankroll.DollarsRemaining));
-            NextActionSelected?.Invoke(this, new NextActionSelectedEventArgs(CurrentGame,hand, dealerHand, nextAction, isDealerHand));
+            HandAction? nextAction = null;
+            if (participant.ValidateNextAction && !isDealerHand) {
+                bool isPlayCorrect = false;
+                var correctAction = BasicStrategyPlayer.GetNextAction(hand, dealerHand, (int)Math.Floor(participant.BettingStrategy.Bankroll.DollarsRemaining));
+                do {
+                    nextAction = participant.Player.GetNextAction(hand, dealerHand, (int)Math.Floor(participant.BettingStrategy.Bankroll.DollarsRemaining));
+                    isPlayCorrect = nextAction == correctAction;
+
+                    if (!isPlayCorrect) {
+                        WrongNextActionSelected?.Invoke(this, new WrongNextActionSelected(CurrentGame, nextAction.Value, correctAction, "Wrong choice", true));
+                    }
+
+                    numCancels++;
+                    if (numCancels++ > maxCancels) {
+                        throw new ApplicationException($"Max iterations reached for isPlayCorrect");
+                    }
+                } while (!isPlayCorrect);
+            }
+
+            if (nextAction == null) {
+                nextAction = participant.Player.GetNextAction(hand, dealerHand, (int)Math.Floor(participant.BettingStrategy.Bankroll.DollarsRemaining));
+            }
+
+            NextActionSelected?.Invoke(this, new NextActionSelectedEventArgs(CurrentGame,hand, dealerHand, nextAction.Value, isDealerHand));
             // if the nextAction is to split we need to create two hands and deal a new card to each hand
             if (nextAction == HandAction.Split) {
                 _logger.LogLine($"action = split. Hand={hand}");
@@ -255,7 +308,7 @@ namespace SayedHa.Blackjack.Shared {
             int maxNumIterations = 20;
             int numIterations = 0;
             while (hand.Status != HandStatus.Closed && (numIterations++ < maxNumIterations)) {
-                PlayNextAction(nextAction, hand, dealerHand, participant, cards);
+                PlayNextAction(nextAction.Value, hand, dealerHand, participant, cards);
             }
 
             return new List<Hand> { hand };
@@ -335,5 +388,15 @@ namespace SayedHa.Blackjack.Shared {
     }
     public class ShufflingCardsEventArg: GameEventArgs {
         public ShufflingCardsEventArg(Game game, bool updateUi = true):base(game, updateUi) { }
+    }
+    public class WrongNextActionSelected : GameEventArgs {
+        public WrongNextActionSelected(Game game, HandAction nextActionSelected, HandAction correctAction, string userMessage, bool updateUi = true) : base(game, updateUi) {
+            CorrectAction = correctAction;
+            NextActionSelected = nextActionSelected;
+        }
+        public HandAction CorrectAction { get; protected init; }
+        public HandAction NextActionSelected { get; protected init; }
+
+
     }
 }

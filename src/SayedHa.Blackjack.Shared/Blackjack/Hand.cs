@@ -179,7 +179,7 @@ namespace SayedHa.Blackjack.Shared {
                 }
             }
 
-            return newScores1;
+            return scoresNoDupes;
         }
 
         public IList<HandAction> GetValidActions(int dollarsRemaining) {

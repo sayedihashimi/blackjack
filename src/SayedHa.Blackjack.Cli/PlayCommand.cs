@@ -67,6 +67,8 @@ namespace SayedHa.Blackjack.Cli {
             CultureInfo.CurrentCulture = CultureInfo.CurrentCulture.Clone() as CultureInfo;
             CultureInfo.CurrentCulture.NumberFormat.CurrencyNegativePattern = 1;
 
+            var enableHints = AnsiConsole.Confirm("[bold]Enable hints?[/]", false);
+
             NumDecks = AnsiConsole.Prompt(
                 new SelectionPrompt<int>()
                 .Title("How many decks?")
@@ -89,6 +91,7 @@ namespace SayedHa.Blackjack.Cli {
             gameRunner.BetAmountConfigured += GameRunner_BetAmountConfigured;
             gameRunner.CardReceived += GameRunner_CardReceived;
             gameRunner.ShufflingCards += GameRunner_ShufflingCards;
+            gameRunner.WrongNextActionSelected += GameRunner_WrongNextActionSelected;
 
             var bettingStrategy = new SpectreConsoleBettingStrategy(bankroll);
             var pf = new SpectreConsoleParticipantFactory(bettingStrategy, _reporter);
@@ -96,11 +99,25 @@ namespace SayedHa.Blackjack.Cli {
             // TODO: Make this into a setting or similar
             var discardFirstCard = true;
             var game = gameRunner.CreateNewGame(NumDecks, 1, pf, discardFirstCard);
+
+            if (enableHints) {
+                foreach (var participant in game.Opponents) {
+                    participant.ValidateNextAction = true;
+                }
+            }
+
             PrintUI(game, ShouldHideFirstCard(game));
             do {
                 var gameResult = gameRunner.PlayGame(game);
                 PrintUI(game, false);
             } while (KeepPlaying(bankroll, game));
+        }
+
+        private void GameRunner_WrongNextActionSelected(object sender, EventArgs e) {
+            var wncEa = e as WrongNextActionSelected;
+            if(wncEa is object) {
+                AnsiConsole.MarkupLineInterpolated($"Correct action is [bold green]'{wncEa.CorrectAction}'[/], you selected [bold red]'{wncEa.NextActionSelected}[/]'. Try again.\n");
+            }
         }
 
         private void GameRunner_ShufflingCards(object sender, EventArgs e) {

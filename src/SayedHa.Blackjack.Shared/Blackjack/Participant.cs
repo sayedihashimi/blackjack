@@ -30,6 +30,8 @@ namespace SayedHa.Blackjack.Shared {
         public string Name { get; protected init; }
         public BettingStrategy BettingStrategy { get; protected init; }
 
+        // TODO: Wire this up to be configured via the ParticipantFactory.
+        public bool ValidateNextAction { get; set; } = false;
         /// <summary>
         /// This is the current hand(s) in play
         /// It needs to be a list because a split can create multiple hands
