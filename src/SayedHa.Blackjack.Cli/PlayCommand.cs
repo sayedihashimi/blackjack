@@ -166,8 +166,9 @@ namespace SayedHa.Blackjack.Cli {
                 return;
             }
 
-            
-            AnsiConsole.Clear();
+            Console.Clear();
+            // Crashing windows terminal for some reason
+            // AnsiConsole.Clear();
 
             var containerTable = new Table();
             containerTable.AddColumn("Player").Width(100);

@@ -240,23 +240,9 @@ namespace SayedHa.Blackjack.Shared {
             }
         }
 
-        // returns a list because a hand can be split
-        protected List<Hand> PlayHand(Hand hand, DealerHand dealerHand, Participant participant, CardDeck cards) {
-            Debug.Assert(hand != null);
-            Debug.Assert(participant != null);
-            Debug.Assert(cards != null);
-
-            if (hand.DoesHandHaveBlackjack()) {
-                var bjPayoutMultiplier = BlackjackSettings.GetBlackjackSettings().BlackjackPayoutMultplier;
-                hand.SetHandResult(HandResult.OpponentWon);
-                participant.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet * bjPayoutMultiplier, participant.Name);
-                PlayerHasBlackjack?.Invoke(this, new PlayerHasBlackjackEventArgs(CurrentGame));
-                // TODO: Remove the win amount from the dealer?
-                return new List<Hand> { hand };
-            }
+        protected HandActionAndReason GetValidatedNextAction(Participant participant, Hand hand, DealerHand dealerHand, bool isDealerHand) {
             int maxCancels = 1000;
             int numCancels = 0;
-            bool isDealerHand = hand as DealerHand is object;
             HandActionAndReason? nextAction = null;
             if (participant.ValidateNextAction && !isDealerHand) {
                 bool isPlayCorrect = false;
@@ -279,6 +265,29 @@ namespace SayedHa.Blackjack.Shared {
             if (nextAction == null) {
                 nextAction = participant.Player.GetNextAction(hand, dealerHand, (int)Math.Floor(participant.BettingStrategy.Bankroll.DollarsRemaining));
             }
+
+            return nextAction;
+        }
+
+        // returns a list because a hand can be split
+        protected List<Hand> PlayHand(Hand hand, DealerHand dealerHand, Participant participant, CardDeck cards) {
+            Debug.Assert(hand != null);
+            Debug.Assert(participant != null);
+            Debug.Assert(cards != null);
+
+            if (hand.DoesHandHaveBlackjack()) {
+                var bjPayoutMultiplier = BlackjackSettings.GetBlackjackSettings().BlackjackPayoutMultplier;
+                hand.SetHandResult(HandResult.OpponentWon);
+                participant.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet * bjPayoutMultiplier, participant.Name);
+                PlayerHasBlackjack?.Invoke(this, new PlayerHasBlackjackEventArgs(CurrentGame));
+                // TODO: Remove the win amount from the dealer?
+                return new List<Hand> { hand };
+            }
+
+            bool isDealerHand = hand as DealerHand is object;
+            HandActionAndReason? nextAction = null;
+
+            nextAction = GetValidatedNextAction(participant, hand, dealerHand, isDealerHand);
 
             NextActionSelected?.Invoke(this, new NextActionSelectedEventArgs(CurrentGame,hand, dealerHand, nextAction.HandAction, isDealerHand));
             // if the nextAction is to split we need to create two hands and deal a new card to each hand
@@ -327,7 +336,9 @@ namespace SayedHa.Blackjack.Shared {
                 case HandAction.Hit:
                     hand.ReceiveCard(cards.GetCardAndMoveNext()!);
                     CardReceived?.Invoke(this, new CardReceivedEventArgs(CurrentGame, !isDealerHand));
-                    var newNextAction = participant.Player.GetNextAction(hand, dealerHand, (int)Math.Floor(participant.BettingStrategy.Bankroll.DollarsRemaining));
+
+                    var newNextAction = GetValidatedNextAction(participant, hand, dealerHand, isDealerHand);
+
                     NextActionSelected?.Invoke(this, new NextActionSelectedEventArgs(CurrentGame, hand, dealerHand, newNextAction.HandAction, isDealerHand));
                     // note: recursion below
                     PlayNextAction(newNextAction.HandAction, hand, dealerHand, participant, cards);
