@@ -13,7 +13,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SayedHa.Blackjack.Cli", "Sa
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SayedHa.Roulette.Console", "SayedHa.Roulette.Console\SayedHa.Roulette.Console.csproj", "{23B4C9ED-B653-4A3C-97C0-EABDC0A1F84C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SayedHa.Roulette.Cli", "SayedHa.Roulette.Cli\SayedHa.Roulette.Cli.csproj", "{163F97B0-F72D-4841-ABBC-01D6266D6737}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SayedHa.Roulette.Cli", "SayedHa.Roulette.Cli\SayedHa.Roulette.Cli.csproj", "{163F97B0-F72D-4841-ABBC-01D6266D6737}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "blackjack", "blackjack", "{02893848-AD2C-4EF8-A031-57385011DB8E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "roulette", "roulette", "{55262E96-B75D-446A-AF4E-B824EA27E4B8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{82E533D6-1C0E-4BD8-BACA-6A822BCF1062}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -48,6 +54,13 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{F1371977-B0E1-4AE7-8A1B-3B79DB80D57E} = {02893848-AD2C-4EF8-A031-57385011DB8E}
+		{9C46C191-FE2C-4543-9EA9-F7F10A1832D1} = {82E533D6-1C0E-4BD8-BACA-6A822BCF1062}
+		{327A419F-A4DB-444B-A24B-A426303E3BAF} = {02893848-AD2C-4EF8-A031-57385011DB8E}
+		{23B4C9ED-B653-4A3C-97C0-EABDC0A1F84C} = {55262E96-B75D-446A-AF4E-B824EA27E4B8}
+		{163F97B0-F72D-4841-ABBC-01D6266D6737} = {55262E96-B75D-446A-AF4E-B824EA27E4B8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {ADAB77FA-E57F-4AC5-943F-88466FA143FB}
