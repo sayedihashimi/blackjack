@@ -46,6 +46,73 @@ namespace SayedHa.Blackjack.Tests {
             Assert.Equal(17, game.Dealer.Hands[0].GetScore());
             Assert.Equal(HandResult.Push, game.Opponents[0].Hands[0].HandResult);
         }
+        [Fact]
+        public void Test_PlayGame_PlayerAndDealerHaveBlackjack() {
+            var logger = new Logger();
+            var pf = new ParticipantFactory(logger);
+
+            var bankroll = Bankroll.CreateNewDefaultBankroll(logger);
+            int numDecks = 1;
+            var gf = new GameFactory();
+            var game = gf.CreateNewGame(
+                new CardDeckFactory().CreateCardDeck(GetDeckForDoubleBlackjack(), numDecks, logger),
+                1,
+                pf,
+                pf.OpponentPlayStrategy,
+                BlackjackSettings.GetBlackjackSettings().ShuffleThresholdPercent);
+
+            var gameRunner = new GameRunner(logger);
+            var result = gameRunner.PlayGame(game);
+
+            Assert.NotNull(result);
+            Assert.Equal(21, game.Opponents[0].Hands[0].GetScore());
+            Assert.Equal(21, game.Dealer.Hands[0].GetScore());
+            Assert.Equal(HandResult.Push, game.Opponents[0].Hands[0].HandResult);
+        }
+
+        private List<Card> GetDeckForDoubleBlackjack() {
+            var cards = new List<Card>();
+
+            // first card will be discarded
+            cards.Add(new Card { Number = CardNumber.Ace, Suit = CardSuit.Spade });
+            cards.Add(new Card { Number = CardNumber.King, Suit = CardSuit.Spade });
+            cards.Add(new Card { Number = CardNumber.Ace, Suit = CardSuit.Club });
+            cards.Add(new Card { Number = CardNumber.King, Suit = CardSuit.Club });
+            cards.Add(new Card { Number = CardNumber.Ace, Suit = CardSuit.Diamond });
+            cards.Add(new Card { Number = CardNumber.King, Suit = CardSuit.Diamond });
+            cards.Add(new Card { Number = CardNumber.Ace, Suit = CardSuit.Heart });
+            cards.Add(new Card { Number = CardNumber.King, Suit = CardSuit.Heart });
+
+            cards.Add(new Card { Number = CardNumber.Ace, Suit = CardSuit.Spade });
+            cards.Add(new Card { Number = CardNumber.King, Suit = CardSuit.Spade });
+            cards.Add(new Card { Number = CardNumber.Ace, Suit = CardSuit.Club });
+            cards.Add(new Card { Number = CardNumber.King, Suit = CardSuit.Club });
+            cards.Add(new Card { Number = CardNumber.Ace, Suit = CardSuit.Diamond });
+            cards.Add(new Card { Number = CardNumber.King, Suit = CardSuit.Diamond });
+            cards.Add(new Card { Number = CardNumber.Ace, Suit = CardSuit.Heart });
+            cards.Add(new Card { Number = CardNumber.King, Suit = CardSuit.Heart });
+
+            cards.Add(new Card { Number = CardNumber.Ace, Suit = CardSuit.Spade });
+            cards.Add(new Card { Number = CardNumber.King, Suit = CardSuit.Spade });
+            cards.Add(new Card { Number = CardNumber.Ace, Suit = CardSuit.Club });
+            cards.Add(new Card { Number = CardNumber.King, Suit = CardSuit.Club });
+            cards.Add(new Card { Number = CardNumber.Ace, Suit = CardSuit.Diamond });
+            cards.Add(new Card { Number = CardNumber.King, Suit = CardSuit.Diamond });
+            cards.Add(new Card { Number = CardNumber.Ace, Suit = CardSuit.Heart });
+            cards.Add(new Card { Number = CardNumber.King, Suit = CardSuit.Heart });
+
+            cards.Add(new Card { Number = CardNumber.Ace, Suit = CardSuit.Spade });
+            cards.Add(new Card { Number = CardNumber.King, Suit = CardSuit.Spade });
+            cards.Add(new Card { Number = CardNumber.Ace, Suit = CardSuit.Club });
+            cards.Add(new Card { Number = CardNumber.King, Suit = CardSuit.Club });
+            cards.Add(new Card { Number = CardNumber.Ace, Suit = CardSuit.Diamond });
+            cards.Add(new Card { Number = CardNumber.King, Suit = CardSuit.Diamond });
+            cards.Add(new Card { Number = CardNumber.Ace, Suit = CardSuit.Heart });
+            cards.Add(new Card { Number = CardNumber.King, Suit = CardSuit.Heart });
+
+
+            return cards;
+        }
 
         private List<Card> GetSampleDeck01() {
             var cards = new List<Card>();

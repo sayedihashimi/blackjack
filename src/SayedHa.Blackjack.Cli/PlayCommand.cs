@@ -42,17 +42,11 @@ namespace SayedHa.Blackjack.Cli {
             };
 
         private async Task HandlePlayCommand(PlayCommandOptions options) {
-            // wait for the user to start the game
-            AnsiConsole.Write(
-                new FigletText("Blackjack")
-                    .LeftJustified()
-                    .Color(Color.Red));
-
-            if (AnsiConsole.Confirm("Ready to get started?")) {
+            if (AnsiConsole.Confirm("Blackjack: Ready to get started?")) {
                 await PlayGameAsync();
             }
             else {
-                Console.WriteLine("cancelled");
+                Console.WriteLine("Come again soon!");
             }
         }
 

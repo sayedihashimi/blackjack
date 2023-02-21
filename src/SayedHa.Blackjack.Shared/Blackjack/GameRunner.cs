@@ -202,12 +202,18 @@ namespace SayedHa.Blackjack.Shared {
                 DealerHasBlackjack?.Invoke(this, new DealerHasBlackjackEventArgs(game));
                 foreach (var op in game.Opponents) {
                     foreach (var hand in op.Hands) {
-                        hand.SetHandResult(HandResult.DealerWon);
-                        op.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet*-1, op.Name);
-                        game.Dealer.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet, game.Dealer.Name);
-                        _logger.LogLine($"Lose(bj) ${hand.Bet:F0} ");
+                        // check to see if the opponent hand has bj, if so it's a push
+                        if (hand.DoesHandHaveBlackjack()) {
+                            hand.SetHandResult(HandResult.Push);
+                            _logger.LogLine($"Push both player and dealer have blackjack ${hand.Bet:F0} ");
+                        }
+                        else {
+                            hand.SetHandResult(HandResult.DealerWon);
+                            op.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet * -1, op.Name);
+                            game.Dealer.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet, game.Dealer.Name);
+                            _logger.LogLine($"Lose(bj) ${hand.Bet:F0} ");
+                        }
                     }
-                    // _logger.LogLine("Dealer has blackjack, you lose");
                 }
             }
 
