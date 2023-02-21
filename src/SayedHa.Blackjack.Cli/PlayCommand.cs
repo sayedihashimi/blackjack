@@ -14,6 +14,7 @@
 // along with SayedHa.Blackjack.  If not, see <https://www.gnu.org/licenses/>.
 using SayedHa.Blackjack.Cli.Extensions;
 using SayedHa.Blackjack.Shared;
+using SayedHa.Blackjack.Shared.Blackjack;
 using Spectre.Console;
 using System.CommandLine;
 using System.CommandLine.Invocation;
@@ -23,6 +24,8 @@ using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Runtime.ConstrainedExecution;
 using System.Text;
+using System.Transactions;
+using System.Linq;
 
 namespace SayedHa.Blackjack.Cli {
     public class PlayCommand : CommandBase {
@@ -30,7 +33,8 @@ namespace SayedHa.Blackjack.Cli {
         private readonly IReporter _reporter;
 
         private int NumDecks { get; set; }
-        private int BetAmount { get; set; }
+        private SessionReportData _sessionReportData { get; set; }
+        private int BetAmount { get; set; } = 0;
         public PlayCommand(IReporter reporter) {
             _reporter = reporter;
         }
@@ -94,6 +98,8 @@ namespace SayedHa.Blackjack.Cli {
             var discardFirstCard = true;
             var game = gameRunner.CreateNewGame(NumDecks, 1, pf, discardFirstCard);
 
+            _sessionReportData = new SessionReportData(game.Opponents[0]);
+
             if (enableHints) {
                 foreach (var participant in game.Opponents) {
                     participant.ValidateNextAction = true;
@@ -105,12 +111,91 @@ namespace SayedHa.Blackjack.Cli {
                 var gameResult = gameRunner.PlayGame(game);
                 PrintUI(game, false);
             } while (KeepPlaying(bankroll, game));
+
+            if (enableHints) {
+                WriteSummaryReport(_sessionReportData);
+            }
         }
 
+        private void WriteSummaryReport(SessionReportData sessionReportData) {
+            Debug.Assert(sessionReportData != null);
+            Console.Clear();
+            // stats that we need to add in order to generate this report.
+            // we can use the Participant.AllHands property for good info to add to the report.
+            int numbets = sessionReportData.Player.Hands.Count;
+
+            float sumbets = 0;
+            Dictionary<HandResult, int> handResultAndCount = new Dictionary<HandResult, int>();
+
+            foreach (var hand in sessionReportData.Player.Hands) {
+                sumbets += hand.Bet;
+
+                int countForThisResult;
+                handResultAndCount.TryGetValue(hand.HandResult, out countForThisResult);
+                if (countForThisResult < 1) {
+                    countForThisResult = 1;
+                }
+
+                handResultAndCount[hand.HandResult] = countForThisResult;
+
+                // TODO: Need to track the payout to get the average hand result (avg amt won/lost each hand)
+
+            }
+
+            float averagebet = sumbets / numbets;
+
+            int numIncorrectActions = 0;
+            foreach (var key in sessionReportData.WrongNextActionAndCount.Keys) {
+                numIncorrectActions += sessionReportData.WrongNextActionAndCount[key];
+            }
+
+
+            var grid = new Grid();
+            
+            grid.AddColumn();
+            grid.AddColumn();
+
+            grid.AddRow("Initial bankroll", $"{sessionReportData.Player.BettingStrategy.Bankroll.InitialBankroll:C0}");
+            grid.AddRow("final bankroll", 
+                $"{sessionReportData.Player.BettingStrategy.Bankroll.DollarsRemaining:C0} diff: {sessionReportData.Player.BettingStrategy.Bankroll.DollarsRemaining- sessionReportData.Player.BettingStrategy.Bankroll.InitialBankroll:C0}");
+            grid.AddRow("Number of hands played", $"{sessionReportData.Player.AllHands.Count}");
+            grid.AddRow("Avg bet amount", $"{averagebet:C0}");
+            // TODO: grid.AddRow("Avg hand result", "");
+            grid.AddRow("Number of wrong actions selected", $"{numIncorrectActions}");
+
+            AnsiConsole.MarkupLine("[bold green]Session summary[/]");
+            AnsiConsole.Write(grid);
+            AnsiConsole.WriteLine();
+
+            var errorsTable = new Table();
+            errorsTable.Title = new TableTitle("Summary of [bold red]errors[/]");
+            errorsTable.Border = TableBorder.SimpleHeavy;
+            //errorsTable.AddColumn("Num times");
+            errorsTable.AddColumn(new TableColumn("Num times").RightAligned());
+            errorsTable.AddColumn("Guidance");
+
+            foreach(KeyValuePair<string,int> item in sessionReportData.WrongNextActionAndCount.OrderByDescending(x=>x.Value)) {
+                errorsTable.AddRow(item.Value.ToString(), item.Key);
+                //AnsiConsole.MarkupLineInterpolated($"[bold]{item.Value}[/] : {item.Key}");
+            }
+
+            AnsiConsole.Write(errorsTable);
+        }
+
+        //Dictionary<string,int> WrongNextActionAndCount { get; set; } = new Dictionary<string,int>();
         private void GameRunner_WrongNextActionSelected(object sender, EventArgs e) {
             var wncEa = e as WrongNextActionSelected;
             if(wncEa is object) {
                 AnsiConsole.MarkupLineInterpolated($"Correct action is [bold green]'{wncEa.CorrectAction.HandAction}'[/], you selected [bold red]'{wncEa.NextActionSelected}[/]'\n[italic]{wncEa.CorrectAction.Reason}[/]\n\nTry again.\n");
+
+                //int numTimesEncountered = int.MinValue;
+                //WrongNextActionAndCount.TryGetValue(wncEa.CorrectAction.Reason, out numTimesEncountered);
+                //if(numTimesEncountered < 0) {
+                //    numTimesEncountered = 1;
+                //}
+
+                //WrongNextActionAndCount[wncEa.CorrectAction.Reason] = numTimesEncountered;
+                _sessionReportData.AddWrongNextActionSelected(wncEa.NextActionSelected,wncEa.CorrectAction);
             }
         }
 
