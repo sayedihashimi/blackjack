@@ -56,7 +56,7 @@ namespace SayedHa.Blackjack.Shared.Players {
             int handScore = hand.GetScore();
 
             var nextHandAction = (handScore, dealerHand.DealersVisibleCard!.Number) switch {
-                ( >= 17, _) => new HandActionAndReason(HandAction.Stand, "Always stand on 17 or above.."),
+                ( >= 17, _) => new HandActionAndReason(HandAction.Stand, "Always stand on 17 or above."),
                 (16, CardNumber.Two) => new HandActionAndReason(HandAction.Stand, "Stand on 16 when dealer shows 6 or below."),
                 (16, CardNumber.Three) => new HandActionAndReason(HandAction.Stand, "Stand on 16 when dealer shows 6 or below."),
                 (16, CardNumber.Four) => new HandActionAndReason(HandAction.Stand, "Stand on 16 when dealer shows 6 or below."),
@@ -91,8 +91,8 @@ namespace SayedHa.Blackjack.Shared.Players {
                 (12, _) => new HandActionAndReason(HandAction.Hit, "Hit on 12 unless dealer shows 4,5 or 6 when you stand."),
 
                 // "Always double down on 11, always"
-                (11, _) => isDoubleEnabled ? 
-                new HandActionAndReason(HandAction.Double, "Always double down on 11, always") : 
+                (11, _) => isDoubleEnabled ?
+                new HandActionAndReason(HandAction.Double, "Always double down on 11, always") :
                 new HandActionAndReason(HandAction.Hit, "Hit since double not available. Always double down on 11, always"),
 
                 (10, CardNumber.Ten) => new HandActionAndReason(HandAction.Hit, "Hit on 10 when dealer shows 10 or Ace, otherwise double down."),
@@ -100,12 +100,12 @@ namespace SayedHa.Blackjack.Shared.Players {
                 (10, CardNumber.Queen) => new HandActionAndReason(HandAction.Hit, "Hit on 10 when dealer shows 10 or Ace, otherwise double down."),
                 (10, CardNumber.King) => new HandActionAndReason(HandAction.Hit, "Hit on 10 when dealer shows 10 or Ace, otherwise double down."),
                 (10, CardNumber.Ace) => new HandActionAndReason(HandAction.Hit, "Hit on 10 when dealer shows 10 or Ace, otherwise double down.Hit on 10 when dealer shows 10 or Ace, otherwise double down."),
-                (10, _) => isDoubleEnabled ? 
+                (10, _) => isDoubleEnabled ?
                         new HandActionAndReason(HandAction.Double, "Double on 10 unless dealer shows 10 or Ace when you hit.") :
                         new HandActionAndReason(HandAction.Hit, "Hit since double not available. Double on 10 unless dealer shows 10 or Ace when you hit."),
 
-                (9, CardNumber.Three) => isDoubleEnabled ? 
-                        new HandActionAndReason(HandAction.Double, "Double on 9 when dealer shows 3, 4, 5 or 6.") : 
+                (9, CardNumber.Three) => isDoubleEnabled ?
+                        new HandActionAndReason(HandAction.Double, "Double on 9 when dealer shows 3, 4, 5 or 6.") :
                         new HandActionAndReason(HandAction.Hit, "Hit since double not available. Double on 9 when dealer shows 3, 4, 5 or 6."),
                 (9, CardNumber.Four) => isDoubleEnabled ?
                         new HandActionAndReason(HandAction.Double, "Double on 9 when dealer shows 3, 4, 5 or 6.") :
@@ -116,11 +116,9 @@ namespace SayedHa.Blackjack.Shared.Players {
                 (9, CardNumber.Six) => isDoubleEnabled ?
                         new HandActionAndReason(HandAction.Double, "Double on 9 when dealer shows 3, 4, 5 or 6.") :
                         new HandActionAndReason(HandAction.Hit, "Hit since double not available. Double on 9 when dealer shows 3, 4, 5 or 6."),
+                (9, _) => new HandActionAndReason(HandAction.Hit, "Hit on 9, double when dealer shows 3, 4, 5 or 6."),
 
-                ( <= 8, _) => new HandActionAndReason(HandAction.Hit, "Always hit on 8 or less."),
-
-                // shouldn't get here
-                (_, _) => throw new ApplicationException("Error in GetNextAction")
+                ( <= 8, _) => new HandActionAndReason(HandAction.Hit, "Always hit on 8 or less.")
             };
 
             return nextHandAction;

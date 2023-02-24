@@ -148,27 +148,29 @@ namespace SayedHa.Blackjack.Cli {
             foreach (var key in sessionReportData.WrongNextActionAndCount.Keys) {
                 numIncorrectActions += sessionReportData.WrongNextActionAndCount[key];
             }
-
-
-            var grid = new Grid();
-            
-            grid.AddColumn();
-            grid.AddColumn();
+            var grid = new Table();
+            grid.Title = new TableTitle("[bold]Session summary[/]");
+            grid.Border = TableBorder.SimpleHeavy;
+            grid.HideHeaders();
+            grid.AddColumn(string.Empty);
+            grid.AddColumn(string.Empty);
 
             grid.AddRow("Initial bankroll", $"{sessionReportData.Player.BettingStrategy.Bankroll.InitialBankroll:C0}");
-            grid.AddRow("final bankroll", 
+            grid.AddRow("Final bankroll", 
                 $"{sessionReportData.Player.BettingStrategy.Bankroll.DollarsRemaining:C0} diff: {sessionReportData.Player.BettingStrategy.Bankroll.DollarsRemaining- sessionReportData.Player.BettingStrategy.Bankroll.InitialBankroll:C0}");
             grid.AddRow("Number of hands played", $"{sessionReportData.Player.AllHands.Count}");
             grid.AddRow("Avg bet amount", $"{averagebet:C0}");
             // TODO: grid.AddRow("Avg hand result", "");
             grid.AddRow("Number of wrong actions selected", $"{numIncorrectActions}");
 
-            AnsiConsole.MarkupLine("[bold green]Session summary[/]");
+            var infoPanel = new Panel("Session summary");
+
+            // AnsiConsole.MarkupLine("[bold green]Session summary[/]");
             AnsiConsole.Write(grid);
             AnsiConsole.WriteLine();
 
             var errorsTable = new Table();
-            errorsTable.Title = new TableTitle("Summary of [bold red]errors[/]");
+            errorsTable.Title = new TableTitle("[bold red]Summary of errors[/]");
             errorsTable.Border = TableBorder.SimpleHeavy;
             //errorsTable.AddColumn("Num times");
             errorsTable.AddColumn(new TableColumn("Num times").RightAligned());
@@ -180,21 +182,14 @@ namespace SayedHa.Blackjack.Cli {
             }
 
             AnsiConsole.Write(errorsTable);
+
+            AnsiConsole.MarkupLine("This is an open source app, code is available at [link]https://github.com/sayedihashimi/blackjack[/]");
         }
 
-        //Dictionary<string,int> WrongNextActionAndCount { get; set; } = new Dictionary<string,int>();
         private void GameRunner_WrongNextActionSelected(object sender, EventArgs e) {
             var wncEa = e as WrongNextActionSelected;
             if(wncEa is object) {
                 AnsiConsole.MarkupLineInterpolated($"Correct action is [bold green]'{wncEa.CorrectAction.HandAction}'[/], you selected [bold red]'{wncEa.NextActionSelected}[/]'\n[italic]{wncEa.CorrectAction.Reason}[/]\n\nTry again.\n");
-
-                //int numTimesEncountered = int.MinValue;
-                //WrongNextActionAndCount.TryGetValue(wncEa.CorrectAction.Reason, out numTimesEncountered);
-                //if(numTimesEncountered < 0) {
-                //    numTimesEncountered = 1;
-                //}
-
-                //WrongNextActionAndCount[wncEa.CorrectAction.Reason] = numTimesEncountered;
                 _sessionReportData.AddWrongNextActionSelected(wncEa.NextActionSelected,wncEa.CorrectAction);
             }
         }
@@ -220,14 +215,6 @@ namespace SayedHa.Blackjack.Cli {
                 });
         }
 
-        private string GetResultSpectreString(HandResult handResult) => handResult switch {
-            HandResult.OpponentWon => "[bold green]You won[/]",
-            HandResult.DealerWon => "[bold red]Dealer won[/]",
-            HandResult.Push => "[bold green]Push ==[/]",
-            HandResult.InPlay => "In play",
-            
-            _ => throw new ApplicationException($"Unknown value for HandResult: '{handResult}'")
-        };
         private bool ShouldHideFirstCard(Game game) => game.Status switch {
             GameStatus.InPlay => true,
             GameStatus.DealerPlaying => false,

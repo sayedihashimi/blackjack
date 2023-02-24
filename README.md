@@ -2,7 +2,7 @@ A .NET 7 command line tool to play blackjack. After installing this tool run `bl
 start the interactive game. You can enable the hint mode to provide hints as you play if you
 make any errors.
 
-![gif showing game play using blackjack play](media/2023.blackjack.readme.gif)
+![gif showing game play using blackjack play](src/SayedHa.Blackjack.Cli/media/2023.blackjack.readme.gif)
 
 dotnet CLI tool to play blackjack, more info coming soon here.
 
@@ -24,7 +24,7 @@ When you start a game you will be prompted to enable _hint mode_. In this mode i
 incorrect action based on blackjack basic strategy, you'll be notified and given a chance to correct it.
 
 For example:
-![screenshot showing the hint feature](media/blackjack-screenshot-hint-01.png)
+![screenshot showing the hint feature](src/SayedHa.Blackjack.Cli/media/blackjack-screenshot-hint-01.png)
 
 Here the player selected to ***Stand*** but the correct action was to double down.
 The explanation for double down is also given as

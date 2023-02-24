@@ -56,7 +56,7 @@ namespace SayedHa.Blackjack.Cli.Extensions {
                 sb.Append($" [bold]{GetSpectreHandResultString(hand.HandResult)}[/]");
             }
             if (includeBet) {
-                sb.Append($" [green]{hand.Bet:C0}[/]");
+                sb.Append($" [green]{Math.Abs(hand.BetResult != null && hand.BetResult.HasValue ? hand.BetResult!.Value : hand.Bet):C0}[/]");
             }
 
             return sb.ToString().Trim();

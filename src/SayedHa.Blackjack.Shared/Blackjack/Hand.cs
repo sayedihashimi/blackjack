@@ -41,6 +41,11 @@ namespace SayedHa.Blackjack.Shared {
         public HandResult HandResult { get; protected set; } = HandResult.InPlay;
 
         public float Bet { get; set; }
+        /// <summary>
+        /// The amount won or lost in this hand. Negative for amounts paid to the dealer
+        /// and positive amounts for hands that have won.
+        /// </summary>
+        public float? BetResult { get; protected set; }
 
         private List<Card> _dealtCards = new List<Card>();
         public List<Card> DealtCards {
@@ -75,8 +80,9 @@ namespace SayedHa.Blackjack.Shared {
         /// Call this mehtod at the end of the game to indicate if the hand was a win/loss
         /// </summary>
         /// <param name="result"></param>
-        public void SetHandResult(HandResult result) {
+        public void SetHandResult(HandResult result, float betResult) {
             HandResult = result;
+            BetResult = betResult;
         }
         /// <summary>
         /// Call this method when no other actions can be taken on the Hand.

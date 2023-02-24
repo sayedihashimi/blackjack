@@ -139,14 +139,14 @@ namespace SayedHa.Blackjack.Shared {
                 foreach(var op in game.Opponents) {
                     foreach(var hand in op.Hands) {
                         if (hand.GetScore() > BlackjackSettings.GetBlackjackSettings().MaxScore) {
-                            hand.SetHandResult(HandResult.DealerWon);
+                            hand.SetHandResult(HandResult.DealerWon, hand.Bet * -1F);
                         }
                         else {
                             allHandsBusted = false;
                         }
 
                         if (hand.DoesHandHaveBlackjack()) {
-                            hand.SetHandResult(HandResult.OpponentWon);
+                            hand.SetHandResult(HandResult.OpponentWon, hand.Bet * bjPayoutMultiplier);
                         }
                         else {
                             allHandsBlackjack = false;
@@ -168,18 +168,18 @@ namespace SayedHa.Blackjack.Shared {
                         foreach (var hand in opponent.Hands) {
                             var handScore = hand.GetScore();
                             if (handScore > 21) {
-                                hand.SetHandResult(HandResult.DealerWon);
-                                opponent.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet * -1F, opponent.Name);
-                                game.Dealer.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet, game.Dealer.Name);
+                                hand.SetHandResult(HandResult.DealerWon, hand.Bet * 1F);
+                                opponent.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.BetResult!.Value, opponent.Name);
+                                game.Dealer.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet * -1F, game.Dealer.Name);
                                 sb.Append($"↓Busted ${hand.Bet:F0} ");
                             }
                             else if (handScore == dealerScore) {
-                                hand.SetHandResult(HandResult.Push);
+                                hand.SetHandResult(HandResult.Push, 0);
                                 // no change to any bankroll on a push
                                 sb.Append("=Push ");
                             }
                             else if (handScore > dealerScore || dealerScore > 21) {
-                                hand.SetHandResult(HandResult.OpponentWon);
+                                hand.SetHandResult(HandResult.OpponentWon, hand.Bet);
                                 float betMultiplier = hand.DoesHandHaveBlackjack() ? bjPayoutMultiplier : 1;
                                 var amtToAdd = hand.Bet * betMultiplier;
                                 opponent.BettingStrategy.Bankroll.AddToDollarsRemaining(amtToAdd, opponent.Name);
@@ -187,7 +187,7 @@ namespace SayedHa.Blackjack.Shared {
                                 sb.Append($"↑Win ${amtToAdd:F0}");
                             }
                             else {
-                                hand.SetHandResult(HandResult.DealerWon);
+                                hand.SetHandResult(HandResult.DealerWon, hand.Bet * -1F);
                                 opponent.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet * -1F, opponent.Name);
                                 game.Dealer.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet, game.Dealer.Name);
                                 sb.Append($"↓Lose ${hand.Bet:F0} ");
@@ -204,11 +204,11 @@ namespace SayedHa.Blackjack.Shared {
                     foreach (var hand in op.Hands) {
                         // check to see if the opponent hand has bj, if so it's a push
                         if (hand.DoesHandHaveBlackjack()) {
-                            hand.SetHandResult(HandResult.Push);
+                            hand.SetHandResult(HandResult.Push, 0);
                             _logger.LogLine($"Push both player and dealer have blackjack ${hand.Bet:F0} ");
                         }
                         else {
-                            hand.SetHandResult(HandResult.DealerWon);
+                            hand.SetHandResult(HandResult.DealerWon, hand.Bet * -1F);
                             op.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet * -1, op.Name);
                             game.Dealer.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet, game.Dealer.Name);
                             _logger.LogLine($"Lose(bj) ${hand.Bet:F0} ");
@@ -283,8 +283,8 @@ namespace SayedHa.Blackjack.Shared {
 
             if (hand.DoesHandHaveBlackjack()) {
                 var bjPayoutMultiplier = BlackjackSettings.GetBlackjackSettings().BlackjackPayoutMultplier;
-                hand.SetHandResult(HandResult.OpponentWon);
-                participant.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet * bjPayoutMultiplier, participant.Name);
+                hand.SetHandResult(HandResult.OpponentWon, hand.Bet * bjPayoutMultiplier);
+                participant.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.BetResult!.Value, participant.Name);
                 PlayerHasBlackjack?.Invoke(this, new PlayerHasBlackjackEventArgs(CurrentGame));
                 // TODO: Remove the win amount from the dealer?
                 return new List<Hand> { hand };
