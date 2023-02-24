@@ -8,5 +8,7 @@ build:
   verbosity: normal
 after_build:
 - ps: dotnet pack src/SayedHa.Blackjack.Console/SayedHa.Blackjack.Console.csproj -c Release
+- ps: dotnet pack src/SayedHa.Blackjack.Cli/SayedHa.Blackjack.Cli.csproj -c Release
 artifacts:
-- path: src\SayedHa.Blackjack.Console\bin\Release\*.nupkg
+- path: src/SayedHa.Blackjack.Console/bin/Release/*.nupkg
+- path: src/SayedHa.Blackjack.Cli/nupkg/*.nupkg
