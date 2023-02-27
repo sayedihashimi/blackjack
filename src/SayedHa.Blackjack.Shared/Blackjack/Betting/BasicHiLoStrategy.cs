@@ -62,7 +62,7 @@ namespace SayedHa.Blackjack.Shared.Betting {
         protected int MaxBetSpread { get; init; }
         protected float BetUnitValue { get; init; }
         // TODO: Don't count the very first discarded card, the opponent(s) didn't get a chance to see that card
-        protected internal HiLoCount GetCount(CardDeck cards) {
+        public HiLoCount GetCount(CardDeck cards) {
             Debug.Assert(cards != null);
             Debug.Assert(cards.DiscardedCards != null);
             // todo: is there a better way to do this?
