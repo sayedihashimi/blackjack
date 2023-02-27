@@ -26,6 +26,7 @@ using System.Runtime.ConstrainedExecution;
 using System.Text;
 using System.Transactions;
 using System.Linq;
+using SayedHa.Blackjack.Shared.Betting;
 
 namespace SayedHa.Blackjack.Cli {
     public class PlayCommand : CommandBase {
@@ -169,19 +170,21 @@ namespace SayedHa.Blackjack.Cli {
             AnsiConsole.Write(grid);
             AnsiConsole.WriteLine();
 
-            var errorsTable = new Table();
-            errorsTable.Title = new TableTitle("[bold red]Summary of errors[/]");
-            errorsTable.Border = TableBorder.SimpleHeavy;
-            //errorsTable.AddColumn("Num times");
-            errorsTable.AddColumn(new TableColumn("Num times").RightAligned());
-            errorsTable.AddColumn("Guidance");
+            if(sessionReportData.WrongNextActionAndCount.Count > 0) {
+                var errorsTable = new Table();
+                errorsTable.Title = new TableTitle("[bold red]Summary of errors[/]");
+                errorsTable.Border = TableBorder.SimpleHeavy;
+                //errorsTable.AddColumn("Num times");
+                errorsTable.AddColumn(new TableColumn("Num times").RightAligned());
+                errorsTable.AddColumn("Guidance");
 
-            foreach(KeyValuePair<string,int> item in sessionReportData.WrongNextActionAndCount.OrderByDescending(x=>x.Value)) {
-                errorsTable.AddRow(item.Value.ToString(), item.Key);
-                //AnsiConsole.MarkupLineInterpolated($"[bold]{item.Value}[/] : {item.Key}");
+                foreach (KeyValuePair<string, int> item in sessionReportData.WrongNextActionAndCount.OrderByDescending(x => x.Value)) {
+                    errorsTable.AddRow(item.Value.ToString(), item.Key);
+                    //AnsiConsole.MarkupLineInterpolated($"[bold]{item.Value}[/] : {item.Key}");
+                }
+
+                AnsiConsole.Write(errorsTable);
             }
-
-            AnsiConsole.Write(errorsTable);
 
             AnsiConsole.MarkupLine("This is an open source app, code is available at [link]https://github.com/sayedihashimi/blackjack[/]");
         }
@@ -278,6 +281,9 @@ namespace SayedHa.Blackjack.Cli {
             BarChart remainingCardsBarChart = null;
             var bankroll = game.Opponents?[0]?.BettingStrategy?.Bankroll;
 
+            // this will be used to get the count only, numbers below don't matter
+            var bs = new BasicHiLoStrategy(bankroll, 5, 20);
+            var currentCount = bs.GetCount(game.Cards);
             if (bankroll != null) {
                 remainingCardsBarChart = new BarChart()
                     .Width(60)
@@ -289,9 +295,11 @@ namespace SayedHa.Blackjack.Cli {
                 .Width(60)
                 .AddColumn()
 
-                .AddRow(new[] { $"Number of decks   {NumDecks}"})
-                .AddRow(new[] { $"Initial bankroll  {bankroll.InitialBankroll:C0}"})
-                .AddRow(new[] { $"Current bankroll  {bankroll.DollarsRemaining:C0} ({bankroll.DollarsRemaining - bankroll.InitialBankroll:C0})" });
+                .AddRow(new[] { $"Number of decks   {NumDecks}" })
+                .AddRow(new[] { $"Initial bankroll  {bankroll.InitialBankroll:C0}" })
+                .AddRow(new[] { $"Current bankroll  {bankroll.DollarsRemaining:C0} ({bankroll.DollarsRemaining - bankroll.InitialBankroll:C0})" })
+                .AddRow(new[] { $"Running count     {currentCount.RunningCount}" })
+                .AddRow(new[] { $"True count        {currentCount.TrueCount}" });
 
                 overallGrid = new Grid()
                     .AddColumn()
