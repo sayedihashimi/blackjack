@@ -60,7 +60,16 @@ namespace SayedHa.Blackjack.Shared {
             CurrentCard = CurrentCard?.Next;
             return retValue;
         }
-
+        /// <summary>
+        /// This will take the next card and move it to
+        /// the discard pile and mark the card as burned.
+        /// </summary>
+        public void DiscardACard() {
+            var card = GetCardAndMoveNext();
+            if(card != null) {
+                card.WasCardBurned = true;
+            }
+        }
         public Card? GetCurrentCard() {
             return CurrentCard?.Value;
         }

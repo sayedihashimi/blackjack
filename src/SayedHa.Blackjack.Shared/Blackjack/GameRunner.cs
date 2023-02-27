@@ -43,7 +43,7 @@ namespace SayedHa.Blackjack.Shared {
 
             if (discardFirstCard) {
                 // very first action for a new deck is to discard one card.
-                _ = game.Cards.GetCardAndMoveNext();
+                game.Cards.DiscardACard();
             }
 
             return game;
@@ -64,7 +64,7 @@ namespace SayedHa.Blackjack.Shared {
                 game.Cards.ShuffleCards();
                 _logger.LogLine($"cards: [{game.Cards}]");
                 // discard the first card after every shuffle
-                _ = game.Cards.GetCardAndMoveNext();
+                game.Cards.DiscardACard();
             }
         }
 

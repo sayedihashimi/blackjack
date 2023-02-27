@@ -62,34 +62,35 @@ namespace SayedHa.Blackjack.Shared.Betting {
         protected int MaxBetSpread { get; init; }
         protected float BetUnitValue { get; init; }
         // TODO: Don't count the very first discarded card, the opponent(s) didn't get a chance to see that card
-        protected HiLoCount GetCount(CardDeck cards) {
+        protected internal HiLoCount GetCount(CardDeck cards) {
             Debug.Assert(cards != null);
             Debug.Assert(cards.DiscardedCards != null);
             // todo: is there a better way to do this?
             int currentCount = 0;
             foreach(var card in cards.DiscardedCards) {
-                switch (card.Number.GetValues()[0]) {
-                    case 11:
-                    case 10:
-                    case 9:
-                    case 8:
-                        currentCount--;
-                        break;
-                    case 6:
-                    case 5:
-                    case 4:
-                    case 3:
-                    case 2:
-                        currentCount++;
-                        break;
-                    default:
-                        break;
+                // only count cards that the players saw
+                if (!card.WasCardBurned) {
+                    switch (card.Number.GetValues()[0]) {
+                        case 11:
+                        case 10:
+                            currentCount--;
+                            break;
+                        case 6:
+                        case 5:
+                        case 4:
+                        case 3:
+                        case 2:
+                            currentCount++;
+                            break;
+                        default:
+                            break;
+                    }
                 }
             }
 
-            int numDiscardedDecks = (int)Math.Round(cards.DiscardedCards.Count / 52F);
-            int numRemainingDecks = cards.NumDecks - numDiscardedDecks;
-            int trueCount = (int)(Math.Floor((double)currentCount / (double)numRemainingDecks));
+            var numDiscardedDecks = cards.DiscardedCards.Count / 52F;
+            var numRemainingDecks = cards.NumDecks - numDiscardedDecks;
+            var trueCount = (float)currentCount / numRemainingDecks;
 
             return new HiLoCount {
                 RunningCount = currentCount,
@@ -99,6 +100,6 @@ namespace SayedHa.Blackjack.Shared.Betting {
     }
     public class HiLoCount {
         public int RunningCount { get; set; }
-        public int TrueCount { get; set; }
+        public float TrueCount { get; set; }
     }
 }

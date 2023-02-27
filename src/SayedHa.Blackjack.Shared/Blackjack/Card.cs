@@ -17,6 +17,13 @@ namespace SayedHa.Blackjack.Shared {
     public class Card {
         public CardSuit Suit { get; init; }
         public CardNumber Number { get; init; }
+        /// <summary>
+        /// If true, the user did not see this card.
+        /// For ex: typically the first card after a shuffle
+        /// is 'burned', the player doesn't see it.
+        /// If card counting will happen, this card should not be counted.
+        /// </summary>
+        public bool WasCardBurned { get; set; } = false;
         public override bool Equals(object? obj) {
             var other = obj as Card;
             if (other == null) return false;
@@ -33,6 +40,7 @@ namespace SayedHa.Blackjack.Shared {
 
         public string ToString(bool useSymbols) =>
             $"{Number.GetFriendlyString()}{Suit.GetFriendlyString(useSymbols)}";
+        
     }
 
     public enum CardSuit {
