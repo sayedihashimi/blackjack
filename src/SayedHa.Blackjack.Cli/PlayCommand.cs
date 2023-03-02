@@ -180,7 +180,6 @@ namespace SayedHa.Blackjack.Cli {
 
                 foreach (KeyValuePair<string, int> item in sessionReportData.WrongNextActionAndCount.OrderByDescending(x => x.Value)) {
                     errorsTable.AddRow(item.Value.ToString(), item.Key);
-                    //AnsiConsole.MarkupLineInterpolated($"[bold]{item.Value}[/] : {item.Key}");
                 }
 
                 AnsiConsole.Write(errorsTable);

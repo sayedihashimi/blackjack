@@ -19,12 +19,12 @@ using System.CommandLine.Builder;
 using System.CommandLine.Parsing;
 
 namespace SayedHa.Blackjack.Cli {
-    public class TemplatesProgram {
+    public class BlackjackProgram {
         private Parser _parser;
         private ServiceCollection _services;
         private ServiceProvider _serviceProvider;
 
-        public TemplatesProgram() {
+        public BlackjackProgram() {
             RegisterServices();
         }
         public Task<int> Execute(string[] args) {
