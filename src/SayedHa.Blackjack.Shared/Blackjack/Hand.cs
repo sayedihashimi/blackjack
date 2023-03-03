@@ -30,22 +30,25 @@ namespace SayedHa.Blackjack.Shared {
     }
     public class Hand {
         private ILogger _logger = new NullLogger();
-        public Hand(float bet, ILogger logger) {
+        public Hand(float bet, ILogger logger, float? betResult = null) {
             Debug.Assert(bet >= 0);
             Bet = bet;
             _logger = logger ?? new NullLogger();
+            if(betResult is not null) {
+                BetResult = betResult;
+            }
         }
 
         // TODO: Still not sure if this property is needed, let's see.
-        public HandStatus Status { get; protected set; } = HandStatus.InPlay;
-        public HandResult HandResult { get; protected set; } = HandResult.InPlay;
+        public HandStatus Status { get; protected internal set; } = HandStatus.InPlay;
+        public HandResult HandResult { get; protected internal set; } = HandResult.InPlay;
 
         public float Bet { get; set; }
         /// <summary>
         /// The amount won or lost in this hand. Negative for amounts paid to the dealer
         /// and positive amounts for hands that have won.
         /// </summary>
-        public float? BetResult { get; protected set; }
+        public float? BetResult { get; set; }
 
         private List<Card> _dealtCards = new List<Card>();
         public List<Card> DealtCards {
