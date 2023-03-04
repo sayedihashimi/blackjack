@@ -12,6 +12,16 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with SayedHa.Blackjack.  If not, see <https://www.gnu.org/licenses/>.
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using SayedHa.Blackjack.Cli;
+
+IConfiguration config = new ConfigurationBuilder()
+    .AddJsonFile("appsettings.json", true)
+    .AddJsonFile("appsettings.development.json", true)
+    .AddEnvironmentVariables()
+    .Build();
+
+BlackjackAppSettings appSettings = config.GetRequiredSection("Settings").Get<BlackjackAppSettings>();
 
 await new BlackjackProgram().Execute(args);

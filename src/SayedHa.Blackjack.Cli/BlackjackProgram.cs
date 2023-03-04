@@ -23,6 +23,7 @@ namespace SayedHa.Blackjack.Cli {
         private Parser _parser;
         private ServiceCollection _services;
         private ServiceProvider _serviceProvider;
+        private BlackjackAppSettings _appSettings;
 
         public BlackjackProgram() {
             RegisterServices();
@@ -47,5 +48,8 @@ namespace SayedHa.Blackjack.Cli {
         private TType GetFromServices<TType>() {
             return _serviceProvider.GetRequiredService<TType>();
         }
+    }
+    public sealed class BlackjackAppSettings {
+        public required bool UseRandomNumberGenerator { get; set; }
     }
 }
