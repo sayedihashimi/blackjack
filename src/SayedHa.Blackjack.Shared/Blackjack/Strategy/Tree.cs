@@ -101,6 +101,10 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             var firstCardNode = dealerCardNode.GetAddIfNeeded(firstCardNumber);
             (var secondCardNode, var newResultAdded) = firstCardNode.GetAddIfNeeded(secondCardNumber);
 
+            if(newResultAdded) {
+                NumSecondCardNodesCreated++;
+            }
+
             float totalGainOrLoss = 0F;
             foreach (var hand in hands) {
                 if(hand.BetResult is null) {
@@ -141,6 +145,12 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                 secondCardNode.ResultSummary!.TotalGainOrLoss += totalGainOrLoss;
             }
         }
+
+        /// <summary>
+        /// This isn't really needed, it's just here for unit testing.
+        /// This may be removed later.
+        /// </summary>
+        protected internal int NumSecondCardNodesCreated { get; set; } = 0;
 
         private List<ResultSummary> _allResults = new List<ResultSummary>();
 

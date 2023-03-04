@@ -115,6 +115,7 @@ namespace SayedHa.Blackjack.Tests.StrategyBuilder {
             Assert.Equal(3, allResults.Count);
             Assert.Equal(3, rootNode.DealerVisibleCardNodes.Count);
 
+            Assert.Equal(3, rt.NumSecondCardNodesCreated);
             Assert.Contains(allResults, r => r.TotalGainOrLoss == 5F*numTimesToRepeat);
             Assert.Contains(allResults, r => r.TotalGainOrLoss == -10F*numTimesToRepeat);
             Assert.Contains(allResults, r => r.TotalGainOrLoss == 32F*numTimesToRepeat);
