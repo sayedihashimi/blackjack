@@ -103,6 +103,12 @@ namespace SayedHa.Blackjack.Shared {
                 default: throw new ApplicationException($"Unknown card number:'{cardNumber}'");
             }
         }
+        public static (CardNumber sortedCard1, CardNumber sortedCard2) Sort(this CardNumber opponentCard1, CardNumber opponentCard2) => (opponentCard1, opponentCard2) switch { 
+            { opponentCard1: var oc1, opponentCard2: var oc2 } when oc1 > oc2 => (oc1, oc2), 
+            { opponentCard1: var oc1, opponentCard2: var oc2 } when oc1 < oc2 => (oc2, oc1), 
+            { opponentCard1: var oc1, opponentCard2: var oc2 } when oc1 == oc2 => (oc1, oc2),
+            (_, _) => throw new ApplicationException($"Unable to compare these CardNumbers: '{opponentCard1}','{opponentCard2}'")
+        };
     }
     public static class CardSuitExtensions {
         public static string GetFriendlyString(this CardSuit cardSuit) => cardSuit switch {

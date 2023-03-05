@@ -17,12 +17,8 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             Debug.Assert(hands != null && hands.Count > 0);
 
             var dealerNode = RootNode.GetAddIfNeeded(dealerVisibleCard);
-            (CardNumber firstCardNumber, CardNumber secondCardNumber) = (opponentCard1, opponentCard2) switch {
-                { opponentCard1: var oc1, opponentCard2: var oc2} when oc1 > oc2 => (oc1, oc2), 
-                { opponentCard1: var oc1, opponentCard2: var oc2 } when oc1 < oc2 => (oc2, oc1), 
-                { opponentCard1: var oc1, opponentCard2: var oc2 } when oc1 == oc2 => (oc1, oc2),
-                (_,_) => throw new ApplicationException($"Unable to compare these CardNumbers: '{opponentCard1}','{opponentCard2}'")
-            };
+
+            (CardNumber firstCardNumber, CardNumber secondCardNumber) = opponentCard1.Sort(opponentCard2);
 
             var dealerCardNode = RootNode.GetAddIfNeeded(dealerVisibleCard);
             var firstCardNode = dealerCardNode.GetAddIfNeeded(firstCardNumber);
