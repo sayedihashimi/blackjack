@@ -13,15 +13,40 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with SayedHa.Blackjack.  If not, see <https://www.gnu.org/licenses/>.
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using SayedHa.Blackjack.Cli;
+using SayedHa.Blackjack.Shared;
 
-IConfiguration config = new ConfigurationBuilder()
-    .AddJsonFile("appsettings.json", true)
-    .AddJsonFile("appsettings.development.json", true)
-    .AddEnvironmentVariables()
-    .Build();
+ServiceCollection _services;
+ServiceProvider _serviceProvider;
+BlackjackAppSettings _appSettings;
+static void ConfigureServices(IServiceCollection services) {
+    // TODO: Configure logging here
 
-BlackjackAppSettings appSettings = config.GetRequiredSection("Settings").Get<BlackjackAppSettings>();
+    IConfiguration config = new ConfigurationBuilder()
+                    .AddJsonFile("appsettings.json", true)
+                    .AddJsonFile("appsettings.development.json", true)
+                    .AddEnvironmentVariables()
+                    .Build();
 
-await new BlackjackProgram().Execute(args);
+    services.AddSingleton<IReporter, ConsoleReporter>()
+            .AddSingleton<BlackjackAppSettings>();
+
+    services.AddOptions<BlackjackAppSettings>().Bind(config.GetSection("Settings"));
+
+    services.AddSingleton<IReporter, ConsoleReporter>()
+            .AddSingleton<BlackjackAppSettings>();
+
+    services.AddSingleton<AnalyzeCommand>();
+    services.AddSingleton<PlayCommand>();
+
+    services.AddTransient<BlackjackProgram>();
+}
+
+_services = new ServiceCollection();
+ConfigureServices(_services);
+
+using var serviceProvider = _services.BuildServiceProvider();
+
+// start the app
+await serviceProvider.GetService<BlackjackProgram>().Execute(args);

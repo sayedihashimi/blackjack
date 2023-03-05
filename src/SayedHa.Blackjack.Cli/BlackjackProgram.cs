@@ -12,41 +12,31 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with SayedHa.Blackjack.  If not, see <https://www.gnu.org/licenses/>.
-using Microsoft.Extensions.DependencyInjection;
-using SayedHa.Blackjack.Shared;
+using Microsoft.Extensions.Options;
 using System.CommandLine;
 using System.CommandLine.Builder;
 using System.CommandLine.Parsing;
 
 namespace SayedHa.Blackjack.Cli {
     public class BlackjackProgram {
-        private Parser _parser;
-        private ServiceCollection _services;
-        private ServiceProvider _serviceProvider;
         private BlackjackAppSettings _appSettings;
 
-        public BlackjackProgram() {
-            RegisterServices();
+        AnalyzeCommand _analyzeCommand;
+        PlayCommand _playCommand;
+
+        public BlackjackProgram(IOptions<BlackjackAppSettings> appSettings, AnalyzeCommand analyzeCommand, PlayCommand playCommand) {
+            _appSettings = appSettings.Value;
+            _analyzeCommand = analyzeCommand;
+            _playCommand = playCommand;
         }
         public Task<int> Execute(string[] args) {
-            _parser = new CommandLineBuilder()
-                        .AddCommand(
-                            new AnalyzeCommand(GetFromServices<IReporter>()).CreateCommand())
-                        .AddCommand(
-                            new PlayCommand(GetFromServices<IReporter>()).CreateCommand())
-                        .UseDefaults()
-                        .Build();
+            Parser _parser = new CommandLineBuilder()
+                .AddCommand(_analyzeCommand.CreateCommand())
+                .AddCommand(_playCommand.CreateCommand())
+                .UseDefaults()
+                .Build();
 
             return _parser.InvokeAsync(args);
-        }
-        private void RegisterServices() {
-            _services = new ServiceCollection();
-            _serviceProvider = _services
-                                .AddSingleton<IReporter, ConsoleReporter>()
-                                .BuildServiceProvider();
-        }
-        private TType GetFromServices<TType>() {
-            return _serviceProvider.GetRequiredService<TType>();
         }
     }
     public sealed class BlackjackAppSettings {

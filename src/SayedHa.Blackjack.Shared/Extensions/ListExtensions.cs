@@ -12,16 +12,23 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with SayedHa.Blackjack.  If not, see <https://www.gnu.org/licenses/>.
+using System.Security.Cryptography;
+
 namespace SayedHa.Blackjack.Shared.Extensions {
     // https://stackoverflow.com/a/1262619/105999
     public static class ListExtensions {
         private static Random rng = new Random();
+        private static RandomNumberGenerator randomNumberGenerator = RandomNumberGenerator.Create();
 
-        public static void Shuffle<T>(this IList<T> list) {
+        public static void Shuffle<T>(this IList<T> list, bool useRandomNumberGenerator = false) {
             int n = list.Count;
             while (n > 1) {
                 n--;
-                int k = rng.Next(n + 1);
+                int k = useRandomNumberGenerator switch {
+                    true => RandomNumberGenerator.GetInt32(n+1),
+                    false => rng.Next(n + 1),
+                };
+
                 T value = list[k];
                 list[k] = list[n];
                 list[n] = value;

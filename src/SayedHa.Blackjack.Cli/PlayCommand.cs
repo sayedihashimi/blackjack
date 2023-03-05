@@ -32,12 +32,13 @@ namespace SayedHa.Blackjack.Cli {
     public class PlayCommand : CommandBase {
         /// TODO: move this to CommandBase
         private readonly IReporter _reporter;
-
+        private readonly BlackjackAppSettings _appSettings;
         private int NumDecks { get; set; }
         private SessionReportData _sessionReportData { get; set; }
         private int BetAmount { get; set; } = 0;
-        public PlayCommand(IReporter reporter) {
+        public PlayCommand(IReporter reporter, BlackjackAppSettings appSettings) {
             _reporter = reporter;
+            _appSettings = appSettings;
         }
 
         public override Command CreateCommand() =>
