@@ -4,6 +4,17 @@ using System.Diagnostics;
 namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
     public class ResultTree {
         /// <summary>
+        /// This isn't really needed, it's just here for unit testing.
+        /// This may be removed later.
+        /// </summary>
+        protected internal int NumSecondCardNodesCreated { get; set; } = 0;
+
+        private List<ResultSummary> _allResults = new List<ResultSummary>();
+
+        public List<ResultSummary> GetAllResults() => _allResults;
+        protected internal StrategyBuilderRootNode RootNode { get; init; } = new StrategyBuilderRootNode();
+
+        /// <summary>
         /// Records the result with the tree.
         /// If the combo of dealer card and opponent cards hasn't been added to the tree it will be,
         /// as well as creating a new result summary to track the results.
@@ -68,17 +79,6 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                 secondCardNode.ResultSummary!.TotalGainOrLoss += totalGainOrLoss;
             }
         }
-
-        /// <summary>
-        /// This isn't really needed, it's just here for unit testing.
-        /// This may be removed later.
-        /// </summary>
-        protected internal int NumSecondCardNodesCreated { get; set; } = 0;
-
-        private List<ResultSummary> _allResults = new List<ResultSummary>();
-
-        public List<ResultSummary> GetAllResults() => _allResults;
-        protected internal StrategyBuilderRootNode RootNode { get; init; } = new StrategyBuilderRootNode();
     }
     public class Results {
         public long NumberOfWins { get; set; }

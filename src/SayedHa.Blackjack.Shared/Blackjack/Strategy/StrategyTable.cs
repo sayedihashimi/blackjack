@@ -61,7 +61,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                 ScoreHandActionMap.Add(score, existingEntry);
             }
         }
-        public HandActionAndReason GetNextAction(CardNumber dealerCard, CardNumber opponentCard1, CardNumber opponentCard2) {
+        public HandAction GetNextAction(CardNumber dealerCard, CardNumber opponentCard1, CardNumber opponentCard2) {
             throw new NotImplementedException();
         }
 
