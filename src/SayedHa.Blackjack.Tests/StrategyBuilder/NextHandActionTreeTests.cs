@@ -106,6 +106,7 @@ namespace SayedHa.Blackjack.Tests.StrategyBuilder {
             Console.WriteLine($"Elapsed time: {stopwatch.Elapsed.TotalMilliseconds} ms");
 
             // even on a very slow machine it should run much faster
+            Assert.Equal(1183, naTree.NumSecondCardNodesCreated);
             Assert.True( stopwatch.ElapsedMilliseconds < 1000 );
             Assert.Equal(expectedHandAction, naTree.GetNextHandActionFor(CardNumber.Ten, CardNumber.Nine, CardNumber.Four));
         }

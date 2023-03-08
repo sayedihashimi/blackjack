@@ -1,6 +1,7 @@
 ﻿using SayedHa.Blackjack.Shared.Blackjack.Exceptions;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -16,6 +17,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
 
         public ITreeNode<T, J> AddItem(T id);
         public ITreeNode<T, J> AddItem(T id, NodeType nodeType);
+        public void PrettyPrint(Stream outStream, T id, bool printId, string indent, bool last);
     }
     public class BaseTreeNode<T, J> : IBaseTreeNode<T, J> where T : System.Enum {
         public List<ITreeNode<T, J>>? Children { get; init; } = new List<ITreeNode<T, J>>();
@@ -60,6 +62,31 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
             Children!.Add(newNode);
             return newNode;
         }
+        public virtual void PrettyPrint(Stream outStream, T id, bool printId, string indent, bool last) {
+            using var writer = new StreamWriter(outStream);
+            writer.Write(indent);
+            if (last) {
+                writer.Write("\\-");
+                indent += "  ";
+            }
+            else {
+                writer.Write("|-");
+                indent += "| ";
+            }
+            if (id != null && printId) {
+                writer.WriteLine(id.ToString());
+            }
+            else {
+                writer.WriteLine();
+            }
+            // Console.WriteLine(Id);
+
+            if (Children != null && Children.Count > 0) {
+                for (int i = 0; i < Children.Count; i++) {
+                    Children[i].PrettyPrint(outStream, Children[i].Id, true, indent, i == Children.Count - 1);
+                }
+            }
+        }
     }
     public interface ITreeNode<T, J> : IBaseTreeNode<T, J> where T : System.Enum {
         public T Id { get; init; }
@@ -84,6 +111,33 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
         }
 
         public J? Value { get; set; }
+        public override void PrettyPrint(Stream outStream, T id, bool printId, string indent, bool last) {
+            Debug.Assert(outStream != null);
+
+            using var writer = new StreamWriter(outStream);
+
+            writer.Write(indent);
+            if (last) {
+                writer.Write("\\-");
+                indent += "  ";
+            }
+            else {
+                writer.Write("|-");
+                indent += "| ";
+            }
+            if (id != null && printId) {
+                writer.WriteLine($"{id} - {Value}");
+            }
+            else {
+                writer.WriteLine();
+            }
+
+            if (Children != null && Children.Count > 0) {
+                for (int i = 0; i < Children.Count; i++) {
+                    Children[i].PrettyPrint(outStream, Children[i].Id, true, indent, i == Children.Count - 1);
+                }
+            }
+        }
     }
     public enum NodeType {
         TreeNode,
@@ -108,7 +162,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
         /// </summary>
         protected internal int NumSecondCardNodesCreated { get; set; } = 0;
 
-        public void AddNextHandActionFor(CardNumber dealerVisibleCard, CardNumber opponentCard1, CardNumber opponentCard2, HandAction handAction) {
+        public void AddNextHandActionFor(CardNumber dealerVisibleCard, CardNumber opponentCard1, CardNumber opponentCard2, HandAction handAction, bool allowOverride = true) {
             (_, var dealerCardNode) = RootNode.GetOrAdd(dealerVisibleCard, NodeType.TreeNode);
             (CardNumber firstCardNumber, CardNumber secondCardNumber) = opponentCard1.Sort(opponentCard2);
             
@@ -120,17 +174,38 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
                 throw new UnexpectedNodeTypeException($"Expected LeafNode but instead we have: '{secondCardNode.GetType().FullName}'");
             }
 
-            if (!newSecondCardNodeAdded /*&& leafNode.Value != handAction*/) {
+            if (allowOverride && !newSecondCardNodeAdded /*&& leafNode.Value != handAction*/) {
                 // TODO: Improve this later, it shouldn't get here in most cases I believe
                 Console.WriteLine($"Updating existing HandAction from '{leafNode.Value}' to '{handAction}'");
             }
 
-            leafNode.Value = handAction;
-
             if (newSecondCardNodeAdded) {
+                leafNode.Value = handAction;
                 NumSecondCardNodesCreated++;
             }
+            if (allowOverride && !newSecondCardNodeAdded) {
+                Console.WriteLine($"Updating existing HandAction from '{leafNode.Value}' to '{handAction}'");
+                leafNode.Value = handAction;
+            }
+            else {
+                Console.WriteLine($"Preventing node value override because allowOverride is set to false. From '{leafNode.Value}' to '{handAction}'");
+            }
         }
+        /// <summary>
+        /// Will add all cards that add up to the given score excluding hands with an Ace and pairs.
+        /// If there's an existing value in the tree, it will not be overwritten.
+        /// </summary>
+        /// <param name="dealerVisibleCard"></param>
+        /// <param name="score"></param>
+        /// <param name="handAction"></param>
+        public void AddNextHandActionForCardSum(CardNumber dealerVisibleCard, int score, HandAction handAction) {
+            var firstAndSecondCardList = GetAllCardsThatAddUpTo(score);
+
+            foreach((var firstCard, var secondCard) in firstAndSecondCardList) {
+                AddNextHandActionFor(dealerVisibleCard, firstCard, secondCard, handAction, false);
+            }
+        }
+
         public HandAction GetNextHandActionFor(CardNumber dealerVisibleCard, CardNumber opponentCard1, CardNumber opponentCard2) {
             (_, var dealerCardNode) = RootNode.GetOrAdd(dealerVisibleCard, NodeType.TreeNode);
             (CardNumber firstCardNumber, CardNumber secondCardNumber) = opponentCard1.Sort(opponentCard2);
@@ -145,5 +220,41 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
 
             return leafNode.Value;
         }
+
+        /// <summary>
+        /// Will return cards that add up to the given score, 
+        /// excluding hands with an Ace and Pairs.
+        /// </summary>
+        /// <param name="score"></param>
+        /// <returns></returns>
+        protected internal List<(CardNumber card1, CardNumber card2)> GetAllCardsThatAddUpTo(int score) {
+            List<(CardNumber card1, CardNumber card2)> resultCards = new List<(CardNumber card1, CardNumber card2)>();
+            var allCardNumbers = ((CardNumber[])Enum.GetValues(typeof(CardNumber))).ToArray();
+
+            for (int i = 0; i < allCardNumbers.Length; i++) {
+                var firstCard = allCardNumbers[i];
+                if(firstCard == CardNumber.Ace) {
+                    continue;
+                }
+                for(int j = 0; j < allCardNumbers.Length; j++) {
+                    var secondCard = allCardNumbers[j];
+                    // skip aces and pairs, those need to be added explicitly
+                    if(secondCard == CardNumber.Ace || secondCard == firstCard) {
+                        continue;
+                    }
+
+                    if (firstCard.GetValues()[0] + secondCard.GetValues()[0] == score) {
+                        resultCards.Add((firstCard, secondCard));
+                    }
+                }
+            }
+
+            return resultCards;
+        }
+
+        public void PrintTree() {
+
+        }
+        
     }
 }
