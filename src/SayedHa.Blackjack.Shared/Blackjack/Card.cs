@@ -13,6 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with SayedHa.Blackjack.  If not, see <https://www.gnu.org/licenses/>.
+using SayedHa.Blackjack.Shared.Blackjack.Exceptions;
+
 namespace SayedHa.Blackjack.Shared {
     public class Card {
         public CardSuit Suit { get; init; }
@@ -40,7 +42,6 @@ namespace SayedHa.Blackjack.Shared {
 
         public string ToString(bool useSymbols) =>
             $"{Number.GetFriendlyString()}{Suit.GetFriendlyString(useSymbols)}";
-        
     }
 
     public enum CardSuit {
@@ -109,6 +110,23 @@ namespace SayedHa.Blackjack.Shared {
             { opponentCard1: var oc1, opponentCard2: var oc2 } when oc1 == oc2 => (oc1, oc2),
             (_, _) => throw new ApplicationException($"Unable to compare these CardNumbers: '{opponentCard1}','{opponentCard2}'")
         };
+        public static bool IsAPairWith(this CardNumber card1, CardNumber card2) => card1 == card2;
+        public static bool ContainsAnAce(this CardNumber card1, CardNumber card2) => (card1, card2) switch {
+            (CardNumber.Ace, _) => true,
+            (_, CardNumber.Ace) => true,
+            (_, _) => false
+        };
+        public static bool ContainsAnAce(this CardNumber card1, params CardNumber[] otherCards) {
+            if(card1 == CardNumber.Ace) {
+                return true;
+            }
+            foreach(var card in otherCards) {
+                if(card == CardNumber.Ace) {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
     public static class CardSuitExtensions {
         public static string GetFriendlyString(this CardSuit cardSuit) => cardSuit switch {

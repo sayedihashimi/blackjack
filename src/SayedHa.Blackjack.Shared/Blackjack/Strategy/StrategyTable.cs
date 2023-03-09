@@ -88,6 +88,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
         protected bool IsAceHand(CardNumber card1, CardNumber card2) => (card1, card2) switch {
             (CardNumber.Ace, _) => true,
             (_, CardNumber.Ace) => true,
+            (_, _) => false
         };
         // TODO: need to be able to read the values from a csv file to populate the next action
     }
