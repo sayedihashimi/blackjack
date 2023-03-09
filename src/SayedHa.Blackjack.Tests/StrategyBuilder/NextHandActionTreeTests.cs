@@ -4,6 +4,7 @@ using SayedHa.Blackjack.Shared.Roulette;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -51,7 +52,9 @@ namespace SayedHa.Blackjack.Tests.StrategyBuilder {
             for(int i = 0;i<dealerCards.Count;i++) {
                 naTree.AddNextHandActionFor(dealerCards[i], op1Cards[i], op2Cards[i], nextHandActions[i]);
             }
-
+            var sb = new StringBuilder();
+            var sw = new StringWriter(sb);
+            
             for (int i = 0; i < dealerCards.Count; i++) {
                 var expectedHandAction = nextHandActions[i];
                 var foundHandAction = naTree.GetNextHandActionFor(dealerCards[i], op1Cards[i], op2Cards[i]);

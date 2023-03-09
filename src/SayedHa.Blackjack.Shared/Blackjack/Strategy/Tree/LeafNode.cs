@@ -17,7 +17,6 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
 
         public ITreeNode<T, J> AddItem(T id);
         public ITreeNode<T, J> AddItem(T id, NodeType nodeType);
-        public void PrettyPrint(Stream outStream, T id, bool printId, string indent, bool last);
     }
     public class BaseTreeNode<T, J> : IBaseTreeNode<T, J> where T : System.Enum {
         public List<ITreeNode<T, J>>? Children { get; init; } = new List<ITreeNode<T, J>>();
@@ -62,31 +61,6 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
             Children!.Add(newNode);
             return newNode;
         }
-        public virtual void PrettyPrint(Stream outStream, T id, bool printId, string indent, bool last) {
-            using var writer = new StreamWriter(outStream);
-            writer.Write(indent);
-            if (last) {
-                writer.Write("\\-");
-                indent += "  ";
-            }
-            else {
-                writer.Write("|-");
-                indent += "| ";
-            }
-            if (id != null && printId) {
-                writer.WriteLine(id.ToString());
-            }
-            else {
-                writer.WriteLine();
-            }
-            // Console.WriteLine(Id);
-
-            if (Children != null && Children.Count > 0) {
-                for (int i = 0; i < Children.Count; i++) {
-                    Children[i].PrettyPrint(outStream, Children[i].Id, true, indent, i == Children.Count - 1);
-                }
-            }
-        }
     }
     public interface ITreeNode<T, J> : IBaseTreeNode<T, J> where T : System.Enum {
         public T Id { get; init; }
@@ -111,33 +85,6 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
         }
 
         public J? Value { get; set; }
-        public override void PrettyPrint(Stream outStream, T id, bool printId, string indent, bool last) {
-            Debug.Assert(outStream != null);
-
-            using var writer = new StreamWriter(outStream);
-
-            writer.Write(indent);
-            if (last) {
-                writer.Write("\\-");
-                indent += "  ";
-            }
-            else {
-                writer.Write("|-");
-                indent += "| ";
-            }
-            if (id != null && printId) {
-                writer.WriteLine($"{id} - {Value}");
-            }
-            else {
-                writer.WriteLine();
-            }
-
-            if (Children != null && Children.Count > 0) {
-                for (int i = 0; i < Children.Count; i++) {
-                    Children[i].PrettyPrint(outStream, Children[i].Id, true, indent, i == Children.Count - 1);
-                }
-            }
-        }
     }
     public enum NodeType {
         TreeNode,
@@ -251,10 +198,5 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
 
             return resultCards;
         }
-
-        public void PrintTree() {
-
-        }
-        
     }
 }
