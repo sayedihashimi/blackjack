@@ -267,7 +267,17 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
                 return GetFromTree(pairTree, dealerCard, opCard1);
             }
             else if(opCard1.ContainsAnAce(opCard2)) {
-                return GetFromTree(aceTree, dealerCard, opCard1);
+                (_, var rootNode) = aceTree.GetOrAdd(CardNumberHelper.ConvertToCardNumberOrScore(dealerCard), NodeType.TreeNode);
+                // After sort the Ace should be the secondCardNumber
+                (CardNumber firstCardNumber, CardNumber secondCardNumber) = opCard1.Sort(opCard2);
+
+                (_, var secondNode) = rootNode.GetOrAdd(CardNumberHelper.ConvertToCardNumberOrScore(firstCardNumber.GetValues()[0]), NodeType.LeafNode);
+
+                var leafNode = secondNode as LeafNode<CardNumberOrScore, HandAction>;
+                if (leafNode is null) {
+                    throw new UnexpectedNodeTypeException($"Expected LeafNode but instead received null or an object of type '{secondNode.GetType().FullName}'");
+                }
+                return leafNode.Value;
             }
             else {
                 (_, var dealerCardNode) = hardTotalTree.GetOrAdd(CardNumberHelper.ConvertToCardNumberOrScore(dealerCard), NodeType.TreeNode);

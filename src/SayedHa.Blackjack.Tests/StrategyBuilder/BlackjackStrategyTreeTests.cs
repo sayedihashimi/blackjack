@@ -62,7 +62,7 @@ namespace SayedHa.Blackjack.Tests.StrategyBuilder {
         }
 
         // TODO: Needs investigation
-        // [Fact]
+        [Fact]
         public void Test_Tree_AddSoftTotal_ThreeItems() {
             var dealerCardList = new List<CardNumber> {
                 CardNumber.Nine,
