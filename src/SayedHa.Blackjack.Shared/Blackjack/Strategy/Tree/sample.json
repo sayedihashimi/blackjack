@@ -1,0 +1,17 @@
+{
+  "pairs": [
+    {
+      "dealerCard": "2",
+      "pairCard": "2",
+      "handAction": "Split"
+    },
+    {
+      "dealerCard": "2",
+      "pairCard": "2",
+      "handAction": "Split"
+    },
+
+  ],
+  "softTotals": [],
+  "hardTotals": []
+}

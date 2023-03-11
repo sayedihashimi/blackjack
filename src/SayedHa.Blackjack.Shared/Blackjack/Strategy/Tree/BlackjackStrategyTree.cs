@@ -9,20 +9,20 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
         /// Use this to register the next action when the first two cards dealt is a pair.
         /// </summary>
         protected internal void AddPairNextAction(CardNumber dealerCard, CardNumber pairCard, HandAction nextHandAction) {
+            // TODO: for all the cards that have a value of 10 we can use the same node, don't need different ones.
             (_, var pairRootNode) = pairTree.GetOrAdd(CardNumberHelper.ConvertToCardNumberOrScore(dealerCard), NodeType.TreeNode);
             (bool pairNodeCreated, var pairNode) = pairRootNode.GetOrAdd(CardNumberHelper.ConvertToCardNumberOrScore(pairCard), NodeType.LeafNode);
 
-            var leafNode = pairNode as LeafNode<CardNumberOrScore, HandAction>;
-            if (leafNode is null) {
-                throw new UnexpectedNodeTypeException($"Expected LeafNode but instead received null or an object of type '{pairNode.GetType().FullName}'");
+            if(pairNode is LeafNode<CardNumberOrScore, HandAction> leafNode) {
+                if (!pairNodeCreated) {
+                    // TODO: Improve this
+                    Console.WriteLine($"Over writing next hand action for pair '{pairCard}', from '{leafNode.Value}' to '{nextHandAction}'.");
+                }
+                leafNode.Value = nextHandAction;
             }
-
-            if (!pairNodeCreated) {
-                // TODO: Improve this
-                Console.WriteLine($"Over writing next hand action for pair '{pairCard}', from '{leafNode.Value}' to '{nextHandAction}'.");
+            else {
+                    throw new UnexpectedNodeTypeException($"Expected LeafNode but instead received null or an object of type '{pairNode.GetType().FullName}'");
             }
-
-            leafNode.Value = nextHandAction;
         }
         /// <summary>
         /// Use this when the cards dealt have an Ace
@@ -33,17 +33,16 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
             (_, var aceDealerCardNode) = aceTree.GetOrAdd(CardNumberHelper.ConvertToCardNumberOrScore(dealerCard), NodeType.TreeNode);
             (var scoreTotalNodeCreated, var scoreTotalNode) = aceDealerCardNode.GetOrAdd(CardNumberHelper.ConvertToCardNumberOrScore(scoreTotal), NodeType.LeafNode);
 
-            var leafNode = scoreTotalNode as LeafNode<CardNumberOrScore, HandAction>;
-            if (leafNode is null) {
+            if(scoreTotalNode is LeafNode<CardNumberOrScore, HandAction> leafNode) {
+                if (!scoreTotalNodeCreated) {
+                    // TODO: Improve this
+                    Console.WriteLine($"Over writing next hand action for score '{scoreTotal}', from '{leafNode.Value}' to '{nextHandAction}'.");
+                }
+                leafNode.Value = nextHandAction;
+            }
+            else {
                 throw new UnexpectedNodeTypeException($"Expected LeafNode but instead received null or an object of type '{scoreTotalNode.GetType().FullName}'");
             }
-
-            if (!scoreTotalNodeCreated) {
-                // TODO: Improve this
-                Console.WriteLine($"Over writing next hand action for score '{scoreTotal}', from '{leafNode.Value}' to '{nextHandAction}'.");
-            }
-
-            leafNode.Value = nextHandAction;
         }
         /// <summary>
         /// Hard total is when you don't have an Ace or a pair of cards.
@@ -52,15 +51,17 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
             (_, var dealerCardNode) = hardTotalTree.GetOrAdd(CardNumberHelper.ConvertToCardNumberOrScore(dealerCard), NodeType.TreeNode);
             (var scoreTotalNodeCreated, var scoreTotalNode) = dealerCardNode.GetOrAdd(CardNumberHelper.ConvertToCardNumberOrScore(scoreTotal), NodeType.LeafNode);
 
-            if (!scoreTotalNodeCreated) {
-                // TODO: Improve this
-                Console.WriteLine($"Over writing next hand action for score '{scoreTotal}', to '{nextHandAction}'.");
+            if (scoreTotalNode is LeafNode<CardNumberOrScore, HandAction> leafNode) {
+                if (!scoreTotalNodeCreated) {
+                    // TODO: Improve this
+                    Console.WriteLine($"Over writing next hand action for score '{scoreTotal}', to '{nextHandAction}'.");
+                }
+                leafNode.Value = nextHandAction;
             }
-            var leafNode = scoreTotalNode as LeafNode<CardNumberOrScore, HandAction>;
-            if (leafNode is null) {
+            else {
                 throw new UnexpectedNodeTypeException($"Expected LeafNode but instead received null or an object of type '{scoreTotalNode.GetType().FullName}'");
             }
-            leafNode.Value = nextHandAction;
+
         }
         public void AddNextHandAction(CardNumber dealerCard, CardNumber opCard1, CardNumber opCard2, HandAction nextHandAction) {
             if (opCard1.IsAPairWith(opCard2)) {
@@ -148,20 +149,24 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
             (_, var rootNode) = aceTree.GetOrAdd(CardNumberHelper.ConvertToCardNumberOrScore(dealerCard), NodeType.TreeNode);
             (_, var secondNode) = rootNode.GetOrAdd(CardNumberHelper.ConvertToCardNumberOrScore(scoreTotalExcludingAce), NodeType.LeafNode);
 
-            var leafNode = secondNode as LeafNode<CardNumberOrScore, HandAction>;
-            if (leafNode is null) {
+            if(secondNode is LeafNode<CardNumberOrScore, HandAction> leafNode) {
+
+                return leafNode.Value;
+            }
+            else {
                 throw new UnexpectedNodeTypeException($"Expected LeafNode but instead received null or an object of type '{secondNode.GetType().FullName}'");
             }
-            return leafNode.Value;
         }
         protected internal HandAction GetOrAddFromHardTotalTree(CardNumber dealerCard, int scoreTotal) {
             (_, var dealerCardNode) = hardTotalTree.GetOrAdd(CardNumberHelper.ConvertToCardNumberOrScore(dealerCard), NodeType.TreeNode);
             (_, var scoreTotalNode) = dealerCardNode.GetOrAdd(CardNumberHelper.ConvertToCardNumberOrScore(scoreTotal), NodeType.LeafNode);
-            var leafNode = scoreTotalNode as LeafNode<CardNumberOrScore, HandAction>;
-            if (leafNode is null) {
+
+            if(scoreTotalNode is LeafNode<CardNumberOrScore, HandAction> leafNode) {
+                return leafNode.Value;
+            }
+            else {
                 throw new UnexpectedNodeTypeException($"Expected LeafNode but instead received null or an object of type '{scoreTotalNode.GetType().FullName}'");
             }
-            return leafNode.Value;
         }
     }
 }
