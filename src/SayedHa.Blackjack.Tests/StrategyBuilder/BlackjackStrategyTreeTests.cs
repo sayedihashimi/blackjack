@@ -11,19 +11,18 @@ using Xunit;
 namespace SayedHa.Blackjack.Tests.StrategyBuilder {
     public class BlackjackStrategyTreeTests {
         [Fact]
-        public void Test_AddPairNextAction_Pair() {
+        public void Test_AddSplit_OnePair() {
             var tree = new BlackjackStrategyTree();
 
             CardNumber dealerCard = CardNumber.Ace;
             CardNumber pairCard = CardNumber.Nine;
-            HandAction expectedHandAction = HandAction.Stand;
-            tree.AddPairNextAction(dealerCard, pairCard, expectedHandAction);
+            tree.AddNextHandAction(dealerCard, HandAction.Split, pairCard, pairCard);
 
             var foundHandAction = tree.GetNextHandAction(dealerCard, pairCard, pairCard);
-            Assert.Equal(expectedHandAction, foundHandAction);
+            Assert.Equal(HandAction.Split, foundHandAction);
         }
         [Fact]
-        public void Test_AddPairNextAction_ThreePairs() {
+        public void Test_AddSplit_ThreePairs() {
             var dealerCardList = new List<CardNumber> {
                 CardNumber.Nine,
                 CardNumber.Four,
@@ -34,20 +33,15 @@ namespace SayedHa.Blackjack.Tests.StrategyBuilder {
                 CardNumber.Ten,
                 CardNumber.Nine
             };
-            var expectedHandActionList = new List<HandAction> {
-                HandAction.Hit,
-                HandAction.Stand,
-                HandAction.Stand
-            };
 
             var tree = new BlackjackStrategyTree();
-            for (int i = 0;i< dealerCardList.Count;i++) {
-                tree.AddPairNextAction(dealerCardList[i], pairCardList[i], expectedHandActionList[i]);
+            for (int i = 0; i < dealerCardList.Count; i++) {
+                tree.AddNextHandAction(dealerCardList[i], pairCardList[i], pairCardList[i], HandAction.Split);
             }
             // get them back and verify the result
             for (int i = 0; i < dealerCardList.Count; i++) {
                 var foundHandAction = tree.GetNextHandAction(dealerCardList[i], pairCardList[i], pairCardList[i]);
-                Assert.Equal(expectedHandActionList[i], foundHandAction);
+                Assert.Equal(HandAction.Split, foundHandAction);
             }
         }
         [Fact]

@@ -3,27 +3,16 @@
 namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
     public class BlackjackStrategyTree {
         protected internal BaseTreeNode<CardNumberOrScore, HandAction> aceTree = new BaseTreeNode<CardNumberOrScore, HandAction>();
-        protected internal BaseTreeNode<CardNumberOrScore, HandAction> pairTree = new BaseTreeNode<CardNumberOrScore, HandAction>();
         protected internal BaseTreeNode<CardNumberOrScore, HandAction> hardTotalTree = new BaseTreeNode<CardNumberOrScore, HandAction>();
-        /// <summary>
-        /// Use this to register the next action when the first two cards dealt is a pair.
-        /// </summary>
-        protected internal void AddPairNextAction(CardNumber dealerCard, CardNumber pairCard, HandAction nextHandAction) {
-            // TODO: for all the cards that have a value of 10 we can use the same node, don't need different ones.
-            (_, var pairRootNode) = pairTree.GetOrAdd(CardNumberHelper.ConvertToCardNumberOrScore(dealerCard), NodeType.TreeNode);
-            (bool pairNodeCreated, var pairNode) = pairRootNode.GetOrAdd(CardNumberHelper.ConvertToCardNumberOrScore(pairCard), NodeType.LeafNode);
 
-            if(pairNode is LeafNode<CardNumberOrScore, HandAction> leafNode) {
-                if (!pairNodeCreated) {
-                    // TODO: Improve this
-                    Console.WriteLine($"Over writing next hand action for pair '{pairCard}', from '{leafNode.Value}' to '{nextHandAction}'.");
-                }
-                leafNode.Value = nextHandAction;
-            }
-            else {
-                    throw new UnexpectedNodeTypeException($"Expected LeafNode but instead received null or an object of type '{pairNode.GetType().FullName}'");
+        protected internal List<int> pairsToSplit = new List<int>();
+
+        protected internal void AddPairToSplit(int cardValue) {
+            if (!pairsToSplit.Contains(cardValue)) {
+                pairsToSplit.Add(cardValue);
             }
         }
+
         /// <summary>
         /// Use this when the cards dealt have an Ace
         /// The score to pass in here is the sum of the
@@ -33,7 +22,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
             (_, var aceDealerCardNode) = aceTree.GetOrAdd(CardNumberHelper.ConvertToCardNumberOrScore(dealerCard), NodeType.TreeNode);
             (var scoreTotalNodeCreated, var scoreTotalNode) = aceDealerCardNode.GetOrAdd(CardNumberHelper.ConvertToCardNumberOrScore(scoreTotal), NodeType.LeafNode);
 
-            if(scoreTotalNode is LeafNode<CardNumberOrScore, HandAction> leafNode) {
+            if (scoreTotalNode is LeafNode<CardNumberOrScore, HandAction> leafNode) {
                 if (!scoreTotalNodeCreated) {
                     // TODO: Improve this
                     Console.WriteLine($"Over writing next hand action for score '{scoreTotal}', from '{leafNode.Value}' to '{nextHandAction}'.");
@@ -64,23 +53,38 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
 
         }
         public void AddNextHandAction(CardNumber dealerCard, CardNumber opCard1, CardNumber opCard2, HandAction nextHandAction) {
-            if (opCard1.IsAPairWith(opCard2)) {
-                AddPairNextAction(dealerCard, opCard1, nextHandAction);
+            if (nextHandAction == HandAction.Split) {
+                // verify both cards are a pair
+                if (opCard1 != opCard2) {
+                    throw new UnexpectedValueException($"Expected a pair but received '{opCard1}' and '{opCard2}'");
+                }
+                AddPairToSplit(opCard1.GetValues()[0]);
             }
+            //if (opCard1.IsAPairWith(opCard2)) {
+            //    AddPairNextAction(dealerCard, opCard1, nextHandAction);
+            //}
             else if (opCard1.ContainsAnAce(opCard2)) {
                 // After sort the Ace should be the secondCardNumber
                 (CardNumber firstCardNumber, CardNumber secondCardNumber) = opCard1.Sort(opCard2);
                 AddSoftTotalNextAction(dealerCard, firstCardNumber.GetValues()[0], nextHandAction);
             }
             else {
-                AddHardTotalNextAction(dealerCard, CardNumberHelper.GetScoreTotal(opCard1,opCard2), nextHandAction);
+                AddHardTotalNextAction(dealerCard, CardNumberHelper.GetScoreTotal(opCard1, opCard2), nextHandAction);
             }
         }
         public void AddNextHandAction(CardNumber dealerCard, HandAction nextHandAction, params CardNumber[] opCards) {
-            if(opCards.Length == 2) {
+            ArgumentNullException.ThrowIfNull(opCards);
+
+            if (opCards.Length < 2) {
+                throw new UnexpectedValueException($"To add a hand action, two or more cards are required, number of cards: '{opCards.Length}'");
+            }
+            if (opCards.Length == 2) {
                 AddNextHandAction(dealerCard, opCards[0], opCards[1], nextHandAction);
             }
             else {
+                if (nextHandAction == HandAction.Split) {
+                    throw new UnexpectedValueException($"Cannot split when hand contains more than two cards, number of cards: '{opCards.Length}'");
+                }
                 // add to the hardTotal tree
                 var scoreTotal = CardNumberHelper.GetScoreTotal(opCards);
                 AddHardTotalNextAction(dealerCard, scoreTotal, nextHandAction);
@@ -89,13 +93,15 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
         // when there is only two cards this method should be called instead of the method using params
         // performance will be slightly better in this method.
         public HandAction GetNextHandAction(CardNumber dealerCard, CardNumber opCard1, CardNumber opCard2) {
-            // 1: check if it's a pair, and return the result in the pair tree
+            // 1: check if it's a pair
             // 2: check if the cards include an Ace, if so return the result from the Ace tree
             // 3: return the result from the HardTotals tree
-            if (opCard1.IsAPairWith(opCard2)) {
-                return GetOrAddFromPairTree(dealerCard, opCard1);
+
+            if (opCard1.IsAPairWith(opCard2) && pairsToSplit.Contains(opCard1.GetValues()[0])) {
+                return HandAction.Split;
             }
-            else if (opCard1.ContainsAnAce(opCard2)) {
+
+            if (opCard1.ContainsAnAce(opCard2)) {
                 // After sort the Ace should be the secondCardNumber
                 (CardNumber firstCardNumber, CardNumber secondCardNumber) = opCard1.Sort(opCard2);
                 return GetOrAddFromAceTree(dealerCard, firstCardNumber.GetValues()[0]);
@@ -110,14 +116,14 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
             // if no result there, return the result from the hardTotal tree.
 
             var containsAce = CardNumberHelper.ContainsAnAce(opCards);
-            if(containsAce) {
+            if (containsAce) {
                 var otherCards = new CardNumber[opCards.Length - 1];
 
                 // only want to ignore 1 ace
                 bool aceCardFound = false;
                 int currentIndex = 0;
                 foreach (var card in opCards) {
-                    if(!aceCardFound && card == CardNumber.Ace) {
+                    if (!aceCardFound && card == CardNumber.Ace) {
                         aceCardFound = true;
                     }
                     else {
@@ -125,7 +131,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
                     }
                 }
                 var scoreOtherCards = CardNumberHelper.GetScoreTotal(otherCards);
-                if(scoreOtherCards <= 9) {
+                if (scoreOtherCards <= 9) {
                     // check the aceTree for the result
                     return GetOrAddFromAceTree(dealerCard, scoreOtherCards);
                 }
@@ -135,21 +141,11 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
             var scoreTotal = CardNumberHelper.GetScoreTotal(opCards);
             return GetOrAddFromHardTotalTree(dealerCard, scoreTotal);
         }
-        protected internal HandAction GetOrAddFromPairTree(CardNumber dealerCard, CardNumber opCard1) {
-            (_, var rootNode) = pairTree.GetOrAdd(CardNumberHelper.ConvertToCardNumberOrScore(dealerCard), NodeType.TreeNode);
-            (_, var secondNode) = rootNode.GetOrAdd(CardNumberHelper.ConvertToCardNumberOrScore(opCard1), NodeType.LeafNode);
-
-            var leafNode = secondNode as LeafNode<CardNumberOrScore, HandAction>;
-            if (leafNode is null) {
-                throw new UnexpectedNodeTypeException($"Expected LeafNode but instead received null or an object of type '{secondNode.GetType().FullName}'");
-            }
-            return leafNode.Value;
-        }
         protected internal HandAction GetOrAddFromAceTree(CardNumber dealerCard, int scoreTotalExcludingAce) {
             (_, var rootNode) = aceTree.GetOrAdd(CardNumberHelper.ConvertToCardNumberOrScore(dealerCard), NodeType.TreeNode);
             (_, var secondNode) = rootNode.GetOrAdd(CardNumberHelper.ConvertToCardNumberOrScore(scoreTotalExcludingAce), NodeType.LeafNode);
 
-            if(secondNode is LeafNode<CardNumberOrScore, HandAction> leafNode) {
+            if (secondNode is LeafNode<CardNumberOrScore, HandAction> leafNode) {
 
                 return leafNode.Value;
             }
@@ -161,7 +157,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
             (_, var dealerCardNode) = hardTotalTree.GetOrAdd(CardNumberHelper.ConvertToCardNumberOrScore(dealerCard), NodeType.TreeNode);
             (_, var scoreTotalNode) = dealerCardNode.GetOrAdd(CardNumberHelper.ConvertToCardNumberOrScore(scoreTotal), NodeType.LeafNode);
 
-            if(scoreTotalNode is LeafNode<CardNumberOrScore, HandAction> leafNode) {
+            if (scoreTotalNode is LeafNode<CardNumberOrScore, HandAction> leafNode) {
                 return leafNode.Value;
             }
             else {

@@ -12,10 +12,11 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
             CardNumber.Seven => CardNumberOrScore.Seven,
             CardNumber.Eight => CardNumberOrScore.Eight,
             CardNumber.Nine => CardNumberOrScore.Nine,
+            // setting these all to Ten to decrease the number of nodes in the tree
             CardNumber.Ten => CardNumberOrScore.Ten,
-            CardNumber.Jack => CardNumberOrScore.Jack,
-            CardNumber.Queen => CardNumberOrScore.Queen,
-            CardNumber.King => CardNumberOrScore.King,
+            CardNumber.Jack => CardNumberOrScore.Ten,
+            CardNumber.Queen => CardNumberOrScore.Ten,
+            CardNumber.King => CardNumberOrScore.Ten,
             _ => throw new UnknownValueException($"Unknown value for CardNumber: '{cardNumber}'")
         };
         public static CardNumberOrScore ConvertToCardNumberOrScore(int score) => score switch {
