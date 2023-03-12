@@ -55,6 +55,7 @@ namespace SayedHa.Blackjack.Shared.Players {
             // now we handle the generic case
             int handScore = hand.GetScore();
 
+            // TODO: There is a bug here that this may return double even if more cards have already been dealt
             var nextHandAction = (handScore, dealerHand.DealersVisibleCard!.Number) switch {
                 ( >= 17, _) => new HandActionAndReason(HandAction.Stand, "Always stand on 17 or above."),
                 (16, CardNumber.Two) => new HandActionAndReason(HandAction.Stand, "Stand on 16 when dealer shows 6 or below."),

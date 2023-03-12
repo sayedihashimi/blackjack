@@ -6,6 +6,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
         protected internal BaseTreeNode<CardNumberOrScore, HandAction> hardTotalTree = new BaseTreeNode<CardNumberOrScore, HandAction>();
 
         protected internal List<int> pairsToSplit = new List<int>();
+        protected internal bool DoubleEnabled { get; init; } = true;
 
         protected internal void AddPairToSplit(int cardValue) {
             if (!pairsToSplit.Contains(cardValue)) {
@@ -107,7 +108,11 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
                 return GetOrAddFromAceTree(dealerCard, firstCardNumber.GetValues()[0]);
             }
             else {
-                return GetOrAddFromHardTotalTree(dealerCard, CardNumberHelper.GetScoreTotal(opCard1, opCard2));
+                var nextHandAction = GetOrAddFromHardTotalTree(dealerCard, CardNumberHelper.GetScoreTotal(opCard1, opCard2));
+                if(nextHandAction == HandAction.Double && !DoubleEnabled) {
+                    nextHandAction = HandAction.Hit;
+                }
+                return nextHandAction;
             }
         }
         public HandAction GetNextHandAction(CardNumber dealerCard, params CardNumber[] opCards) {
@@ -133,13 +138,23 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
                 var scoreOtherCards = CardNumberHelper.GetScoreTotal(otherCards);
                 if (scoreOtherCards <= 9) {
                     // check the aceTree for the result
-                    return GetOrAddFromAceTree(dealerCard, scoreOtherCards);
+                    var nextHandActionAce = GetOrAddFromAceTree(dealerCard, scoreOtherCards);
+                    // don't need to look at DoubleEnabled because Double isn't allowed when there are more than 2 cards dealt
+                    if(nextHandActionAce == HandAction.Double) {
+                        nextHandActionAce = HandAction.Hit;
+                    }
+                    return nextHandActionAce;
                 }
             }
 
             // return result from the hardTotal tree
             var scoreTotal = CardNumberHelper.GetScoreTotal(opCards);
-            return GetOrAddFromHardTotalTree(dealerCard, scoreTotal);
+            var nextHandAction = GetOrAddFromHardTotalTree(dealerCard, scoreTotal);
+            // don't need to look at DoubleEnabled because Double isn't allowed when there are more than 2 cards dealt
+            if (nextHandAction == HandAction.Double) {
+                nextHandAction = HandAction.Hit;
+            }
+            return nextHandAction;
         }
         protected internal HandAction GetOrAddFromAceTree(CardNumber dealerCard, int scoreTotalExcludingAce) {
             (_, var rootNode) = aceTree.GetOrAdd(CardNumberHelper.ConvertToCardNumberOrScore(dealerCard), NodeType.TreeNode);
