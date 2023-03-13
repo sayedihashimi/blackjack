@@ -84,7 +84,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
             }
         }
 
-        private HandAction GetRandomHandAction(bool includeDouble) {
+        public HandAction GetRandomHandAction(bool includeDouble) {
             int fromInclusive = 0;
             int toInclusive = includeDouble ? 2 : 1;
             int indexToReturn = GetRandomIntBetween(fromInclusive, toInclusive + 1);
@@ -95,6 +95,5 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
             true => RandomNumberGenerator.GetInt32(fromInclusive, toExclusive),
             false => random.Next(fromInclusive, toExclusive)
         };
-        
     }
 }

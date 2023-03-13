@@ -1,4 +1,5 @@
-﻿using SayedHa.Blackjack.Shared.Blackjack.Exceptions;
+﻿using Newtonsoft.Json.Linq;
+using SayedHa.Blackjack.Shared.Blackjack.Exceptions;
 
 namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
     public class BlackjackStrategyTree {
@@ -179,5 +180,106 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
                 throw new UnexpectedNodeTypeException($"Expected LeafNode but instead received null or an object of type '{scoreTotalNode.GetType().FullName}'");
             }
         }
+
+        public void WriteTreeStringTo(StringWriter writer) {
+            if(aceTree != null && aceTree.Children!.Count > 0) {
+                // create a list of the dealer nodes, sort them and then 
+                var dealerNodeList = new List<ITreeNode<CardNumberOrScore,HandAction>>();
+                dealerNodeList.Sort();
+                var leafNodeList = new List<LeafNode<CardNumberOrScore, HandAction>>();
+
+                var treeAsDictionary = new Dictionary<CardNumberOrScore, List<LeafNode<CardNumberOrScore, HandAction>>>();
+
+                foreach (var dealerNode in aceTree.Children) {
+                    dealerNodeList.Add(dealerNode);
+                    var currentLeafNodeList = new List<LeafNode<CardNumberOrScore, HandAction>>();
+
+                    foreach(var child in dealerNode.Children!) {
+                        if(child is LeafNode<CardNumberOrScore, HandAction> leafNode) {
+                            currentLeafNodeList.Add(leafNode);
+                        }
+                        else {
+                            throw new UnexpectedNodeTypeException($"Expected a LeafNode but instead received type: '{child.GetType().FullName}'");
+                        }
+                    }
+                    treeAsDictionary.Add(dealerNode.Id, currentLeafNodeList);
+                }
+
+                // print dealer cards header
+                int columnWidth = 3;
+                writer.WriteLine("soft-totals");
+                writer.Write(new string(' ', columnWidth));
+                //foreach (var dealerNode in aceTree.Children!) {
+                //    writer.Write($"{GetStrFor(dealerNode.Id)},".PadLeft(columnWidth));
+                //}
+
+                for(int i = 0; i < aceTree.Children!.Count; i++) {
+                    var dealerNode = aceTree.Children![i];
+                    var str = i == aceTree.Children!.Count - 1 ? $"{GetStrFor(dealerNode.Id).PadLeft(columnWidth -1)}" : $"{GetStrFor(dealerNode.Id)},".PadLeft(columnWidth);
+                    writer.Write(str);
+                }
+
+                writer.WriteLine();
+                foreach (var key in treeAsDictionary.Keys) { 
+                    var leafNodes = treeAsDictionary[key];
+                    // print the hard total value
+                    writer.Write($"{GetStrFor(key)},".PadLeft(columnWidth));
+                    // write each value
+                    for(int i = 0; i < leafNodes.Count; i++) {
+                        var str = i == leafNodes.Count - 1 ? $"{GetStrFor(leafNodes[i].Value).PadLeft(columnWidth-1)}" : $"{GetStrFor(leafNodes[i].Value)},".PadLeft(columnWidth);
+                        writer.Write(str);
+                    }
+
+
+                    writer.WriteLine();
+                }
+            }
+
+        }
+        private string GetStrFor(HandAction v) => v switch {
+            HandAction.Hit => "H",
+            HandAction.Stand => "S",
+            HandAction.Split => "Sp",
+            HandAction.Double => "D",
+            _ => throw new NotImplementedException()
+        };
+        private string GetStrFor(CardNumberOrScore card) => card switch {
+            CardNumberOrScore.Ace => "A",
+            CardNumberOrScore.Two => "2",
+            CardNumberOrScore.Three => "3",
+            CardNumberOrScore.Four => "4",
+            CardNumberOrScore.Five => "5",
+            CardNumberOrScore.Six => "6",
+            CardNumberOrScore.Seven => "7",
+            CardNumberOrScore.Eight => "8",
+            CardNumberOrScore.Nine => "9",
+            CardNumberOrScore.Ten => "10",
+            CardNumberOrScore.Jack => "10",
+            CardNumberOrScore.Queen => "10",
+            CardNumberOrScore.King => "10",
+            CardNumberOrScore.Score21 => "21",
+            CardNumberOrScore.Score20 => "20",
+            CardNumberOrScore.Score19 => "19",
+            CardNumberOrScore.Score18 => "18",
+            CardNumberOrScore.Score17 => "17",
+            CardNumberOrScore.Score16 => "16",
+            CardNumberOrScore.Score15 => "15",
+            CardNumberOrScore.Score14 => "14",
+            CardNumberOrScore.Score13 => "13",
+            CardNumberOrScore.Score12 => "12",
+            CardNumberOrScore.Score11 => "11",
+            CardNumberOrScore.Score10 => "10",
+            CardNumberOrScore.Score9 => "9",
+            CardNumberOrScore.Score8 => "8",
+            CardNumberOrScore.Score7 => "7",
+            CardNumberOrScore.Score6 => "6",
+            CardNumberOrScore.Score5 => "5",
+            CardNumberOrScore.Score4 => "4",
+            CardNumberOrScore.Score3 => "3",
+            CardNumberOrScore.Score2 => "2",
+            CardNumberOrScore.Busted => "B",
+
+            _ => throw new UnexpectedValueException($"Unexpected value for CardNumberOrScore: '{card}'")
+        };
     }
 }

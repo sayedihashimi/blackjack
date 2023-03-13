@@ -3,6 +3,7 @@ using SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -237,6 +238,33 @@ namespace SayedHa.Blackjack.Tests.StrategyBuilder {
             Assert.True(stopwatch.ElapsedMilliseconds < 1000);
             Assert.Equal(expectedHandAction, tree.GetNextHandAction(CardNumber.Ten, CardNumber.Nine, CardNumber.Four));
             Assert.Equal(expectedHandAction, tree.GetNextHandAction(CardNumber.Ace, CardNumber.Nine, CardNumber.Nine));
+        }
+        [Fact]
+        public void Test_WriteTreeStringTo_01() {
+            var allCardNumbers = ((CardNumber[])Enum.GetValues(typeof(CardNumber))).ToArray();
+            var tree = new BlackjackStrategyTree();
+
+            var factory = BlackjackStrategyTreeFactory.GetInstance(true);
+
+            for (int i = 0; i < allCardNumbers.Length; i++) {
+                var dealerCard = allCardNumbers[i];
+                for (int j = 0; j < allCardNumbers.Length; j++) {
+                    var op1Card = allCardNumbers[j]!;
+                    for (int k = 0; k < allCardNumbers.Length; k++) {
+                        var op2Card = allCardNumbers[k]!;
+                        tree.AddNextHandAction(dealerCard, factory.GetRandomHandAction(true), op1Card, op2Card);
+                    }
+                }
+            }
+
+            var sb = new StringBuilder();
+            var writer = new StringWriter(sb);
+            tree.WriteTreeStringTo(writer);
+            writer.Flush();
+            writer.Close();
+
+            var str = sb.ToString();
+            Assert.NotNull(str);
         }
     }
 }
