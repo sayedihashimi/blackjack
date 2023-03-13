@@ -6,6 +6,9 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
         protected internal BaseTreeNode<CardNumberOrScore, HandAction> aceTree = new BaseTreeNode<CardNumberOrScore, HandAction>();
         protected internal BaseTreeNode<CardNumberOrScore, HandAction> hardTotalTree = new BaseTreeNode<CardNumberOrScore, HandAction>();
 
+        // TODO: Just realized that I messed this up when I changed it from a tree to a list
+        //       With the current approach the pair will always split or not no matter the dealer card
+        //       Need to revert to the old tree based implementation.
         protected internal List<int> pairsToSplit = new List<int>();
         protected internal bool DoubleEnabled { get; init; } = true;
 
@@ -197,50 +200,15 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
                 // create a list of the dealer nodes, sort them and then 
                 var dealerNodeList = new List<ITreeNode<CardNumberOrScore,HandAction>>();
                 dealerNodeList.Sort();
-                // var leafNodeList = new List<LeafNode<CardNumberOrScore, HandAction>>();
 
                 var treeAsDictionary = GetDictionaryForTree(aceTree);
-                
-                //foreach (var dealerNode in aceTree.Children) {
-                //    dealerNodeList.Add(dealerNode);
-                //    var currentLeafNodeList = new List<LeafNode<CardNumberOrScore, HandAction>>();
-
-                //    foreach(var child in dealerNode.Children!) {
-                //        if(child is LeafNode<CardNumberOrScore, HandAction> leafNode) {
-                //            currentLeafNodeList.Add(leafNode);
-                //        }
-                //        else {
-                //            throw new UnexpectedNodeTypeException($"Expected a LeafNode but instead received type: '{child.GetType().FullName}'");
-                //        }
-                //    }
-                //    treeAsDictionary.Add(dealerNode.Id, currentLeafNodeList);
-                //}
-
                 // print dealer cards header
                 
                 WriteStringForDictionary(writer, columnWidth, "soft-totals", treeAsDictionary);
-                //writer.WriteLine("soft-totals");
-                //writer.Write(new string(' ', columnWidth));
-
-                //for(int i = 0; i < aceTree.Children!.Count; i++) {
-                //    var dealerNode = aceTree.Children![i];
-                //    var str = i == aceTree.Children!.Count - 1 ? $"{GetStrFor(dealerNode.Id).PadLeft(columnWidth -1)}" : $"{GetStrFor(dealerNode.Id)},".PadLeft(columnWidth);
-                //    writer.Write(str);
-                //}
-
-                //writer.WriteLine();
-                //foreach (var key in treeAsDictionary.Keys) { 
-                //    var leafNodes = treeAsDictionary[key];
-                //    // print the hard total value
-                //    writer.Write($"{GetStrFor(key)},".PadLeft(columnWidth));
-                //    // write each value
-                //    for(int i = 0; i < leafNodes.Count; i++) {
-                //        var str = i == leafNodes.Count - 1 ? $"{GetStrFor(leafNodes[i].Value).PadLeft(columnWidth-1)}" : $"{GetStrFor(leafNodes[i].Value)},".PadLeft(columnWidth);
-                //        writer.Write(str);
-                //    }
-                //    writer.WriteLine();
-                //}
             }
+
+            // TODO: approach to pairs needs to be revisited.
+            // print out the pairs grid
         }
         private void WriteStringForDictionary(StringWriter writer, int columnWidth, string treeName, Dictionary<CardNumberOrScore, List<LeafNode<CardNumberOrScore, HandAction>>> treeAsDictionary) {
             writer.WriteLine(treeName);
@@ -290,28 +258,6 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
             }
 
             return scoreAndHandActionDict;
-
-            //foreach (var dealerNode in aceTree.Children) {
-            //    var currentLeafNodeList = new List<LeafNode<CardNumberOrScore, HandAction>>();
-            //    foreach (var child in dealerNode.Children!) {
-            //        if (child is LeafNode<CardNumberOrScore, HandAction> leafNode) {
-            //            currentLeafNodeList.Add(leafNode);
-            //            scoreAndHandActionDict[child.Id].Add(leafNode);
-            //        }
-            //        else {
-            //            throw new UnexpectedNodeTypeException($"Expected a LeafNode but instead received type: '{child.GetType().FullName}'");
-            //        }
-            //    }
-            //    treeAsDictionary.Add(dealerNode.Id, currentLeafNodeList);
-            //}
-
-            
-
-
-
-
-
-            return treeAsDictionary;
         }
         private string GetStrFor(HandAction v) => v switch {
             HandAction.Hit => "H",
