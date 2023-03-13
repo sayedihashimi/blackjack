@@ -182,59 +182,136 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
         }
 
         public void WriteTreeStringTo(StringWriter writer) {
+            int columnWidth = 3;
+            if (hardTotalTree != null 
+                && hardTotalTree.Children != null
+                && hardTotalTree.Children.Count > 0) {
+                var dealerNodeList = new List<ITreeNode<CardNumberOrScore, HandAction>>();
+                dealerNodeList.Sort();
+
+                var treeAsDictionary = GetDictionaryForTree(hardTotalTree);
+                WriteStringForDictionary(writer, columnWidth, "hard-totals", treeAsDictionary);
+            }
+            writer.WriteLine();
             if(aceTree != null && aceTree.Children!.Count > 0) {
                 // create a list of the dealer nodes, sort them and then 
                 var dealerNodeList = new List<ITreeNode<CardNumberOrScore,HandAction>>();
                 dealerNodeList.Sort();
-                var leafNodeList = new List<LeafNode<CardNumberOrScore, HandAction>>();
+                // var leafNodeList = new List<LeafNode<CardNumberOrScore, HandAction>>();
 
-                var treeAsDictionary = new Dictionary<CardNumberOrScore, List<LeafNode<CardNumberOrScore, HandAction>>>();
+                var treeAsDictionary = GetDictionaryForTree(aceTree);
+                
+                //foreach (var dealerNode in aceTree.Children) {
+                //    dealerNodeList.Add(dealerNode);
+                //    var currentLeafNodeList = new List<LeafNode<CardNumberOrScore, HandAction>>();
 
-                foreach (var dealerNode in aceTree.Children) {
-                    dealerNodeList.Add(dealerNode);
-                    var currentLeafNodeList = new List<LeafNode<CardNumberOrScore, HandAction>>();
-
-                    foreach(var child in dealerNode.Children!) {
-                        if(child is LeafNode<CardNumberOrScore, HandAction> leafNode) {
-                            currentLeafNodeList.Add(leafNode);
-                        }
-                        else {
-                            throw new UnexpectedNodeTypeException($"Expected a LeafNode but instead received type: '{child.GetType().FullName}'");
-                        }
-                    }
-                    treeAsDictionary.Add(dealerNode.Id, currentLeafNodeList);
-                }
-
-                // print dealer cards header
-                int columnWidth = 3;
-                writer.WriteLine("soft-totals");
-                writer.Write(new string(' ', columnWidth));
-                //foreach (var dealerNode in aceTree.Children!) {
-                //    writer.Write($"{GetStrFor(dealerNode.Id)},".PadLeft(columnWidth));
+                //    foreach(var child in dealerNode.Children!) {
+                //        if(child is LeafNode<CardNumberOrScore, HandAction> leafNode) {
+                //            currentLeafNodeList.Add(leafNode);
+                //        }
+                //        else {
+                //            throw new UnexpectedNodeTypeException($"Expected a LeafNode but instead received type: '{child.GetType().FullName}'");
+                //        }
+                //    }
+                //    treeAsDictionary.Add(dealerNode.Id, currentLeafNodeList);
                 //}
 
-                for(int i = 0; i < aceTree.Children!.Count; i++) {
-                    var dealerNode = aceTree.Children![i];
-                    var str = i == aceTree.Children!.Count - 1 ? $"{GetStrFor(dealerNode.Id).PadLeft(columnWidth -1)}" : $"{GetStrFor(dealerNode.Id)},".PadLeft(columnWidth);
+                // print dealer cards header
+                
+                WriteStringForDictionary(writer, columnWidth, "soft-totals", treeAsDictionary);
+                //writer.WriteLine("soft-totals");
+                //writer.Write(new string(' ', columnWidth));
+
+                //for(int i = 0; i < aceTree.Children!.Count; i++) {
+                //    var dealerNode = aceTree.Children![i];
+                //    var str = i == aceTree.Children!.Count - 1 ? $"{GetStrFor(dealerNode.Id).PadLeft(columnWidth -1)}" : $"{GetStrFor(dealerNode.Id)},".PadLeft(columnWidth);
+                //    writer.Write(str);
+                //}
+
+                //writer.WriteLine();
+                //foreach (var key in treeAsDictionary.Keys) { 
+                //    var leafNodes = treeAsDictionary[key];
+                //    // print the hard total value
+                //    writer.Write($"{GetStrFor(key)},".PadLeft(columnWidth));
+                //    // write each value
+                //    for(int i = 0; i < leafNodes.Count; i++) {
+                //        var str = i == leafNodes.Count - 1 ? $"{GetStrFor(leafNodes[i].Value).PadLeft(columnWidth-1)}" : $"{GetStrFor(leafNodes[i].Value)},".PadLeft(columnWidth);
+                //        writer.Write(str);
+                //    }
+                //    writer.WriteLine();
+                //}
+            }
+        }
+        private void WriteStringForDictionary(StringWriter writer, int columnWidth, string treeName, Dictionary<CardNumberOrScore, List<LeafNode<CardNumberOrScore, HandAction>>> treeAsDictionary) {
+            writer.WriteLine(treeName);
+            writer.Write(new string(' ', columnWidth));
+
+            for (int i = 0; i < aceTree.Children!.Count; i++) {
+                var dealerNode = aceTree.Children![i];
+                var str = i == aceTree.Children!.Count - 1 ? $"{GetStrFor(dealerNode.Id).PadLeft(columnWidth - 1)}" : $"{GetStrFor(dealerNode.Id)},".PadLeft(columnWidth);
+                writer.Write(str);
+            }
+
+            writer.WriteLine();
+            foreach (var key in treeAsDictionary.Keys) {
+                var leafNodes = treeAsDictionary[key];
+                // print the hard total value
+                writer.Write($"{GetStrFor(key)},".PadLeft(columnWidth));
+                // write each value
+                for (int i = 0; i < leafNodes.Count; i++) {
+                    var str = i == leafNodes.Count - 1 ? $"{GetStrFor(leafNodes[i].Value).PadLeft(columnWidth - 1)}" : $"{GetStrFor(leafNodes[i].Value)},".PadLeft(columnWidth);
                     writer.Write(str);
                 }
-
                 writer.WriteLine();
-                foreach (var key in treeAsDictionary.Keys) { 
-                    var leafNodes = treeAsDictionary[key];
-                    // print the hard total value
-                    writer.Write($"{GetStrFor(key)},".PadLeft(columnWidth));
-                    // write each value
-                    for(int i = 0; i < leafNodes.Count; i++) {
-                        var str = i == leafNodes.Count - 1 ? $"{GetStrFor(leafNodes[i].Value).PadLeft(columnWidth-1)}" : $"{GetStrFor(leafNodes[i].Value)},".PadLeft(columnWidth);
-                        writer.Write(str);
+            }
+        }
+        private Dictionary<CardNumberOrScore, List<LeafNode<CardNumberOrScore, HandAction>>> GetDictionaryForTree(BaseTreeNode<CardNumberOrScore, HandAction> aceTree) {
+            var treeAsDictionary = new Dictionary<CardNumberOrScore, List<LeafNode<CardNumberOrScore, HandAction>>>();
+
+            // create a list of nodes for each dealer card and add to the dictionary
+            foreach(var dealerNode in aceTree.Children!) {
+                treeAsDictionary.Add(dealerNode.Id, new List<LeafNode<CardNumberOrScore, HandAction>>());
+            }
+
+            var scoreAndHandActionDict = new Dictionary<CardNumberOrScore, List<LeafNode<CardNumberOrScore, HandAction>>>();
+            foreach(var dealerNode in aceTree.Children) {
+                foreach (var child in dealerNode.Children!) {
+                    if (child is LeafNode<CardNumberOrScore, HandAction> leafNode) {
+                        if (!scoreAndHandActionDict.ContainsKey(child.Id)) {
+                            scoreAndHandActionDict.Add(child.Id, new List<LeafNode<CardNumberOrScore, HandAction>>());
+                        }
+
+                        scoreAndHandActionDict[child.Id].Add(leafNode);
                     }
-
-
-                    writer.WriteLine();
+                    else {
+                        throw new UnexpectedNodeTypeException($"Expected a LeafNode but instead received type: '{child.GetType().FullName}'");
+                    }
                 }
             }
 
+            return scoreAndHandActionDict;
+
+            //foreach (var dealerNode in aceTree.Children) {
+            //    var currentLeafNodeList = new List<LeafNode<CardNumberOrScore, HandAction>>();
+            //    foreach (var child in dealerNode.Children!) {
+            //        if (child is LeafNode<CardNumberOrScore, HandAction> leafNode) {
+            //            currentLeafNodeList.Add(leafNode);
+            //            scoreAndHandActionDict[child.Id].Add(leafNode);
+            //        }
+            //        else {
+            //            throw new UnexpectedNodeTypeException($"Expected a LeafNode but instead received type: '{child.GetType().FullName}'");
+            //        }
+            //    }
+            //    treeAsDictionary.Add(dealerNode.Id, currentLeafNodeList);
+            //}
+
+            
+
+
+
+
+
+            return treeAsDictionary;
         }
         private string GetStrFor(HandAction v) => v switch {
             HandAction.Hit => "H",
