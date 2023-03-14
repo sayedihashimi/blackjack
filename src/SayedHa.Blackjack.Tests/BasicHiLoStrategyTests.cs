@@ -7,12 +7,12 @@ namespace SayedHa.Blackjack.Tests {
     public class BasicHiLoStrategyTests {
         [Fact]
         public void Test_BasicHiLoCount() {
-            var bankroll = new Bankroll(1000, new NullLogger());
+            var bankroll = new Bankroll(1000, NullLogger.Instance);
             BasicHiLoStrategy bs = new BasicHiLoStrategy(bankroll, 5, 20);
 
             var cardList = CardDeckHelper.CreateListOfAStandardDeckOfCards(4);
             int numDecks = 4;
-            var cardDeck = new CardDeck(new NullLogger(), cardList.ConvertToLinkedList(), numDecks);
+            var cardDeck = new CardDeck(NullLogger.Instance, cardList.ConvertToLinkedList(), numDecks);
             // first 20 cards are: Ace,2,3,4,5,6,7,8,9,10,J,Q,K,A,2,3,4,5,6,7
             // first card is a discard and is not seen by the players
             // count: 5

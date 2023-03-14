@@ -25,7 +25,7 @@ namespace SayedHa.Blackjack.Shared {
             BasicStrategyPlayer = new BasicStrategyPlayer(_logger);
         }
 
-        private ILogger _logger = new NullLogger();
+        private ILogger _logger = NullLogger.Instance;
         private GameFactory gameFactory = new GameFactory();
 
         public event EventHandler NextActionSelected;

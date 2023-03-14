@@ -29,11 +29,11 @@ namespace SayedHa.Blackjack.Shared {
         }
     }
     public class Hand {
-        private ILogger _logger = new NullLogger();
+        private ILogger _logger = NullLogger.Instance;
         public Hand(float bet, ILogger logger, float? betResult = null) {
             Debug.Assert(bet >= 0);
             Bet = bet;
-            _logger = logger ?? new NullLogger();
+            _logger = logger ?? NullLogger.Instance;
             if(betResult is not null) {
                 BetResult = betResult;
             }

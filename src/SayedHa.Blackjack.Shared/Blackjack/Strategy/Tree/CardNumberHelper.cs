@@ -45,14 +45,14 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
         };
         public static int GetScoreTotal(CardNumber card1, CardNumber card2) {
             // TODO: this could be refactored to avoid creating the Hand object
-            var hand = new Hand(5F, new NullLogger());
+            var hand = new Hand(5F, NullLogger.Instance);
             hand.ReceiveCard(new Card { Number = card1 });
             hand.ReceiveCard(new Card { Number = card2 });
             return hand.GetScore();
         }
         public static int GetScoreTotal(params CardNumber[] cards) {
             // TODO: this could be refactored to avoid creating the Hand object
-            var hand = new Hand(5F, new NullLogger());
+            var hand = new Hand(5F, NullLogger.Instance);
             foreach (var card in cards) {
                 hand.ReceiveCard(new Card { Number = card });
             }

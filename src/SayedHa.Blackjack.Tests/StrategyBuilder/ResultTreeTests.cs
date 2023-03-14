@@ -15,7 +15,7 @@ namespace SayedHa.Blackjack.Tests.StrategyBuilder {
         public void Test_RecordOneResult() {
             var rt = new ResultTree();
 
-            var hand = new Hand(5F, new NullLogger());
+            var hand = new Hand(5F, NullLogger.Instance);
             hand.BetResult = 5F;
 
             var dealerCard = CardNumber.Four;
@@ -42,9 +42,9 @@ namespace SayedHa.Blackjack.Tests.StrategyBuilder {
             var rt = new ResultTree();
 
             var hands = new List<Hand> {
-                new Hand(5F, new NullLogger(),5F),
-                new Hand(10F, new NullLogger(),-10F),
-                new Hand(32F, new NullLogger(),32F)
+                new Hand(5F, NullLogger.Instance,5F),
+                new Hand(10F, NullLogger.Instance,-10F),
+                new Hand(32F, NullLogger.Instance,32F)
             };
 
             var dealerCards = new List<CardNumber> {
@@ -82,9 +82,9 @@ namespace SayedHa.Blackjack.Tests.StrategyBuilder {
             var rt = new ResultTree();
 
             var hands = new List<Hand> {
-                new Hand(5F, new NullLogger(),5F),
-                new Hand(10F, new NullLogger(),-10F),
-                new Hand(32F, new NullLogger(),32F)
+                new Hand(5F, NullLogger.Instance,5F),
+                new Hand(10F, NullLogger.Instance,-10F),
+                new Hand(32F, NullLogger.Instance,32F)
             };
 
             var dealerCards = new List<CardNumber> {
