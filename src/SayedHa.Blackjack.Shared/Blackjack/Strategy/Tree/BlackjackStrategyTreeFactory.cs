@@ -63,8 +63,8 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
             // shuffle the card numbers
             // no need to clone and then shuffle, just keep shuffling the cards
             _allCardNumbersShuffled.Shuffle(_useRandomNumberGenerator);
-            int numPairsToAdd = GetRandomIntBetween(1, 13 + 1);
-            int numDealerCardsToAdd = GetRandomIntBetween(1, 10 + 1);
+            int numPairsToAdd = GetRandomIntBetween(2, 13 + 1);
+            int numDealerCardsToAdd = GetRandomIntBetween(2, 10 + 1);
 
             var dealerCardList = new List<CardNumber>();
             for(int iDealerCard = 0;iDealerCard < numDealerCardsToAdd; iDealerCard++) {

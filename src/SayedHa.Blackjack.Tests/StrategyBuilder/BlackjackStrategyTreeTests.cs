@@ -242,21 +242,7 @@ namespace SayedHa.Blackjack.Tests.StrategyBuilder {
         [Fact]
         public void Test_WriteTreeStringTo_01() {
             var allCardNumbers = ((CardNumber[])Enum.GetValues(typeof(CardNumber))).ToArray();
-            var tree = new BlackjackStrategyTree();
-
-            var factory = BlackjackStrategyTreeFactory.GetInstance(true);
-
-            for (int i = 0; i < allCardNumbers.Length; i++) {
-                var dealerCard = allCardNumbers[i];
-                for (int j = 0; j < allCardNumbers.Length; j++) {
-                    var op1Card = allCardNumbers[j]!;
-                    for (int k = 0; k < allCardNumbers.Length; k++) {
-                        var op2Card = allCardNumbers[k]!;
-                        tree.AddNextHandAction(dealerCard, factory.GetRandomHandAction(true), op1Card, op2Card);
-                    }
-                }
-            }
-
+            var tree = BlackjackStrategyTreeFactory.GetInstance(true).CreateNewRandomTree();
             var sb = new StringBuilder();
             var writer = new StringWriter(sb);
             tree.WriteTreeStringTo(writer);

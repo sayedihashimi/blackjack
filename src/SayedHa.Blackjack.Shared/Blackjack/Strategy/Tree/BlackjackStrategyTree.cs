@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 using SayedHa.Blackjack.Shared.Blackjack.Exceptions;
+using SayedHa.Blackjack.Shared.Extensions;
 
 namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
     public class BlackjackStrategyTree {
@@ -7,7 +8,6 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
         protected internal BaseTreeNode<CardNumberOrScore, HandAction> hardTotalTree = new BaseTreeNode<CardNumberOrScore, HandAction>();
         protected internal BaseTreeNode<CardNumberOrScore, HandAction> pairTree = new BaseTreeNode<CardNumberOrScore, HandAction>();
         protected internal bool DoubleEnabled { get; init; } = true;
-
         /// <summary>
         /// Use this to register the next action when the first two cards dealt is a pair.
         /// </summary>
@@ -123,7 +123,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
             }
             else {
                 var nextHandAction = GetOrAddFromHardTotalTree(dealerCard, CardNumberHelper.GetScoreTotal(opCard1, opCard2));
-                if(nextHandAction == HandAction.Double && !DoubleEnabled) {
+                if (nextHandAction == HandAction.Double && !DoubleEnabled) {
                     nextHandAction = HandAction.Hit;
                 }
                 return nextHandAction;
@@ -131,15 +131,15 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
         }
         private bool DoesPairTreeContain(CardNumber dealerCard, CardNumber op1Card) {
             var dealerNode = pairTree.Get(CardNumberHelper.ConvertToCardNumberOrScore(dealerCard));
-            if(dealerNode == null) { 
-                return false; 
+            if (dealerNode == null) {
+                return false;
             }
             var pairNode = dealerNode.Get(CardNumberHelper.ConvertToCardNumberOrScore(op1Card));
-            if(pairNode == null) { 
-                return false; 
+            if (pairNode == null) {
+                return false;
             }
 
-            if( pairNode is LeafNode<CardNumberOrScore, HandAction> leafNode) {
+            if (pairNode is LeafNode<CardNumberOrScore, HandAction> leafNode) {
                 return leafNode.Value == HandAction.Split;
             }
             else {
@@ -171,7 +171,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
                     // check the aceTree for the result
                     var nextHandActionAce = GetOrAddFromAceTree(dealerCard, scoreOtherCards);
                     // don't need to look at DoubleEnabled because Double isn't allowed when there are more than 2 cards dealt
-                    if(nextHandActionAce == HandAction.Double) {
+                    if (nextHandActionAce == HandAction.Double) {
                         nextHandActionAce = HandAction.Hit;
                     }
                     return nextHandActionAce;
@@ -212,8 +212,8 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
         }
 
         public void WriteTreeStringTo(StringWriter writer) {
-            int columnWidth = 3;
-            if (hardTotalTree != null 
+            int columnWidth = 4;
+            if (hardTotalTree != null
                 && hardTotalTree.Children != null
                 && hardTotalTree.Children.Count > 0) {
                 var dealerNodeList = new List<ITreeNode<CardNumberOrScore, HandAction>>();
@@ -223,19 +223,18 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
                 WriteStringForDictionary(writer, columnWidth, "hard-totals", treeAsDictionary);
             }
             writer.WriteLine();
-            if(aceTree != null && aceTree.Children!.Count > 0) {
+            if (aceTree != null && aceTree.Children!.Count > 0) {
                 // create a list of the dealer nodes, sort them and then 
-                var dealerNodeList = new List<ITreeNode<CardNumberOrScore,HandAction>>();
+                var dealerNodeList = new List<ITreeNode<CardNumberOrScore, HandAction>>();
                 dealerNodeList.Sort();
 
                 var treeAsDictionary = GetDictionaryForTree(aceTree);
-                // print dealer cards header
-                
+
                 WriteStringForDictionary(writer, columnWidth, "soft-totals", treeAsDictionary);
             }
-
-            // TODO: approach to pairs needs to be revisited.
-            // print out the pairs grid
+            if (pairTree?.Children?.Count > 0) {
+                WritePairTreeTo(writer, columnWidth);
+            }
         }
         private void WriteStringForDictionary(StringWriter writer, int columnWidth, string treeName, Dictionary<CardNumberOrScore, List<LeafNode<CardNumberOrScore, HandAction>>> treeAsDictionary) {
             writer.WriteLine(treeName);
@@ -260,16 +259,59 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
                 writer.WriteLine();
             }
         }
+        private void WritePairTreeTo(StringWriter writer, int columnWidth) {
+            writer.WriteLine("pairs");
+            writer.Write(new string(' ', columnWidth));
+
+            // iterate through all dealer cards and all possible player cards
+            var dealerCards = ((CardNumber[])Enum.GetValues(typeof(CardNumber))).ToList();
+            // remove J/Q/K cards because 10 will cover those in the pair tree
+            dealerCards.Remove(CardNumber.Jack);
+            dealerCards.Remove(CardNumber.Queen);
+            dealerCards.Remove(CardNumber.King);
+            dealerCards.Sort();
+
+            // write out the dealer card number row
+            for(int i = 0;i<dealerCards.Count; i++) {
+                var dealerCardScore = CardNumberHelper.ConvertToCardNumberOrScore(dealerCards[i]);
+                var str = i == dealerCards.Count - 1 ? GetStrFor(dealerCardScore).PadLeft(columnWidth - 1) : $"{GetStrFor(dealerCardScore)},".PadLeft(columnWidth);
+                writer.Write(str);
+            }
+            writer.WriteLine();
+            var allPlayerCards = ((CardNumber[])Enum.GetValues(typeof(CardNumber))).ToList();
+            allPlayerCards.Remove(CardNumber.Jack);
+            allPlayerCards.Remove(CardNumber.Queen);
+            allPlayerCards.Remove(CardNumber.King);
+            allPlayerCards.Sort();
+
+            for (int i = 0; i < allPlayerCards.Count; i++) {
+                var op1Card = allPlayerCards[i];
+                // writer.Write($"{GetStrFor(op1Card)},{GetStrFor(op1Card)},".PadLeft(7));
+                writer.Write($"{GetStrFor(op1Card)},".PadLeft(columnWidth));
+                for (int j = 0; j < dealerCards.Count; j++) {
+                    var dealerCard = dealerCards[j];
+                    if (DoesPairTreeContain(dealerCard, op1Card)) {
+                        var str = j == allPlayerCards.Count - 1 ? "Sp".PadLeft(columnWidth - 1) : "Sp,".PadLeft(columnWidth);
+                        writer.Write(str);
+                    }
+                    else {
+                        var str = j == allPlayerCards.Count - 1 ? "-".PadLeft(columnWidth - 1) : "-,".PadLeft(columnWidth);
+                        writer.Write(str);
+                    }
+                }
+                writer.WriteLine();
+            }
+        }
         private Dictionary<CardNumberOrScore, List<LeafNode<CardNumberOrScore, HandAction>>> GetDictionaryForTree(BaseTreeNode<CardNumberOrScore, HandAction> aceTree) {
             var treeAsDictionary = new Dictionary<CardNumberOrScore, List<LeafNode<CardNumberOrScore, HandAction>>>();
 
             // create a list of nodes for each dealer card and add to the dictionary
-            foreach(var dealerNode in aceTree.Children!) {
+            foreach (var dealerNode in aceTree.Children!) {
                 treeAsDictionary.Add(dealerNode.Id, new List<LeafNode<CardNumberOrScore, HandAction>>());
             }
 
             var scoreAndHandActionDict = new Dictionary<CardNumberOrScore, List<LeafNode<CardNumberOrScore, HandAction>>>();
-            foreach(var dealerNode in aceTree.Children) {
+            foreach (var dealerNode in aceTree.Children) {
                 foreach (var child in dealerNode.Children!) {
                     if (child is LeafNode<CardNumberOrScore, HandAction> leafNode) {
                         if (!scoreAndHandActionDict.ContainsKey(child.Id)) {
@@ -292,6 +334,22 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
             HandAction.Split => "Sp",
             HandAction.Double => "D",
             _ => throw new NotImplementedException()
+        };
+        private string GetStrFor(CardNumber cardNumber) => cardNumber switch {
+            CardNumber.Ace => "A",
+            CardNumber.Two => "2",
+            CardNumber.Three => "3",
+            CardNumber.Four => "4",
+            CardNumber.Five => "5",
+            CardNumber.Six => "6",
+            CardNumber.Seven => "7",
+            CardNumber.Eight => "8",
+            CardNumber.Nine => "9",
+            CardNumber.Ten => "10",
+            CardNumber.Jack => "10",
+            CardNumber.Queen => "10",
+            CardNumber.King => "10",
+            _ => throw new UnexpectedValueException($"Unexpected value for CardNumber: '{cardNumber}'")
         };
         private string GetStrFor(CardNumberOrScore card) => card switch {
             CardNumberOrScore.Ace => "A",
