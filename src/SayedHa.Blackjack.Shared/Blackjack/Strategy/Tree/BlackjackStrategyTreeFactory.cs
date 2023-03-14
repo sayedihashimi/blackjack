@@ -64,12 +64,29 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
             // no need to clone and then shuffle, just keep shuffling the cards
             _allCardNumbersShuffled.Shuffle(_useRandomNumberGenerator);
             int numPairsToAdd = GetRandomIntBetween(1, 13 + 1);
-            for(int i = 0; i < numPairsToAdd; i++) {
-                tree.pairsToSplit.Add(numPairsToAdd);
+            int numDealerCardsToAdd = GetRandomIntBetween(1, 10 + 1);
+
+            var dealerCardList = new List<CardNumber>();
+            for(int iDealerCard = 0;iDealerCard < numDealerCardsToAdd; iDealerCard++) {
+                dealerCardList.Add(_allCardNumbersShuffled[iDealerCard]);
+            }
+            _allCardNumbersShuffled.Shuffle(_useRandomNumberGenerator);
+            var numPairsList = new List<CardNumber>();
+            for(int iNumPairs = 0; iNumPairs < numPairsToAdd; iNumPairs++) {
+                numPairsList.Add(_allCardNumbersShuffled[iNumPairs]);
+            }
+
+            // now add the pairs to a random amount of dealer cards
+            foreach(var dealerCard in dealerCardList) {
+                foreach(var pairToAdd in numPairsList) {
+                    if (GetRandomBool()) {
+                        // add the pair
+                        tree.AddPairSplitNextAction(dealerCard, pairToAdd);
+                    }
+                }
             }
         }
         protected internal void AddRandomSoftTotals(BlackjackStrategyTree tree) {
-            bool includeDouble = true;
             foreach (var cardNumber in _allCardNumbers) {
                 for(var score = 2; score <= 9; score++) {
                     tree.AddSoftTotalNextAction(cardNumber, score, GetRandomHandAction(_doubleEnabled));
@@ -94,6 +111,10 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
         protected internal int GetRandomIntBetween(int fromInclusive, int toExclusive) => _useRandomNumberGenerator switch {
             true => RandomNumberGenerator.GetInt32(fromInclusive, toExclusive),
             false => random.Next(fromInclusive, toExclusive)
+        };
+        protected internal bool GetRandomBool() => _useRandomNumberGenerator switch {
+            true => RandomNumberGenerator.GetInt32(2) == 0,
+            false => random.Next(2) == 0
         };
     }
 }
