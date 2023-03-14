@@ -27,9 +27,8 @@ namespace SayedHa.Blackjack.Shared.Players {
         public BasicStrategyPlayer(ILogger logger) {
             _logger = logger;
         }
-        private ILogger _logger = new NullLogger();
+        private ILogger _logger = NullLogger.Instance;
         public override HandActionAndReason GetNextAction(Hand hand, DealerHand dealerHand, int dollarsRemaining) {
-            bool isDoubleEnabled = BlackjackSettings.GetBlackjackSettings().DoubleDownEnabled;
             bool isSplitEnabled = BlackjackSettings.GetBlackjackSettings().SplitEnabled;
             // if only two cards, first check to see if the action should be split
             if (isSplitEnabled && hand.DealtCards.Count == 2) {
@@ -55,6 +54,7 @@ namespace SayedHa.Blackjack.Shared.Players {
             // now we handle the generic case
             int handScore = hand.GetScore();
 
+            bool isDoubleEnabled = BlackjackSettings.GetBlackjackSettings().DoubleDownEnabled && hand.DealtCards.Count == 2;
             // TODO: There is a bug here that this may return double even if more cards have already been dealt
             var nextHandAction = (handScore, dealerHand.DealersVisibleCard!.Number) switch {
                 ( >= 17, _) => new HandActionAndReason(HandAction.Stand, "Always stand on 17 or above."),
