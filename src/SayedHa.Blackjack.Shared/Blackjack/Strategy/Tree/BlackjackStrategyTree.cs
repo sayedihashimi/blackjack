@@ -8,6 +8,12 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
         protected internal BaseTreeNode<CardNumberOrScore, HandAction> hardTotalTree = new BaseTreeNode<CardNumberOrScore, HandAction>();
         protected internal BaseTreeNode<CardNumberOrScore, HandAction> pairTree = new BaseTreeNode<CardNumberOrScore, HandAction>();
         protected internal bool DoubleEnabled { get; init; } = true;
+
+        // This is the DollarsRemaining after all the games have been played.
+        // If it is set, that's an indication that this strategy doesn't need
+        // to be exercised again. The assigned score will continue to be used.
+        public float? FitnessScore { get; set; }
+
         /// <summary>
         /// Use this to register the next action when the first two cards dealt is a pair.
         /// </summary>
@@ -150,6 +156,11 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
             // need to check to see if there is an Ace or not in the opCards
             // if there is an ace, check the aceTree to see if there is a result
             // if no result there, return the result from the hardTotal tree.
+
+            var cardScore = CardNumberHelper.GetScoreTotal(opCards);
+            if(cardScore > BlackjackSettings.GetBlackjackSettings().MaxScore) {
+                return HandAction.Stand;
+            }
 
             var containsAce = CardNumberHelper.ContainsAnAce(opCards);
             if (containsAce) {

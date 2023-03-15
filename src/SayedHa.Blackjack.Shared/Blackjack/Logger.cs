@@ -68,7 +68,7 @@ namespace SayedHa.Blackjack.Shared {
         }
     }
     public class NullLogger : ILogger {
-        public static NullLogger Instance { get; private set; } = NullLogger.Instance;
+        public static NullLogger Instance { get; private set; } = new NullLogger();
         private NullLogger() { }
         public bool EnableConsoleLogger { get; set; } = false;
 
