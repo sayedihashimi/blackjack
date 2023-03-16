@@ -34,12 +34,10 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
 
             // 1. Setup
             var factory = BlackjackStrategyTreeFactory.GetInstance(Settings.UseRandomNumberGenerator);
-            var initialPopulationOfStrategiesList = new List<BlackjackStrategyTree>();
+            
             var stopwatch = new Stopwatch();
             stopwatch.Start();
-            for(int i = 0; i < Settings.NumStrategiesForFirstGeneration; i++) {
-                initialPopulationOfStrategiesList.Add(factory.CreateNewRandomTree());
-            }
+            var initialPopulationOfStrategiesList = CreateRandomTrees(Settings.NumStrategiesForFirstGeneration);
             stopwatch.Stop();
             var elapsedTimeStr = stopwatch.ElapsedMilliseconds;
 
@@ -47,28 +45,95 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             var bankroll = new Bankroll(Settings.InitialBankroll, NullLogger.Instance);
             var gameRunner = new GameRunner(NullReporter.Instance);
             var bettingStrategy = new FixedBettingStrategy(bankroll, Settings.BetAmount);
-            var discardFirstCard = true;
             stopwatch.Restart();
-            foreach (var strategy in initialPopulationOfStrategiesList) {
-                var pf = new StrategyBuilderParticipantFactory(strategy, bettingStrategy, Settings, NullLogger.Instance);
-                var game = gameRunner.CreateNewGame(Settings.NumDecks, 1, pf, discardFirstCard);
-                for(int i = 0; i < Settings.NumHandsToPlayForEachStrategy; i++) {
-                    gameRunner.PlayGame(game);
-                }
 
-                // record the fitness score
-                strategy.FitnessScore = game.Opponents[0].BettingStrategy.Bankroll.DollarsRemaining;
-            }
-            // var pf = new StrategyBuilderParticipantFactory()
-            // AllStrategiesTested.AddRange(initialPopulationOfStrategiesList);
+            // initialPopulationOfStrategiesList will be sorted after this method returns
+            PlayAndEvaluate(Settings.NumHandsToPlayForEachStrategy, initialPopulationOfStrategiesList, gameRunner, bankroll, bettingStrategy);
+
             stopwatch.Stop();
             var elapsedTimeStr2 = stopwatch.ElapsedMilliseconds;
-
 
             return null;
         }
 
+        /// <summary>
+        /// This will play the provided number of games for each strategy with the GameRunner provided.
+        /// After the games are played, the FitnessScore is recorded. For any strategy which already has
+        /// a FitnessScore, those will be skipped.
+        /// The provided list will be sorted by the FitnessScore (descending) when the method returns.
+        /// </summary>
+        public void PlayAndEvaluate(int numGamesToPlay, List<BlackjackStrategyTree> strategies, GameRunner gameRunner, Bankroll bankroll,BettingStrategy bettingStrategy) {
+            Debug.Assert(strategies?.Count > 0);
+            Debug.Assert(gameRunner is object);
+            // Debug.Assert(game is object);
+
+            var discardFirstCard = true;
+
+            foreach (var strategy in strategies) {
+                var pf = new StrategyBuilderParticipantFactory(strategy, bettingStrategy, Settings, NullLogger.Instance);
+                var game = gameRunner.CreateNewGame(Settings.NumDecks, 1, pf, discardFirstCard);
+
+                // if it already has a score, skip it
+                if(strategy.FitnessScore == null || !strategy.FitnessScore.HasValue) {
+                    PlayGames(Settings.NumHandsToPlayForEachStrategy, gameRunner, game);
+                    strategy.FitnessScore = game.Opponents[0].BettingStrategy.Bankroll.DollarsRemaining;
+                }
+            }
+            // strategies.Sort((strategy1, strategy2) => strategy1.FitnessScore > strategy2.FitnessScore ? -1 : 0);
+
+            strategies.Sort((strategy1, strategy2) => (strategy1.FitnessScore, strategy2.FitnessScore) switch {
+                (null, null) => 0,
+                (not null, null) => -1,
+                (null, not null) => 1,
+                (_, _) => -1 * strategy1.FitnessScore.Value.CompareTo(strategy2.FitnessScore.Value),
+            });
+
+            //strategies.Sort((s1, s2) => {
+            //    if(s1.FitnessScore is null && s2.FitnessScore is null ||
+            //       !s1.FitnessScore.HasValue && !s2.FitnessScore.HasValue) {
+            //        return 0;
+            //    }
+            //    else if(s1.FitnessScore is not null && s1.FitnessScore.HasValue && 
+            //            (s2.FitnessScore is null || !s2.FitnessScore.HasValue)) {
+            //        return 1;
+            //    }
+            //    else if(s1.FitnessScore is null || !s1.FitnessScore.HasValue && 
+            //            (s2.FitnessScore is not null && s2.FitnessScore.HasValue)) {
+            //        return -1;
+            //    }
+            //    else {
+            //        return s1.FitnessScore.Value.CompareTo(s2.FitnessScore!.Value);
+            //    }
+            //});
+        }
+
+        protected internal List<BlackjackStrategyTree> CreateRandomTrees(int numTreesToCreate) {
+            Debug.Assert(numTreesToCreate > 0);
+            var factory = BlackjackStrategyTreeFactory.GetInstance(Settings.UseRandomNumberGenerator);
+            var initialPopulationOfStrategiesList = new List<BlackjackStrategyTree>();
+            for (int i = 0; i < Settings.NumStrategiesForFirstGeneration; i++) {
+                initialPopulationOfStrategiesList.Add(factory.CreateNewRandomTree());
+            }
+
+            return initialPopulationOfStrategiesList;
+        }
+        /// <summary>
+        /// This method will play the number of games specified on the provided game object.
+        /// </summary>
+        protected internal void PlayGames(int numGamesToPlay, GameRunner gameRunner, Game game) {
+            Debug.Assert(numGamesToPlay > 0);
+            Debug.Assert(gameRunner is object);
+            Debug.Assert(game is object);
+
+            if(numGamesToPlay <= 0) {
+                throw new ArgumentException($"{nameof(numGamesToPlay)} must be greater than zero. Passed in value: '{numGamesToPlay}'");
+            }
+            for(int i = 0; i < numGamesToPlay; i++) {
+                gameRunner.PlayGame(game);
+            }
+        }
     }
+
     public class StrategyBuilderSettings
     {
         public int NumDecks { get; set; } = 4;
