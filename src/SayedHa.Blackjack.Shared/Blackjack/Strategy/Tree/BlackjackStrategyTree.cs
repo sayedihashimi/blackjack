@@ -221,7 +221,12 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
                 throw new UnexpectedNodeTypeException($"Expected LeafNode but instead received null or an object of type '{scoreTotalNode.GetType().FullName}'");
             }
         }
-
+        public Comparison<BlackjackStrategyTree> GetBlackjackTreeComparison() => (strategy1, strategy2) => (strategy1.FitnessScore, strategy2.FitnessScore) switch {
+                (null, null) => 0,
+                (not null, null) => -1,
+                (null, not null) => 1,
+                (_, _) => -1 * strategy1.FitnessScore.Value.CompareTo(strategy2.FitnessScore.Value),
+        };
         public void WriteTreeStringTo(StringWriter writer) {
             int columnWidth = 4;
             if (hardTotalTree != null

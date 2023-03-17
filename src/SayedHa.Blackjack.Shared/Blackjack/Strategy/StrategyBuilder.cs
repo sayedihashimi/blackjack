@@ -1,6 +1,7 @@
 ﻿using SayedHa.Blackjack.Shared.Betting;
 using SayedHa.Blackjack.Shared.Blackjack.Players;
 using SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree;
+using SayedHa.Blackjack.Shared.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -47,15 +48,73 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             var bettingStrategy = new FixedBettingStrategy(bankroll, Settings.BetAmount);
             stopwatch.Restart();
 
-            // initialPopulationOfStrategiesList will be sorted after this method returns
             PlayAndEvaluate(Settings.NumHandsToPlayForEachStrategy, initialPopulationOfStrategiesList, gameRunner, bankroll, bettingStrategy);
+            // sort the list with highest fitness first
+            initialPopulationOfStrategiesList.Sort(initialPopulationOfStrategiesList[0].GetBlackjackTreeComparison());
+            var parentStrategiesList = SelectParents(initialPopulationOfStrategiesList, Settings.NumStrategiesToGoToNextGeneration);
+            // need to select parents now
 
             stopwatch.Stop();
             var elapsedTimeStr2 = stopwatch.ElapsedMilliseconds;
 
             return null;
         }
+        /// <summary>
+        /// This will return the selected parents.
+        /// The list provided will be sorted when this method returns.
+        /// </summary>
+        protected internal List<BlackjackStrategyTree> SelectParents(List<BlackjackStrategyTree>strategies, int numParents){
+            Debug.Assert(strategies?.Count > 0);
+            Debug.Assert(numParents > 0);
+            var list = new List<BlackjackStrategyTree>();
+            var currentIndex = 0;
+            // sort the list
+            strategies.Sort(strategies[0].GetBlackjackTreeComparison());
+            foreach(var item in strategies){
+                if(currentIndex++ >= numParents){
+                    break;
+                }
+                list.Add(item);
+            }
 
+            return list;
+        }
+        protected internal List<BlackjackStrategyTree> ProduceOffspring(List<BlackjackStrategyTree> parents, int numChildren){
+            var children = new List<BlackjackStrategyTree>();
+            var numParents = parents.Count;
+
+            var newParentList = new List<BlackjackStrategyTree>();
+            foreach(var parent in parents){
+                newParentList.Add(parent);
+            }
+
+            // instead of generating two random index every loop, randomize the parents list
+            // and then pick two parents to create offspring.
+            // if we get to the end of the list, shuffle and continue.
+            newParentList.Shuffle(Settings.UseRandomNumberGenerator);
+            var currentIndex = 0;
+
+            while(children.Count < numChildren){
+                if(currentIndex >= newParentList.Count - 2){
+                    // shuffle the list and reset the index
+                    newParentList.Shuffle(Settings.UseRandomNumberGenerator);
+                    currentIndex = 0;
+                }
+
+                var offspring = ProduceOffspring(newParentList[currentIndex],newParentList[currentIndex + 1]);
+                children.Add(offspring.child1);
+                if(children.Count < numChildren){
+                    children.Add(offspring.child2);
+                }
+                // move the index forward to get new parents next time
+                currentIndex += 2;
+            }
+
+            return children;
+        }
+        protected internal (BlackjackStrategyTree child1, BlackjackStrategyTree child2) ProduceOffspring(BlackjackStrategyTree parent1, BlackjackStrategyTree parent2){
+            throw new NotImplementedException();
+        }
         /// <summary>
         /// This will play the provided number of games for each strategy with the GameRunner provided.
         /// After the games are played, the FitnessScore is recorded. For any strategy which already has
@@ -79,32 +138,6 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                     strategy.FitnessScore = game.Opponents[0].BettingStrategy.Bankroll.DollarsRemaining;
                 }
             }
-            // strategies.Sort((strategy1, strategy2) => strategy1.FitnessScore > strategy2.FitnessScore ? -1 : 0);
-
-            strategies.Sort((strategy1, strategy2) => (strategy1.FitnessScore, strategy2.FitnessScore) switch {
-                (null, null) => 0,
-                (not null, null) => -1,
-                (null, not null) => 1,
-                (_, _) => -1 * strategy1.FitnessScore.Value.CompareTo(strategy2.FitnessScore.Value),
-            });
-
-            //strategies.Sort((s1, s2) => {
-            //    if(s1.FitnessScore is null && s2.FitnessScore is null ||
-            //       !s1.FitnessScore.HasValue && !s2.FitnessScore.HasValue) {
-            //        return 0;
-            //    }
-            //    else if(s1.FitnessScore is not null && s1.FitnessScore.HasValue && 
-            //            (s2.FitnessScore is null || !s2.FitnessScore.HasValue)) {
-            //        return 1;
-            //    }
-            //    else if(s1.FitnessScore is null || !s1.FitnessScore.HasValue && 
-            //            (s2.FitnessScore is not null && s2.FitnessScore.HasValue)) {
-            //        return -1;
-            //    }
-            //    else {
-            //        return s1.FitnessScore.Value.CompareTo(s2.FitnessScore!.Value);
-            //    }
-            //});
         }
 
         protected internal List<BlackjackStrategyTree> CreateRandomTrees(int numTreesToCreate) {
@@ -139,7 +172,9 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
         public int NumDecks { get; set; } = 4;
         // TODO: Get this from somewhere.
         public bool UseRandomNumberGenerator { get; set; } = true;
-        public int NumStrategiesForFirstGeneration { get; set; } = 750;
+        public int NumStrategiesForFirstGeneration { get; set; } = 1000;
+        // half the population, the other half will be offspring
+        public int NumStrategiesToGoToNextGeneration {get;set;} = 500;
         public int NumHandsToPlayForEachStrategy { get; set; } = 1000;
         public int InitialBankroll { get; set; } = 10000;
         public int BetAmount { get; set; } = 5;
