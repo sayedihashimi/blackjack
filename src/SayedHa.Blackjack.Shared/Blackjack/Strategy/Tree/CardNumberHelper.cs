@@ -61,5 +61,26 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
         public static bool ContainsAnAce(CardNumber[] cards) => 
             cards.Any(card => card == CardNumber.Ace);
 
+        // Returns a list of cardnumbers for each possible pair
+        public static List<CardNumber> GetAllPossiblePairCards() => new List<CardNumber>{
+            CardNumber.Ace,
+            CardNumber.Two,
+            CardNumber.Three,
+            CardNumber.Four,
+            CardNumber.Five,
+            CardNumber.Six,
+            CardNumber.Seven,
+            CardNumber.Eight,
+            CardNumber.Nine,
+            CardNumber.Ten
+        };
+
+        ///<summary>
+        /// Returns a list of all the cards minus cards that have a value of 10 as well as A. 
+        /// A + 10 is blackjack so that's not included in the soft total tree.
+        /// A + A is not there either because that will just use the hard total.
+        ///</summary>
+        public static List<int> GetAllPossibleSoftTotalValues()=>new List<int>{ 2,3,4,5,6,7,8,9 };
+        public static List<int> GetAllPossibleHardTotalValues() => new List<int>{ 3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20};
     }
 }

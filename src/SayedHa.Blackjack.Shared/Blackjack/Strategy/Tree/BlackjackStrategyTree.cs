@@ -15,7 +15,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
         public float? FitnessScore { get; set; }
 
         /// <summary>
-        /// Use this to register the next action when the first two cards dealt is a pair.
+        /// Use this to register pair splits.
         /// </summary>
         protected internal void AddPairSplitNextAction(CardNumber dealerCard, CardNumber pairCard) {
             // TODO: for all the cards that have a value of 10 we can use the same node, don't need different ones.
@@ -203,12 +203,22 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
             (_, var secondNode) = rootNode.GetOrAdd(CardNumberHelper.ConvertToCardNumberOrScore(scoreTotalExcludingAce), NodeType.LeafNode);
 
             if (secondNode is LeafNode<CardNumberOrScore, HandAction> leafNode) {
-
                 return leafNode.Value;
             }
             else {
                 throw new UnexpectedNodeTypeException($"Expected LeafNode but instead received null or an object of type '{secondNode.GetType().FullName}'");
             }
+        }
+        protected internal HandAction? GetFromAceTree(CardNumber dealerCard, int scoreTotalExcludingAce){
+            var rootNode = aceTree.Get(CardNumberHelper.ConvertToCardNumberOrScore(dealerCard));
+            if(rootNode is null){ return null; }
+
+            var secondNode = rootNode.Get(CardNumberHelper.ConvertToCardNumberOrScore(scoreTotalExcludingAce));
+            if (secondNode is LeafNode<CardNumberOrScore, HandAction> leafNode) {
+                return leafNode.Value;
+            }
+
+            return null;
         }
         protected internal HandAction GetOrAddFromHardTotalTree(CardNumber dealerCard, int scoreTotal) {
             (_, var dealerCardNode) = hardTotalTree.GetOrAdd(CardNumberHelper.ConvertToCardNumberOrScore(dealerCard), NodeType.TreeNode);

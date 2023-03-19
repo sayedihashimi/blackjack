@@ -53,6 +53,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             initialPopulationOfStrategiesList.Sort(initialPopulationOfStrategiesList[0].GetBlackjackTreeComparison());
             var parentStrategiesList = SelectParents(initialPopulationOfStrategiesList, Settings.NumStrategiesToGoToNextGeneration);
             // need to select parents now
+            var children = ProduceOffspring(parentStrategiesList, initialPopulationOfStrategiesList.Count - parentStrategiesList.Count);
 
             stopwatch.Stop();
             var elapsedTimeStr2 = stopwatch.ElapsedMilliseconds;
@@ -112,8 +113,117 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
 
             return children;
         }
+        /// <summary>
+        /// This will produce two offspring from the given parents.
+        /// The offspring will have even nodes from parent 1 and odd nodes from parent 2. Node number
+        /// is determined by the index when it's being visited.
+        /// </summary>
         protected internal (BlackjackStrategyTree child1, BlackjackStrategyTree child2) ProduceOffspring(BlackjackStrategyTree parent1, BlackjackStrategyTree parent2){
-            throw new NotImplementedException();
+            var child1 = new BlackjackStrategyTree();
+            var child2 = new BlackjackStrategyTree();
+            var allCardNumbers = CardDeckFactory.GetAllCardNumbers();
+
+            var allPossiblePairs = CardNumberHelper.GetAllPossiblePairCards();
+            // first half comes from parent1 and the second half from parent2
+
+            // 1: pairs
+            var pairIndexCuttoff = (int)Math.Floor(allCardNumbers.Length/2F);
+            for(var dealerIndex = 0;dealerIndex <allCardNumbers.Length;dealerIndex++){
+                for(int pairIndex = 0;pairIndex < allPossiblePairs.Count;pairIndex++){
+                    var valueParent1 = parent1.GetNextHandAction(allCardNumbers[dealerIndex],allCardNumbers[pairIndex],allCardNumbers[pairIndex]);
+                    var valueParent2 = parent2.GetNextHandAction(allCardNumbers[dealerIndex],allCardNumbers[pairIndex],allCardNumbers[pairIndex]);
+                    if(pairIndex < pairIndexCuttoff){
+                        // child1 get the Split value from parent1 and child2 gets the Split value from parent 2
+                        if(valueParent1 == HandAction.Split){
+                            child1.AddPairSplitNextAction(allCardNumbers[dealerIndex],allCardNumbers[pairIndex]);
+                        }
+                        if(valueParent2 == HandAction.Split){
+                            child2.AddPairSplitNextAction(allCardNumbers[dealerIndex],allCardNumbers[pairIndex]);
+                        }
+                    }
+                    else{
+                        // child1 get the Split value from parent2 and child2 gets the Split value from parent 1
+                        if(valueParent2 == HandAction.Split){
+                            child1.AddPairSplitNextAction(allCardNumbers[dealerIndex],allCardNumbers[pairIndex]);
+                        }
+                        if(valueParent1 == HandAction.Split){
+                            child2.AddPairSplitNextAction(allCardNumbers[dealerIndex],allCardNumbers[pairIndex]);
+                        }
+                    }
+                }
+            }
+            // 2: soft totals
+            var allSoftTotalCards = CardNumberHelper.GetAllPossibleSoftTotalValues();
+            var softTotalCardCuttoffIndex = (int)Math.Floor(allSoftTotalCards.Count/2F);
+            for(var dealerIndex = 0; dealerIndex <allCardNumbers.Length;dealerIndex++){
+                for(var stIndex = 0; stIndex < allSoftTotalCards.Count; stIndex++){
+                    var valueParent1 = parent1.GetFromAceTree(allCardNumbers[dealerIndex], allSoftTotalCards[stIndex]);
+                    var valueParent2 = parent1.GetFromAceTree(allCardNumbers[dealerIndex], allSoftTotalCards[stIndex]);
+                    if(stIndex < softTotalCardCuttoffIndex){
+                        // child1 get the Split value from parent1 and child2 gets the Split value from parent 2
+                        if(valueParent1 is not null){
+                            child1.AddSoftTotalNextAction(allCardNumbers[dealerIndex],allSoftTotalCards[stIndex],valueParent1.Value);
+                        }
+                        if(valueParent2 is not null){
+                            child2.AddSoftTotalNextAction(allCardNumbers[dealerIndex],allSoftTotalCards[stIndex],valueParent2.Value);
+                        }
+                    }
+                    else{
+                        // child1 get the Split value from parent2 and child2 gets the Split value from parent 1
+                        if(valueParent2 is not null){
+                            child1.AddSoftTotalNextAction(allCardNumbers[dealerIndex],allSoftTotalCards[stIndex],valueParent2.Value);
+                        }
+                        if(valueParent1 is not null){
+                            child2.AddSoftTotalNextAction(allCardNumbers[dealerIndex],allSoftTotalCards[stIndex],valueParent1.Value);
+                        }
+                    }
+                }
+            }
+            // 3: hard totals
+            var allHardTotalValues = CardNumberHelper.GetAllPossibleHardTotalValues();
+            var hardTotalCardCuttoffIndex = (int)Math.Floor(allHardTotalValues.Count/2F);
+            for(var dealerIndex = 0; dealerIndex <allCardNumbers.Length;dealerIndex++){
+                for(var htIndex = 0; htIndex < allCardNumbers.Length; htIndex++){
+                    var dealerCard = allCardNumbers[dealerIndex];
+                    var valueParent1 = parent1.GetOrAddFromHardTotalTree(allCardNumbers[dealerIndex],allHardTotalValues[htIndex]);
+                    var valueParent2 = parent2.GetOrAddFromHardTotalTree(allCardNumbers[dealerIndex],allHardTotalValues[htIndex]);
+                    var currentHardTotal = allHardTotalValues[htIndex];
+                    if(htIndex < hardTotalCardCuttoffIndex){
+                        // child1 get the Split value from parent1 and child2 gets the Split value from parent 2
+                        child1.AddHardTotalNextAction(dealerCard, currentHardTotal, valueParent1);
+                        child2.AddHardTotalNextAction(dealerCard, currentHardTotal, valueParent2);
+                    }
+                    else{
+                        // child1 get the Split value from parent2 and child2 gets the Split value from parent 1
+                        child1.AddHardTotalNextAction(dealerCard, currentHardTotal, valueParent2);
+                        child2.AddHardTotalNextAction(dealerCard, currentHardTotal, valueParent1);
+                    }
+                }
+            }
+            // var index = 0;
+            // // no need to special case anything, just iterate through all dealer cards and opCards
+            // // this isn't going to work, we don't get full coverage for hard-totals, better to special case the three trees
+            // for(var dealerIndex = 0;dealerIndex <allCardNumbers.Length;dealerIndex++){
+            //     for(var op1Index = 0;op1Index < allCardNumbers.Length;op1Index++){
+            //         for(var op2Index = 0; op2Index < allCardNumbers.Length; op2Index++){
+            //             var nextHandActionP1 = parent1.GetNextHandAction(allCardNumbers[dealerIndex],allCardNumbers[op1Index],allCardNumbers[op2Index]);
+            //             var nextHandActionP2 = parent2.GetNextHandAction(allCardNumbers[dealerIndex],allCardNumbers[op1Index],allCardNumbers[op2Index]);
+            //             child1.AddNextHandAction(
+            //                 allCardNumbers[dealerIndex],
+            //                 allCardNumbers[op1Index],
+            //                 allCardNumbers[op2Index],
+            //                 index % 2 == 0 ? nextHandActionP1 : nextHandActionP2 );
+            //             child1.AddNextHandAction(
+            //                 allCardNumbers[dealerIndex],
+            //                 allCardNumbers[op1Index],
+            //                 allCardNumbers[op2Index],
+            //                 index % 2 != 0 ? nextHandActionP1 : nextHandActionP2 );
+            //             index++;
+            //         }
+            //     }
+            // }
+
+            return (child1, child2);
         }
         /// <summary>
         /// This will play the provided number of games for each strategy with the GameRunner provided.
