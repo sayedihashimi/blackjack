@@ -25,7 +25,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
             if (pairNode is LeafNode<CardNumberOrScore, HandAction> leafNode) {
                 if (!pairNodeCreated) {
                     // TODO: Improve this
-                    Console.WriteLine($"Over writing next hand action for pair '{pairCard}', from '{leafNode.Value}' to '{HandAction.Split}'.");
+                    // Console.WriteLine($"Over writing next hand action for pair '{pairCard}', from '{leafNode.Value}' to '{HandAction.Split}'.");
                 }
                 leafNode.Value = HandAction.Split;
             }
@@ -46,7 +46,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
             if (scoreTotalNode is LeafNode<CardNumberOrScore, HandAction> leafNode) {
                 if (!scoreTotalNodeCreated) {
                     // TODO: Improve this
-                    Console.WriteLine($"Over writing next hand action for score '{scoreTotal}', from '{leafNode.Value}' to '{nextHandAction}'.");
+                    // Console.WriteLine($"Over writing next hand action for score '{scoreTotal}', from '{leafNode.Value}' to '{nextHandAction}'.");
                 }
                 leafNode.Value = nextHandAction;
             }
@@ -64,7 +64,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
             if (scoreTotalNode is LeafNode<CardNumberOrScore, HandAction> leafNode) {
                 if (!scoreTotalNodeCreated) {
                     // TODO: Improve this
-                    Console.WriteLine($"Over writing next hand action for score '{scoreTotal}', to '{nextHandAction}'.");
+                    // Console.WriteLine($"Over writing next hand action for score '{scoreTotal}', to '{nextHandAction}'.");
                 }
                 leafNode.Value = nextHandAction;
             }
@@ -246,7 +246,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
                 dealerNodeList.Sort();
 
                 var treeAsDictionary = GetDictionaryForTree(hardTotalTree);
-                WriteStringForDictionary(writer, columnWidth, "hard-totals", treeAsDictionary);
+                WriteStringForDictionary(writer, columnWidth, "hard-totals", treeAsDictionary, hardTotalTree);
             }
             writer.WriteLine();
             if (aceTree != null && aceTree.Children!.Count > 0) {
@@ -256,19 +256,21 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
 
                 var treeAsDictionary = GetDictionaryForTree(aceTree);
 
-                WriteStringForDictionary(writer, columnWidth, "soft-totals", treeAsDictionary);
+                WriteStringForDictionary(writer, columnWidth, "soft-totals", treeAsDictionary, aceTree);
             }
             if (pairTree?.Children?.Count > 0) {
                 WritePairTreeTo(writer, columnWidth);
             }
         }
-        private void WriteStringForDictionary(StringWriter writer, int columnWidth, string treeName, Dictionary<CardNumberOrScore, List<LeafNode<CardNumberOrScore, HandAction>>> treeAsDictionary) {
+        private void WriteStringForDictionary(StringWriter writer, int columnWidth, string treeName, 
+            Dictionary<CardNumberOrScore, List<LeafNode<CardNumberOrScore, HandAction>>> treeAsDictionary,
+            BaseTreeNode<CardNumberOrScore, HandAction> tree) {
             writer.WriteLine(treeName);
             writer.Write(new string(' ', columnWidth));
 
-            for (int i = 0; i < aceTree.Children!.Count; i++) {
-                var dealerNode = aceTree.Children![i];
-                var str = i == aceTree.Children!.Count - 1 ? $"{GetStrFor(dealerNode.Id).PadLeft(columnWidth - 1)}" : $"{GetStrFor(dealerNode.Id)},".PadLeft(columnWidth);
+            for (int i = 0; i < tree.Children!.Count; i++) {
+                var dealerNode = tree.Children![i];
+                var str = i == tree.Children!.Count - 1 ? $"{GetStrFor(dealerNode.Id).PadLeft(columnWidth - 1)}" : $"{GetStrFor(dealerNode.Id)},".PadLeft(columnWidth);
                 writer.Write(str);
             }
 

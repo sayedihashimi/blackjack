@@ -24,7 +24,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
 
         protected internal List<BlackjackStrategyTree> AllStrategiesTested { get; set; } = new List<BlackjackStrategyTree>();
 
-        public List<BlackjackStrategyTree> FindBestStrategies() {
+        public List<BlackjackStrategyTree> FindBestStrategies(int numToReturn) {
             // 1. setup
             //      create many strategies and evaluate them
             // 2. Select parents => crossover
@@ -47,18 +47,41 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             var gameRunner = new GameRunner(NullReporter.Instance);
             var bettingStrategy = new FixedBettingStrategy(bankroll, Settings.BetAmount);
             stopwatch.Restart();
+            var maxNumGenerations = Settings.MaxNumberOfGenerations;
 
+            var currentGeneration = 1;
+            do{
+                PlayAndEvaluate(Settings.NumHandsToPlayForEachStrategy, initialPopulationOfStrategiesList, gameRunner, bankroll, bettingStrategy);
+                // sort the list with highest fitness first
+                initialPopulationOfStrategiesList.Sort(initialPopulationOfStrategiesList[0].GetBlackjackTreeComparison());
+                var parentStrategiesList = SelectParents(initialPopulationOfStrategiesList, Settings.NumStrategiesToGoToNextGeneration);
+                // need to select parents now
+                var children = ProduceOffspring(parentStrategiesList, initialPopulationOfStrategiesList.Count - parentStrategiesList.Count);
+                // TODO: mutate the children
+                // combine the parents and the children into a list, evaluate, sort and continue
+                parentStrategiesList.AddRange(children);
+                initialPopulationOfStrategiesList = parentStrategiesList;
+                currentGeneration++;
+            }while(currentGeneration < maxNumGenerations);
+
+            // run another PlayAndEvaluate to evaluate the last set of offspring
             PlayAndEvaluate(Settings.NumHandsToPlayForEachStrategy, initialPopulationOfStrategiesList, gameRunner, bankroll, bettingStrategy);
-            // sort the list with highest fitness first
             initialPopulationOfStrategiesList.Sort(initialPopulationOfStrategiesList[0].GetBlackjackTreeComparison());
-            var parentStrategiesList = SelectParents(initialPopulationOfStrategiesList, Settings.NumStrategiesToGoToNextGeneration);
-            // need to select parents now
-            var children = ProduceOffspring(parentStrategiesList, initialPopulationOfStrategiesList.Count - parentStrategiesList.Count);
-
             stopwatch.Stop();
+
             var elapsedTimeStr2 = stopwatch.ElapsedMilliseconds;
 
-            return null;
+            // return the top numToReturn items
+            var topStrategies = new List<BlackjackStrategyTree>(numToReturn);
+            for(int i = 0; i < numToReturn; i++) {
+                if(i >= initialPopulationOfStrategiesList.Count) {
+                    break;
+                }
+                topStrategies.Add(initialPopulationOfStrategiesList[i]);
+            }
+
+
+            return topStrategies;
         }
         /// <summary>
         /// This will return the selected parents.
@@ -288,5 +311,6 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
         public int NumHandsToPlayForEachStrategy { get; set; } = 1000;
         public int InitialBankroll { get; set; } = 10000;
         public int BetAmount { get; set; } = 5;
+        public int MaxNumberOfGenerations{get;set;} = 5;
     }
 }
