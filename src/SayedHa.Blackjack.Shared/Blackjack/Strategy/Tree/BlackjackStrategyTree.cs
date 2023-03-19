@@ -245,6 +245,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
                 var dealerNodeList = new List<ITreeNode<CardNumberOrScore, HandAction>>();
                 dealerNodeList.Sort();
 
+                writer.WriteLine($"Fitness Score: {FitnessScore}");
                 var treeAsDictionary = GetDictionaryForTree(hardTotalTree);
                 WriteStringForDictionary(writer, columnWidth, "hard-totals", treeAsDictionary, hardTotalTree);
             }
