@@ -13,7 +13,8 @@ using SB = SayedHa.Blackjack.Shared.Blackjack.Strategy.StrategyBuilder;
 
 namespace SayedHa.Blackjack.Tests {
     public class StrategyBuilderTests {
-        [Fact]
+        // don't want this running as a test, takes too long and it's not a test.
+        // [Fact]
         public void Test_StrategyBuilderSetup() {
             var strategy = new SB();
 
@@ -21,10 +22,11 @@ namespace SayedHa.Blackjack.Tests {
             stopwatch.Start();
             var result = strategy.FindBestStrategies(5);
             stopwatch.Stop();
-            
-            Console.WriteLine($"elapsed time: {stopwatch.Elapsed.ToString(@"mm\:ss")}");
+
             var sb = new StringBuilder();
             var sWriter = new StringWriter(sb);
+
+            sWriter.WriteLine($"elapsed time: {stopwatch.Elapsed.ToString(@"mm\:ss")}");
 
             sWriter.WriteLine($"Num generations: {new StrategyBuilderSettings().MaxNumberOfGenerations}");
             sWriter.WriteLine("Top strategies found");

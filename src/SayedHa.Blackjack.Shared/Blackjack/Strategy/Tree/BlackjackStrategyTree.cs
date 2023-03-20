@@ -135,30 +135,13 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
                 return nextHandAction;
             }
         }
-        private bool DoesPairTreeContain(CardNumber dealerCard, CardNumber op1Card) {
-            var dealerNode = pairTree.Get(CardNumberHelper.ConvertToCardNumberOrScore(dealerCard));
-            if (dealerNode == null) {
-                return false;
-            }
-            var pairNode = dealerNode.Get(CardNumberHelper.ConvertToCardNumberOrScore(op1Card));
-            if (pairNode == null) {
-                return false;
-            }
-
-            if (pairNode is LeafNode<CardNumberOrScore, HandAction> leafNode) {
-                return leafNode.Value == HandAction.Split;
-            }
-            else {
-                throw new UnexpectedNodeTypeException($"Expected LeafNode, but received: '{pairNode.GetType().FullName}'");
-            }
-        }
         public HandAction GetNextHandAction(CardNumber dealerCard, params CardNumber[] opCards) {
             // need to check to see if there is an Ace or not in the opCards
             // if there is an ace, check the aceTree to see if there is a result
             // if no result there, return the result from the hardTotal tree.
 
             var cardScore = CardNumberHelper.GetScoreTotal(opCards);
-            if(cardScore > BlackjackSettings.GetBlackjackSettings().MaxScore) {
+            if(cardScore >= BlackjackSettings.GetBlackjackSettings().MaxScore) {
                 return HandAction.Stand;
             }
 
@@ -197,6 +180,23 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
                 nextHandAction = HandAction.Hit;
             }
             return nextHandAction;
+        }
+        private bool DoesPairTreeContain(CardNumber dealerCard, CardNumber op1Card) {
+            var dealerNode = pairTree.Get(CardNumberHelper.ConvertToCardNumberOrScore(dealerCard));
+            if (dealerNode == null) {
+                return false;
+            }
+            var pairNode = dealerNode.Get(CardNumberHelper.ConvertToCardNumberOrScore(op1Card));
+            if (pairNode == null) {
+                return false;
+            }
+
+            if (pairNode is LeafNode<CardNumberOrScore, HandAction> leafNode) {
+                return leafNode.Value == HandAction.Split;
+            }
+            else {
+                throw new UnexpectedNodeTypeException($"Expected LeafNode, but received: '{pairNode.GetType().FullName}'");
+            }
         }
         protected internal HandAction GetOrAddFromAceTree(CardNumber dealerCard, int scoreTotalExcludingAce) {
             (_, var rootNode) = aceTree.GetOrAdd(CardNumberHelper.ConvertToCardNumberOrScore(dealerCard), NodeType.TreeNode);

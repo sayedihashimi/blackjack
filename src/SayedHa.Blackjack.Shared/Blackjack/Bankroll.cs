@@ -21,7 +21,9 @@ namespace SayedHa.Blackjack.Shared {
             Logger = logger;
         }
         protected ILogger Logger { get; init; }
-        public float DollarsRemaining { get; set; }
+        public float DollarsRemaining { 
+            get; 
+            set; }
         public float InitialBankroll { get; protected init; }
         public static Bankroll CreateNewDefaultBankroll(ILogger logger) {
             return new Bankroll(BlackjackSettings.GetBlackjackSettings().BankrollAmount, logger);

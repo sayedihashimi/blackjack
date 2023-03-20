@@ -14,12 +14,48 @@
 // along with SayedHa.Blackjack.  If not, see <https://www.gnu.org/licenses/>.
 using SayedHa.Blackjack.Shared;
 using SayedHa.Blackjack.Shared.Betting;
+using SayedHa.Blackjack.Shared.Blackjack.Strategy;
 using System.Diagnostics;
 using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Text;
-
+// TODO: Get rid of this
+using SB = SayedHa.Blackjack.Shared.Blackjack.Strategy.StrategyBuilder;
 // TODO: this whole class needs to be replaced, just prototyping currently.
+
+
+var settings = new StrategyBuilderSettings();
+Console.WriteLine(@$"starting test for: num generations: {settings.MaxNumberOfGenerations} 
+population: {settings.NumStrategiesForFirstGeneration} 
+num parents each gen: {settings.NumStrategiesToGoToNextGeneration}
+num hands to play for each strategy: {settings.NumHandsToPlayForEachStrategy}");
+
+var strategy1 = new SB();
+var stopwatch = new Stopwatch();
+stopwatch.Start();
+var result = strategy1.FindBestStrategies(5);
+stopwatch.Stop();
+
+var sb = new StringBuilder();
+var sWriter = new StringWriter(sb);
+sWriter.WriteLine($"elapsed time: {stopwatch.Elapsed.ToString(@"mm\:ss")}");
+sWriter.WriteLine($"Num generations: {settings.MaxNumberOfGenerations}");
+sWriter.WriteLine("Top strategies found");
+for (int i = 0; i < result.Count; i++) {
+    sWriter.WriteLine($" ------------- {i} -------------");
+    result[i].WriteTreeStringTo(sWriter);
+}
+
+sWriter.Flush();
+sWriter.Close();
+
+Console.WriteLine(sb.ToString());
+return;
+
+
+
+
+
 
 // usage
 // [numGamesToPlay] [outputPath] [enableConsoleLogger] [enableFileLogger] [enableMultiThread]

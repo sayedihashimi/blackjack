@@ -252,5 +252,290 @@ namespace SayedHa.Blackjack.Tests.StrategyBuilder {
             var str = sb.ToString();
             Assert.NotNull(str);
         }
+        [Fact]
+        public void Test_BasicStrategy_DoubleDown() {
+            var bsTree = BlackjackStrategyTreeFactory.GetInstance(true).GetBasicStrategyTree();
+            var allCardNumbers = CardDeckFactory.GetAllCardNumbers();
+            // always double down on 11, always
+            foreach(var dealerCard in allCardNumbers) {
+                Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(dealerCard, CardNumber.Two, CardNumber.Nine));
+                Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(dealerCard, CardNumber.Three, CardNumber.Eight));
+                Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(dealerCard, CardNumber.Four, CardNumber.Seven));
+                Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(dealerCard, CardNumber.Five, CardNumber.Six));
+                Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(dealerCard, CardNumber.Six, CardNumber.Five));
+                Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(dealerCard, CardNumber.Seven, CardNumber.Four));
+                Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(dealerCard, CardNumber.Eight, CardNumber.Three));
+                Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(dealerCard, CardNumber.Nine, CardNumber.Two));
+            }
+            // 10 will double on everything but 10 and Ace
+            // always double down on 11, always
+            foreach (var dealerCard in allCardNumbers) {
+                if(dealerCard == CardNumber.Ten || 
+                    dealerCard == CardNumber.Jack ||
+                    dealerCard == CardNumber.Queen ||
+                    dealerCard == CardNumber.King ||
+                    dealerCard == CardNumber.Ace) {
+                    continue;
+                }
+                Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(dealerCard, CardNumber.Two, CardNumber.Eight));
+                Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(dealerCard, CardNumber.Three, CardNumber.Seven));
+                Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(dealerCard, CardNumber.Four, CardNumber.Six));
+                Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(dealerCard, CardNumber.Five, CardNumber.Five));
+                Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(dealerCard, CardNumber.Six, CardNumber.Four));
+                Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(dealerCard, CardNumber.Seven, CardNumber.Three));
+                Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(dealerCard, CardNumber.Eight, CardNumber.Two));
+            }
+            // 9 will double on 3 - 6
+            foreach(var dealerCard in allCardNumbers) {
+                if(dealerCard == CardNumber.Three ||
+                    dealerCard == CardNumber.Four ||
+                    dealerCard == CardNumber.Five ||
+                    dealerCard == CardNumber.Six) {
+
+                    Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(dealerCard, CardNumber.Two, CardNumber.Seven));
+                    Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(dealerCard, CardNumber.Three, CardNumber.Six));
+                    Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(dealerCard, CardNumber.Four, CardNumber.Five));
+                    Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(dealerCard, CardNumber.Five, CardNumber.Four));
+                    Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(dealerCard, CardNumber.Six, CardNumber.Three));
+                    Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(dealerCard, CardNumber.Seven, CardNumber.Two));
+                }
+            }
+            // now check hands with an Ace (soft totals)
+            // Ace + 6
+            Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(CardNumber.Three, CardNumber.Ace, CardNumber.Six));
+            Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(CardNumber.Four, CardNumber.Ace, CardNumber.Six));
+            Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(CardNumber.Five, CardNumber.Ace, CardNumber.Six));
+            Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(CardNumber.Six, CardNumber.Ace, CardNumber.Six));
+            // Ace + 5
+            Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(CardNumber.Four, CardNumber.Ace, CardNumber.Five));
+            Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(CardNumber.Five, CardNumber.Ace, CardNumber.Five));
+            Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(CardNumber.Six, CardNumber.Ace, CardNumber.Five));
+            // Ace + 4
+            Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(CardNumber.Four, CardNumber.Ace, CardNumber.Four));
+            Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(CardNumber.Five, CardNumber.Ace, CardNumber.Four));
+            Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(CardNumber.Six, CardNumber.Ace, CardNumber.Four));
+            // Ace + 3
+            Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(CardNumber.Five, CardNumber.Ace, CardNumber.Three));
+            Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(CardNumber.Six, CardNumber.Ace, CardNumber.Three));
+            // Ace + 2
+            Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(CardNumber.Five, CardNumber.Ace, CardNumber.Two));
+            Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(CardNumber.Six, CardNumber.Ace, CardNumber.Two));
+        }
+        [Fact]
+        public void Test_BasicStrategy_HardTotals() {
+            var bsTree = BlackjackStrategyTreeFactory.GetInstance(true).GetBasicStrategyTree();
+            var allCardNumbers = CardDeckFactory.GetAllCardNumbers();
+            // stand on all cards 17 and above
+            foreach(var dealerCard in allCardNumbers) {
+                // 17
+                Assert.Equal(HandAction.Stand, bsTree.GetNextHandAction(dealerCard, CardNumber.Ten, CardNumber.Seven));
+                Assert.Equal(HandAction.Stand, bsTree.GetNextHandAction(dealerCard, CardNumber.Ten, CardNumber.Five, CardNumber.Two));
+                Assert.Equal(HandAction.Stand, bsTree.GetNextHandAction(dealerCard, CardNumber.Ten, CardNumber.Four, CardNumber.Three));
+                // 18
+                Assert.Equal(HandAction.Stand, bsTree.GetNextHandAction(dealerCard, CardNumber.Ten, CardNumber.Eight));
+                Assert.Equal(HandAction.Stand, bsTree.GetNextHandAction(dealerCard, CardNumber.Ten, CardNumber.Three, CardNumber.Two, CardNumber.Three));
+                // 19
+                Assert.Equal(HandAction.Stand, bsTree.GetNextHandAction(dealerCard, CardNumber.Ten, CardNumber.Nine));
+                Assert.Equal(HandAction.Stand, bsTree.GetNextHandAction(dealerCard, CardNumber.Ten, CardNumber.Four, CardNumber.Two, CardNumber.Three));
+                // 20
+                Assert.Equal(HandAction.Stand, bsTree.GetNextHandAction(dealerCard, CardNumber.Ten, CardNumber.Ten));
+                Assert.Equal(HandAction.Stand, bsTree.GetNextHandAction(dealerCard, CardNumber.Ten, CardNumber.Four, CardNumber.Two, CardNumber.Two));
+                // 21
+                Assert.Equal(HandAction.Stand, bsTree.GetNextHandAction(dealerCard, CardNumber.Ten, CardNumber.Ace));
+                Assert.Equal(HandAction.Stand, bsTree.GetNextHandAction(dealerCard, CardNumber.Ten, CardNumber.Four, CardNumber.Four, CardNumber.Three));
+            }
+            // 16
+            foreach(var dealerCard in allCardNumbers) {
+                if( dealerCard == CardNumber.Two ||
+                    dealerCard == CardNumber.Three ||
+                    dealerCard == CardNumber.Four ||
+                    dealerCard == CardNumber.Five ||
+                    dealerCard == CardNumber.Six) {
+
+                    Assert.Equal(HandAction.Stand, bsTree.GetNextHandAction(dealerCard, CardNumber.Six, CardNumber.Ten));
+                    Assert.Equal(HandAction.Stand, bsTree.GetNextHandAction(dealerCard, CardNumber.Seven, CardNumber.Nine));
+                    // skip 8 because that's a pair
+                    Assert.Equal(HandAction.Stand, bsTree.GetNextHandAction(dealerCard, CardNumber.Nine, CardNumber.Seven));
+                    Assert.Equal(HandAction.Stand, bsTree.GetNextHandAction(dealerCard, CardNumber.Ten, CardNumber.Six));
+                }
+                else {
+                    Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Six, CardNumber.Ten));
+                    Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Seven, CardNumber.Nine));
+                    // skip 8 because that's a pair
+                    Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Nine, CardNumber.Seven));
+                    Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Ten, CardNumber.Six));
+                }
+            }
+            // 15
+            foreach(var dealerCard in allCardNumbers) {
+                if (dealerCard == CardNumber.Two ||
+                    dealerCard == CardNumber.Three ||
+                    dealerCard == CardNumber.Four ||
+                    dealerCard == CardNumber.Five ||
+                    dealerCard == CardNumber.Six) {
+
+                    Assert.Equal(HandAction.Stand, bsTree.GetNextHandAction(dealerCard, CardNumber.Five, CardNumber.Ten));
+                    Assert.Equal(HandAction.Stand, bsTree.GetNextHandAction(dealerCard, CardNumber.Six, CardNumber.Nine));
+                    Assert.Equal(HandAction.Stand, bsTree.GetNextHandAction(dealerCard, CardNumber.Seven, CardNumber.Eight));
+                    Assert.Equal(HandAction.Stand, bsTree.GetNextHandAction(dealerCard, CardNumber.Eight, CardNumber.Seven));
+                    Assert.Equal(HandAction.Stand, bsTree.GetNextHandAction(dealerCard, CardNumber.Nine, CardNumber.Six));
+                    Assert.Equal(HandAction.Stand, bsTree.GetNextHandAction(dealerCard, CardNumber.Ten, CardNumber.Five));
+                }
+                else {
+                    Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Five, CardNumber.Ten));
+                    Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Six, CardNumber.Nine));
+                    Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Seven, CardNumber.Eight));
+                    Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Eight, CardNumber.Seven));
+                    Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Nine, CardNumber.Six));
+                    Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Ten, CardNumber.Five));
+                }
+            }
+            // 14
+            foreach (var dealerCard in allCardNumbers) {
+                if (dealerCard == CardNumber.Two ||
+                    dealerCard == CardNumber.Three ||
+                    dealerCard == CardNumber.Four ||
+                    dealerCard == CardNumber.Five ||
+                    dealerCard == CardNumber.Six) {
+
+                    Assert.Equal(HandAction.Stand, bsTree.GetNextHandAction(dealerCard, CardNumber.Four, CardNumber.Ten));
+                    Assert.Equal(HandAction.Stand, bsTree.GetNextHandAction(dealerCard, CardNumber.Five, CardNumber.Nine));
+                    Assert.Equal(HandAction.Stand, bsTree.GetNextHandAction(dealerCard, CardNumber.Six, CardNumber.Eight));
+                    // skip 7, pair
+                    Assert.Equal(HandAction.Stand, bsTree.GetNextHandAction(dealerCard, CardNumber.Eight, CardNumber.Six));
+                    Assert.Equal(HandAction.Stand, bsTree.GetNextHandAction(dealerCard, CardNumber.Nine, CardNumber.Five));
+                    Assert.Equal(HandAction.Stand, bsTree.GetNextHandAction(dealerCard, CardNumber.Ten, CardNumber.Four));
+                }
+                else {
+                    Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Four, CardNumber.Ten));
+                    Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Five, CardNumber.Nine));
+                    Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Six, CardNumber.Eight));
+                    // skip 7, pair
+                    Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Eight, CardNumber.Six));
+                    Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Nine, CardNumber.Five));
+                    Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Ten, CardNumber.Four));
+                }
+            }
+            // 13
+            foreach (var dealerCard in allCardNumbers) {
+                if (dealerCard == CardNumber.Two ||
+                    dealerCard == CardNumber.Three ||
+                    dealerCard == CardNumber.Four ||
+                    dealerCard == CardNumber.Five ||
+                    dealerCard == CardNumber.Six) {
+
+                    Assert.Equal(HandAction.Stand, bsTree.GetNextHandAction(dealerCard, CardNumber.Three, CardNumber.Ten));
+                    Assert.Equal(HandAction.Stand, bsTree.GetNextHandAction(dealerCard, CardNumber.Four, CardNumber.Nine));
+                    Assert.Equal(HandAction.Stand, bsTree.GetNextHandAction(dealerCard, CardNumber.Five, CardNumber.Eight));
+                    Assert.Equal(HandAction.Stand, bsTree.GetNextHandAction(dealerCard, CardNumber.Six, CardNumber.Seven));
+                    Assert.Equal(HandAction.Stand, bsTree.GetNextHandAction(dealerCard, CardNumber.Seven, CardNumber.Six));
+                    Assert.Equal(HandAction.Stand, bsTree.GetNextHandAction(dealerCard, CardNumber.Eight, CardNumber.Five));
+                    Assert.Equal(HandAction.Stand, bsTree.GetNextHandAction(dealerCard, CardNumber.Nine, CardNumber.Four));
+                    Assert.Equal(HandAction.Stand, bsTree.GetNextHandAction(dealerCard, CardNumber.Ten, CardNumber.Three));
+                }
+                else {
+                    Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Three, CardNumber.Ten));
+                    Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Four, CardNumber.Nine));
+                    Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Five, CardNumber.Eight));
+                    Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Six, CardNumber.Seven));
+                    Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Seven, CardNumber.Six));
+                    Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Eight, CardNumber.Five));
+                    Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Nine, CardNumber.Four));
+                    Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Ten, CardNumber.Three));
+                }
+            }
+            // 12
+            foreach(var dealerCard in allCardNumbers) {
+                if(dealerCard == CardNumber.Four ||
+                    dealerCard == CardNumber.Five ||
+                    dealerCard == CardNumber.Six) {
+
+                    Assert.Equal(HandAction.Stand, bsTree.GetNextHandAction(dealerCard, CardNumber.Two, CardNumber.Ten));
+                    Assert.Equal(HandAction.Stand, bsTree.GetNextHandAction(dealerCard, CardNumber.Three, CardNumber.Nine));
+                    Assert.Equal(HandAction.Stand, bsTree.GetNextHandAction(dealerCard, CardNumber.Four, CardNumber.Eight));
+                    Assert.Equal(HandAction.Stand, bsTree.GetNextHandAction(dealerCard, CardNumber.Five, CardNumber.Seven));
+                    // skip 6, pair
+                    Assert.Equal(HandAction.Stand, bsTree.GetNextHandAction(dealerCard, CardNumber.Seven, CardNumber.Five));
+                    Assert.Equal(HandAction.Stand, bsTree.GetNextHandAction(dealerCard, CardNumber.Eight, CardNumber.Four));
+                    Assert.Equal(HandAction.Stand, bsTree.GetNextHandAction(dealerCard, CardNumber.Nine, CardNumber.Three));
+                    Assert.Equal(HandAction.Stand, bsTree.GetNextHandAction(dealerCard, CardNumber.Ten, CardNumber.Two));
+                }
+                else {
+                    Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Two, CardNumber.Ten));
+                    Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Three, CardNumber.Nine));
+                    Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Four, CardNumber.Eight));
+                    Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Five, CardNumber.Seven));
+                    // skip 6, pair
+                    Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Seven, CardNumber.Five));
+                    Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Eight, CardNumber.Four));
+                    Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Nine, CardNumber.Three));
+                    Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Ten, CardNumber.Two));
+                }
+            }
+            // 11 is covered by double down test
+            // 10
+            foreach(var dealerCard in allCardNumbers) {
+                if( dealerCard == CardNumber.Ten || 
+                    dealerCard == CardNumber.Jack ||
+                    dealerCard == CardNumber.Queen ||
+                    dealerCard == CardNumber.King ||
+                    dealerCard == CardNumber.Ace) {
+                    Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Eight, CardNumber.Two));
+                    Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Seven, CardNumber.Three));
+                    Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Six, CardNumber.Four));
+                    // skip 5, pair
+                    Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Four, CardNumber.Six));
+                    Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Three, CardNumber.Seven));
+                    Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Two, CardNumber.Eight));
+                }
+                else {
+                    Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(dealerCard, CardNumber.Eight, CardNumber.Two));
+                    Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(dealerCard, CardNumber.Seven, CardNumber.Three));
+                    Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(dealerCard, CardNumber.Six, CardNumber.Four));
+                    // skip 5, pair
+                    Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(dealerCard, CardNumber.Four, CardNumber.Six));
+                    Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(dealerCard, CardNumber.Three, CardNumber.Seven));
+                    Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(dealerCard, CardNumber.Two, CardNumber.Eight));
+                }
+            }
+            // 9
+            foreach(var dealerCard in allCardNumbers) {
+                if(dealerCard == CardNumber.Three ||
+                    dealerCard == CardNumber.Four ||
+                    dealerCard == CardNumber.Five ||
+                    dealerCard == CardNumber.Six) {
+
+                    Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(dealerCard, CardNumber.Seven, CardNumber.Two));
+                    Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(dealerCard, CardNumber.Six, CardNumber.Three));
+                    Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(dealerCard, CardNumber.Five, CardNumber.Four));
+                    // skip 4, pair
+                    Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(dealerCard, CardNumber.Three, CardNumber.Six));
+                    Assert.Equal(HandAction.Double, bsTree.GetNextHandAction(dealerCard, CardNumber.Two, CardNumber.Seven));
+                }
+            }
+            // 8 or lower is a hit
+            foreach(var dealerCard in allCardNumbers) {
+                Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Six, CardNumber.Two));
+                Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Five, CardNumber.Three));
+                // skip 4, pair
+                Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Three, CardNumber.Five));
+                Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Two, CardNumber.Six));
+
+                // 7
+                Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Five, CardNumber.Two));
+                Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Four, CardNumber.Three));
+                Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Three, CardNumber.Four));
+                Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Two, CardNumber.Five));
+                
+                // 6
+                Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Four, CardNumber.Two));
+                // skip 3, pair
+                Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Two, CardNumber.Four));
+
+                // 5
+                Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Three, CardNumber.Two));
+                Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Two, CardNumber.Three));
+            }
+        }
     }
 }
