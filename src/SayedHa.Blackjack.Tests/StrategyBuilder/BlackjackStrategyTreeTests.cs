@@ -536,6 +536,8 @@ namespace SayedHa.Blackjack.Tests.StrategyBuilder {
                 Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Three, CardNumber.Two));
                 Assert.Equal(HandAction.Hit, bsTree.GetNextHandAction(dealerCard, CardNumber.Two, CardNumber.Three));
             }
+
+            Assert.Equal(HandAction.Stand, bsTree.GetNextHandAction(CardNumber.Queen, CardNumber.Ten, CardNumber.Four, CardNumber.Four));
         }
     }
 }

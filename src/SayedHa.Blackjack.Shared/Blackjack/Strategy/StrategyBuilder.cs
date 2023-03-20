@@ -39,6 +39,12 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             var stopwatch = new Stopwatch();
             stopwatch.Start();
             var initialPopulationOfStrategiesList = CreateRandomTrees(Settings.NumStrategiesForFirstGeneration);
+
+            // TODO: Remove this
+            initialPopulationOfStrategiesList.RemoveAt(0);
+            initialPopulationOfStrategiesList.Add(BlackjackStrategyTreeFactory.GetInstance(true).GetBasicStrategyTree());
+            // TODO: end remove
+
             stopwatch.Stop();
             var elapsedTimeStr = stopwatch.ElapsedMilliseconds;
 
@@ -268,11 +274,23 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                 // if it already has a score, skip it
                 if(strategy.FitnessScore == null || !strategy.FitnessScore.HasValue) {
                     PlayGames(Settings.NumHandsToPlayForEachStrategy, gameRunner, game);
-                    strategy.FitnessScore = game.Opponents[0].BettingStrategy.Bankroll.DollarsRemaining;
+                    // DollarsRemaining isn't working correctly, needs investigation
+                    // strategy.FitnessScore = game.Opponents[0].BettingStrategy.Bankroll.DollarsRemaining;
+                    strategy.FitnessScore = Evaluate(game);
                 }
             }
         }
+        protected internal float Evaluate(Game game) {
+            Debug.Assert(game is not null);
+            // TODO: looks like DollarsRemaining is not working correctly, needs investigation
+            // workaround for now.
+            float dollarsRemaining = 0F;
+            for (int i = 0; i < game.Opponents[0].AllHands.Count; i++) {
+                dollarsRemaining += game.Opponents[0].AllHands.ElementAt(i).BetResult!.Value;
+            }
 
+            return dollarsRemaining;
+        }
         protected internal List<BlackjackStrategyTree> CreateRandomTrees(int numTreesToCreate) {
             Debug.Assert(numTreesToCreate > 0);
             var factory = BlackjackStrategyTreeFactory.GetInstance(Settings.UseRandomNumberGenerator);
@@ -305,12 +323,12 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
         public int NumDecks { get; set; } = 4;
         // TODO: Get this from somewhere.
         public bool UseRandomNumberGenerator { get; set; } = true;
-        public int NumStrategiesForFirstGeneration { get; set; } = 10000;
+        public int NumStrategiesForFirstGeneration { get; set; } = 1000;
         // half the population, the other half will be offspring
-        public int NumStrategiesToGoToNextGeneration {get;set;} = 5000;
-        public int NumHandsToPlayForEachStrategy { get; set; } = 1000;
+        public int NumStrategiesToGoToNextGeneration {get;set;} = 50;
+        public int NumHandsToPlayForEachStrategy { get; set; } = 10000;
         public int InitialBankroll { get; set; } = 10000;
         public int BetAmount { get; set; } = 5;
-        public int MaxNumberOfGenerations{get;set;} = 10;
+        public int MaxNumberOfGenerations{get;set;} = 3;
     }
 }
