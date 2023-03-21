@@ -284,12 +284,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             Debug.Assert(game is not null);
             // TODO: looks like DollarsRemaining is not working correctly, needs investigation
             // workaround for now.
-            float dollarsRemaining = 0F;
-            for (int i = 0; i < game.Opponents[0].AllHands.Count; i++) {
-                dollarsRemaining += game.Opponents[0].AllHands.ElementAt(i).BetResult!.Value;
-            }
-
-            return dollarsRemaining;
+            return game.Opponents[0].AllHandsBetResult;
         }
         protected internal List<BlackjackStrategyTree> CreateRandomTrees(int numTreesToCreate) {
             Debug.Assert(numTreesToCreate > 0);
@@ -323,12 +318,12 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
         public int NumDecks { get; set; } = 4;
         // TODO: Get this from somewhere.
         public bool UseRandomNumberGenerator { get; set; } = true;
-        public int NumStrategiesForFirstGeneration { get; set; } = 1000;
+        public int NumStrategiesForFirstGeneration { get; set; } = 500;
         // half the population, the other half will be offspring
-        public int NumStrategiesToGoToNextGeneration {get;set;} = 50;
-        public int NumHandsToPlayForEachStrategy { get; set; } = 10000;
+        public int NumStrategiesToGoToNextGeneration {get;set;} = 250;
+        public int NumHandsToPlayForEachStrategy { get; set; } = 100;
         public int InitialBankroll { get; set; } = 10000;
         public int BetAmount { get; set; } = 5;
-        public int MaxNumberOfGenerations{get;set;} = 3;
+        public int MaxNumberOfGenerations{get;set;} = 2;
     }
 }

@@ -222,7 +222,7 @@ namespace SayedHa.Blackjack.Shared {
                 allHands.AddRange(op.Hands);
 
                 foreach(var hand in op.Hands) {
-                    op.AllHands.AddLast(hand);
+                    op.AddToAllHands(hand);
                 }
             }
 

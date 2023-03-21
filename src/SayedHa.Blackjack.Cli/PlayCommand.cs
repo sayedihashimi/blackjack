@@ -160,7 +160,7 @@ namespace SayedHa.Blackjack.Cli {
             grid.AddRow("Initial bankroll", $"{sessionReportData.Player.BettingStrategy.Bankroll.InitialBankroll:C0}");
             grid.AddRow("Final bankroll", 
                 $"{sessionReportData.Player.BettingStrategy.Bankroll.DollarsRemaining:C0} diff: {sessionReportData.Player.BettingStrategy.Bankroll.DollarsRemaining- sessionReportData.Player.BettingStrategy.Bankroll.InitialBankroll:C0}");
-            grid.AddRow("Number of hands played", $"{sessionReportData.Player.AllHands.Count}");
+            grid.AddRow("Number of hands played", $"{sessionReportData.Player.GetAllHands().Count}");
             grid.AddRow("Avg bet amount", $"{averagebet:C0}");
             // TODO: grid.AddRow("Avg hand result", "");
             grid.AddRow("Number of wrong actions selected", $"{numIncorrectActions}");

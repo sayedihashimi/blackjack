@@ -25,9 +25,10 @@ using SB = SayedHa.Blackjack.Shared.Blackjack.Strategy.StrategyBuilder;
 
 
 var settings = new StrategyBuilderSettings();
-Console.WriteLine(@$"starting test for: num generations: {settings.MaxNumberOfGenerations} 
+Console.WriteLine(@$"starting test for: 
+num generations: {settings.MaxNumberOfGenerations} 
 population: {settings.NumStrategiesForFirstGeneration} 
-num parents each gen: {settings.NumStrategiesToGoToNextGeneration}
+num parents (survivors) each gen: {settings.NumStrategiesToGoToNextGeneration}
 num hands to play for each strategy: {settings.NumHandsToPlayForEachStrategy}");
 
 var strategy1 = new SB();
@@ -202,7 +203,7 @@ string GetSummaryString(int numGames,Game game) {
     var currentNumOpponentConWins = 0;
     var currentNumDealerConWins = 0;
 
-    var currentNode = opponent.AllHands.First;
+    var currentNode = opponent.GetAllHands().First;
     while (currentNode != null) {
         switch (currentNode.Value.HandResult) {
             case HandResult.DealerWon:

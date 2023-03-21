@@ -43,6 +43,43 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
             2 => CardNumberOrScore.Score2,
             _ => throw new UnknownValueException($"Unknown value for CardNumber: '{score}'")
         };
+        public static int GetNumericScore(CardNumberOrScore card) => card switch {
+            CardNumberOrScore.Ace => 11,
+            CardNumberOrScore.Two => 2,
+            CardNumberOrScore.Three => 3,
+            CardNumberOrScore.Four => 4,
+            CardNumberOrScore.Five => 5,
+            CardNumberOrScore.Six => 6,
+            CardNumberOrScore.Seven => 7,
+            CardNumberOrScore.Eight => 8,
+            CardNumberOrScore.Nine => 9,
+            CardNumberOrScore.Ten => 10,
+            CardNumberOrScore.Jack => 10,
+            CardNumberOrScore.Queen => 10,
+            CardNumberOrScore.King => 10,
+            CardNumberOrScore.Score21 => 21,
+            CardNumberOrScore.Score20 => 20,
+            CardNumberOrScore.Score19 => 19,
+            CardNumberOrScore.Score18 => 18,
+            CardNumberOrScore.Score17 => 17,
+            CardNumberOrScore.Score16 => 16,
+            CardNumberOrScore.Score15 => 15,
+            CardNumberOrScore.Score14 => 14,
+            CardNumberOrScore.Score13 => 13,
+            CardNumberOrScore.Score12 => 12,
+            CardNumberOrScore.Score11 => 11,
+            CardNumberOrScore.Score10 => 10,
+            CardNumberOrScore.Score9 => 9,
+            CardNumberOrScore.Score8 => 8,
+            CardNumberOrScore.Score7 => 7,
+            CardNumberOrScore.Score6 => 6,
+            CardNumberOrScore.Score5 => 5,
+            CardNumberOrScore.Score4 => 4,
+            CardNumberOrScore.Score3 => 3,
+            CardNumberOrScore.Score2 => 2,
+            CardNumberOrScore.Busted => throw new UnexpectedValueException($"Cannot get the value of a busted CardNumberOrScore"),
+            _ => throw new UnexpectedValueException($"Unknown value for CardNumberOrScore: '{card}'"),
+        };
         public static int GetScoreTotal(CardNumber card1, CardNumber card2) {
             // TODO: this could be refactored to avoid creating the Hand object
             var hand = new Hand(5F, NullLogger.Instance);

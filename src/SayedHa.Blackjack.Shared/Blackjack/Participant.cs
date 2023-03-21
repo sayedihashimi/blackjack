@@ -37,8 +37,15 @@ namespace SayedHa.Blackjack.Shared {
         /// It needs to be a list because a split can create multiple hands
         /// </summary>
         public List<Hand> Hands { get; set; } = new List<Hand>();
-        public LinkedList<Hand> AllHands { get; set; } = new LinkedList<Hand>();
-
+        protected LinkedList<Hand> AllHands { get; set; } = new LinkedList<Hand>();
+        public LinkedList<Hand> GetAllHands() {
+            return AllHands;
+        }
+        public void AddToAllHands(Hand hand) {
+            AllHands.AddLast(hand);
+            AllHandsBetResult += hand.BetResult!.Value;
+        }
+        public float AllHandsBetResult { get; protected internal set; } = 0f;
 
         /// <summary>
         /// This determines the next action for the players hand(s).
