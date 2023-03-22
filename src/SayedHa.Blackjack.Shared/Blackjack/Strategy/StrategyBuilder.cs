@@ -1,4 +1,5 @@
 ﻿using SayedHa.Blackjack.Shared.Betting;
+using SayedHa.Blackjack.Shared.Blackjack.Exceptions;
 using SayedHa.Blackjack.Shared.Blackjack.Players;
 using SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree;
 using SayedHa.Blackjack.Shared.Extensions;
@@ -64,6 +65,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                 // need to select parents now
                 var children = ProduceOffspring(parentStrategiesList, initialPopulationOfStrategiesList.Count - parentStrategiesList.Count);
                 // TODO: mutate the children
+
                 // combine the parents and the children into a list, evaluate, sort and continue
                 parentStrategiesList.AddRange(children);
                 initialPopulationOfStrategiesList = parentStrategiesList;
@@ -86,8 +88,37 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                 topStrategies.Add(initialPopulationOfStrategiesList[i]);
             }
 
-
             return topStrategies;
+        }
+        private HandAction[] _mutateOffspringHandActions = new HandAction[] { HandAction.Hit, HandAction.Stand, HandAction.Double };
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="offspringTree"></param>
+        /// <param name="currentGeneration"></param>
+        /// <param name="initialMutationRate">% number that's represented as a number between (inclusive) 0 and 1.</param>
+        protected internal void MutateOffspring(List<BlackjackStrategyTree> offspringTree, int currentGeneration, float mutationRate) {
+            // visit each LeafNode and see if the value should be changed or not.
+            // there should be 80 possible leaf nodes in the ace tree
+
+            // var possibleActions = new HandAction[]{HandAction.Hit,HandAction.Stand, HandAction.Double };
+
+            // pick a random number between 0 - 80, this will be the total number to consider changing
+            // reduce the random number by the mutationRate to get the final number of cells to edit
+
+            foreach(var off in offspringTree) {
+                foreach(var aceDealer in off.aceTree.Children!) {
+                    foreach(var node in aceDealer.Children!) {
+                        if( node is LeafNode<CardNumberOrScore,HandAction> leafNode) {
+
+                        }
+                        else {
+                            throw new UnexpectedNodeTypeException($"Expected LeafNode, received type: {node.GetType().FullName}");
+                        }
+                    }
+                    throw new NotImplementedException();
+                }
+            }
         }
         /// <summary>
         /// This will return the selected parents.
@@ -229,28 +260,6 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                     }
                 }
             }
-            // var index = 0;
-            // // no need to special case anything, just iterate through all dealer cards and opCards
-            // // this isn't going to work, we don't get full coverage for hard-totals, better to special case the three trees
-            // for(var dealerIndex = 0;dealerIndex <allCardNumbers.Length;dealerIndex++){
-            //     for(var op1Index = 0;op1Index < allCardNumbers.Length;op1Index++){
-            //         for(var op2Index = 0; op2Index < allCardNumbers.Length; op2Index++){
-            //             var nextHandActionP1 = parent1.GetNextHandAction(allCardNumbers[dealerIndex],allCardNumbers[op1Index],allCardNumbers[op2Index]);
-            //             var nextHandActionP2 = parent2.GetNextHandAction(allCardNumbers[dealerIndex],allCardNumbers[op1Index],allCardNumbers[op2Index]);
-            //             child1.AddNextHandAction(
-            //                 allCardNumbers[dealerIndex],
-            //                 allCardNumbers[op1Index],
-            //                 allCardNumbers[op2Index],
-            //                 index % 2 == 0 ? nextHandActionP1 : nextHandActionP2 );
-            //             child1.AddNextHandAction(
-            //                 allCardNumbers[dealerIndex],
-            //                 allCardNumbers[op1Index],
-            //                 allCardNumbers[op2Index],
-            //                 index % 2 != 0 ? nextHandActionP1 : nextHandActionP2 );
-            //             index++;
-            //         }
-            //     }
-            // }
 
             return (child1, child2);
         }

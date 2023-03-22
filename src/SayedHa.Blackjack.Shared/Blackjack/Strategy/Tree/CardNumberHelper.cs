@@ -1,4 +1,6 @@
 ﻿using SayedHa.Blackjack.Shared.Blackjack.Exceptions;
+using System.Security.Cryptography;
+using System;
 
 namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
     public static class CardNumberHelper {
@@ -42,6 +44,22 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
             3 => CardNumberOrScore.Score3,
             2 => CardNumberOrScore.Score2,
             _ => throw new UnknownValueException($"Unknown value for CardNumber: '{score}'")
+        };
+        public static int GetNumericScore(CardNumber card) => card switch {
+            CardNumber.Ace => 11,
+            CardNumber.Two => 2,
+            CardNumber.Three => 3,
+            CardNumber.Four => 4,
+            CardNumber.Five => 5,
+            CardNumber.Six => 6,
+            CardNumber.Seven => 7,
+            CardNumber.Eight => 8,
+            CardNumber.Nine => 9,
+            CardNumber.Ten => 10,
+            CardNumber.Jack => 10,
+            CardNumber.Queen => 10,
+            CardNumber.King => 10,
+            _ => throw new UnexpectedValueException($"Unknown value for CardNumber: '{card}'")
         };
         public static int GetNumericScore(CardNumberOrScore card) => card switch {
             CardNumberOrScore.Ace => 11,
@@ -119,5 +137,18 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
         ///</summary>
         public static List<int> GetAllPossibleSoftTotalValues()=>new List<int>{ 2,3,4,5,6,7,8,9 };
         public static List<int> GetAllPossibleHardTotalValues() => new List<int>{ 3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20};
+
+        public static HandAction GetRandomHandAction(bool includeDouble, HandAction[] _allHandActions) {
+            int fromInclusive = 0;
+            int toInclusive = includeDouble ? 2 : 1;
+            int indexToReturn = GetRandomIntBetween(fromInclusive, toInclusive + 1);
+            return _allHandActions[indexToReturn];
+        }
+        internal static Random random { get; set; } = new Random();
+        public static bool _useRandomNumberGenerator { get; set; } = true;
+        public static int GetRandomIntBetween(int fromInclusive, int toExclusive) => _useRandomNumberGenerator switch {
+            true => RandomNumberGenerator.GetInt32(fromInclusive, toExclusive),
+            false => random.Next(fromInclusive, toExclusive)
+        };
     }
 }

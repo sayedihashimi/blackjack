@@ -40,6 +40,9 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
         /// score of the other cards besides the Ace.
         /// </summary>
         protected internal void AddSoftTotalNextAction(CardNumber dealerCard, int scoreTotal, HandAction nextHandAction) {
+            if (scoreTotal > 10) {
+                Console.WriteLine("over 10");
+            }
             (_, var aceDealerCardNode) = aceTree.GetOrAdd(CardNumberHelper.ConvertToCardNumberOrScore(dealerCard), NodeType.TreeNode);
             (var scoreTotalNodeCreated, var scoreTotalNode) = aceDealerCardNode.GetOrAdd(CardNumberHelper.ConvertToCardNumberOrScore(scoreTotal), NodeType.LeafNode);
 
@@ -118,22 +121,27 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
             // 2: check if the cards include an Ace, if so return the result from the Ace tree
             // 3: return the result from the HardTotals tree
 
-            if (opCard1.IsAPairWith(opCard2) && DoesPairTreeContain(dealerCard, opCard1)) {
+            if (opCard1.IsAPairWith(opCard2) && DoesPairTreeContainSplit(dealerCard, opCard1)) {
                 return HandAction.Split;
             }
 
-            if (opCard1.ContainsAnAce(opCard2)) {
+            if (!opCard1.IsAPairWith(opCard2) && opCard1.ContainsAnAce(opCard2)) {
                 // After sort the Ace should be the secondCardNumber
                 (CardNumber firstCardNumber, CardNumber secondCardNumber) = opCard1.Sort(opCard2);
-                return GetOrAddFromAceTree(dealerCard, firstCardNumber.GetValues()[0]);
-            }
-            else {
-                var nextHandAction = GetOrAddFromHardTotalTree(dealerCard, CardNumberHelper.GetScoreTotal(opCard1, opCard2));
-                if (nextHandAction == HandAction.Double && !DoubleEnabled) {
-                    nextHandAction = HandAction.Hit;
+                var valFromAceTree = GetFromAceTree(dealerCard, CardNumberHelper.GetNumericScore(firstCardNumber));
+                if(valFromAceTree is object) {
+                    return valFromAceTree.Value;
                 }
-                return nextHandAction;
+                else {
+                    Console.WriteLine("its here");
+                }
             }
+
+            var nextHandAction = GetOrAddFromHardTotalTree(dealerCard, CardNumberHelper.GetScoreTotal(opCard1, opCard2));
+            if (nextHandAction == HandAction.Double && !DoubleEnabled) {
+                nextHandAction = HandAction.Hit;
+            }
+            return nextHandAction;
         }
         public HandAction GetNextHandAction(CardNumber dealerCard, params CardNumber[] opCards) {
             // need to check to see if there is an Ace or not in the opCards
@@ -181,7 +189,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
             }
             return nextHandAction;
         }
-        private bool DoesPairTreeContain(CardNumber dealerCard, CardNumber op1Card) {
+        private bool DoesPairTreeContainSplit(CardNumber dealerCard, CardNumber op1Card) {
             var dealerNode = pairTree.Get(CardNumberHelper.ConvertToCardNumberOrScore(dealerCard));
             if (dealerNode == null) {
                 return false;
@@ -348,7 +356,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
                 writer.Write($"{GetStrFor(op1Card)},".PadLeft(columnWidth));
                 for (int j = 0; j < dealerCards.Count; j++) {
                     var dealerCard = dealerCards[j];
-                    if (DoesPairTreeContain(dealerCard, op1Card)) {
+                    if (DoesPairTreeContainSplit(dealerCard, op1Card)) {
                         var str = j == allPlayerCards.Count - 1 ? "Sp".PadLeft(columnWidth - 1) : "Sp,".PadLeft(columnWidth);
                         writer.Write(str);
                     }
