@@ -11,10 +11,10 @@
         public int InitialBankroll { get; set; } = 10000;
         public int BetAmount { get; set; } = 5;
         public int MaxNumberOfGenerations{get;set;} = 10;
-        public int InitialMutationRate { get; set; } = 10;
+        public int InitialMutationRate { get; set; } = 50;
         /// <summary>
         /// The percent to reduce the mutation by each generation. Must be >=0 and <= 100.
         /// </summary>
-        public int MutationRateChangePerGeneration { get; set; } = 10;
+        public int MutationRateChangePerGeneration { get; set; } = 2;
     }
 }

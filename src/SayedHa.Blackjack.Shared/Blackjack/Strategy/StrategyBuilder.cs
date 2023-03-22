@@ -16,7 +16,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
     /// and build the best strategy.
     /// </summary>
     public class StrategyBuilder {
-        public StrategyBuilder() : this (new StrategyBuilderSettings()) { }
+        public StrategyBuilder() : this(new StrategyBuilderSettings()) { }
         public StrategyBuilder(StrategyBuilderSettings settings) {
             Settings = settings;
         }
@@ -36,7 +36,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
 
             // 1. Setup
             var factory = BlackjackStrategyTreeFactory.GetInstance(Settings.UseRandomNumberGenerator);
-            
+
             var stopwatch = new Stopwatch();
             stopwatch.Start();
             var initialPopulationOfStrategiesList = CreateRandomTrees(Settings.NumStrategiesForFirstGeneration);
@@ -57,20 +57,28 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             var maxNumGenerations = Settings.MaxNumberOfGenerations;
 
             var currentGeneration = 1;
-            do{
+            var mutationRate = Settings.InitialMutationRate;
+            var mutationRateChange = Settings.MutationRateChangePerGeneration;
+            do {
                 PlayAndEvaluate(Settings.NumHandsToPlayForEachStrategy, initialPopulationOfStrategiesList, gameRunner, bankroll, bettingStrategy);
                 // sort the list with highest fitness first
                 initialPopulationOfStrategiesList.Sort(initialPopulationOfStrategiesList[0].GetBlackjackTreeComparison());
                 var parentStrategiesList = SelectParents(initialPopulationOfStrategiesList, Settings.NumStrategiesToGoToNextGeneration);
                 // need to select parents now
                 var children = ProduceOffspring(parentStrategiesList, initialPopulationOfStrategiesList.Count - parentStrategiesList.Count);
-                // TODO: mutate the children
+                MutateOffspring(children, mutationRate);
 
                 // combine the parents and the children into a list, evaluate, sort and continue
                 parentStrategiesList.AddRange(children);
                 initialPopulationOfStrategiesList = parentStrategiesList;
+                // update the mutation rate
+                mutationRate = mutationRate * (1 - mutationRateChange);
+                if(mutationRate < 0) { 
+                    mutationRate = 0;
+                    Console.WriteLine("mutation rate at 0");
+                }
                 currentGeneration++;
-            }while(currentGeneration < maxNumGenerations);
+            } while (currentGeneration < maxNumGenerations);
 
             // run another PlayAndEvaluate to evaluate the last set of offspring
             PlayAndEvaluate(Settings.NumHandsToPlayForEachStrategy, initialPopulationOfStrategiesList, gameRunner, bankroll, bettingStrategy);
@@ -81,8 +89,8 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
 
             // return the top numToReturn items
             var topStrategies = new List<BlackjackStrategyTree>(numToReturn);
-            for(int i = 0; i < numToReturn; i++) {
-                if(i >= initialPopulationOfStrategiesList.Count) {
+            for (int i = 0; i < numToReturn; i++) {
+                if (i >= initialPopulationOfStrategiesList.Count) {
                     break;
                 }
                 topStrategies.Add(initialPopulationOfStrategiesList[i]);
@@ -90,33 +98,76 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
 
             return topStrategies;
         }
-        private HandAction[] _mutateOffspringHandActions = new HandAction[] { HandAction.Hit, HandAction.Stand, HandAction.Double };
+        private readonly HandAction[] _mutateOffspringHandActions = new HandAction[] { HandAction.Hit, HandAction.Stand, HandAction.Double };
+        private readonly CardNumber[] _mutateOffspringCardNumbers = ((CardNumber[])Enum.GetValues(typeof(CardNumber))).ToArray();
         /// <summary>
         /// 
         /// </summary>
         /// <param name="offspringTree"></param>
         /// <param name="currentGeneration"></param>
-        /// <param name="initialMutationRate">% number that's represented as a number between (inclusive) 0 and 1.</param>
-        protected internal void MutateOffspring(List<BlackjackStrategyTree> offspringTree, int currentGeneration, float mutationRate) {
-            // visit each LeafNode and see if the value should be changed or not.
-            // there should be 80 possible leaf nodes in the ace tree
+        /// <param name="mutationRate">% number that's represented as a number between (inclusive) 0 and 100.</param>
+        protected internal void MutateOffspring(List<BlackjackStrategyTree> offspringTree, int mutationRate) {
+            if (mutationRate < 0 || mutationRate > 100) {
+                throw new UnexpectedValueException($"mutationRate: '{mutationRate}'");
+            }
+            // TODO: Maybe it's better to clone the offspringTree and then return that as a new list
 
-            // var possibleActions = new HandAction[]{HandAction.Hit,HandAction.Stand, HandAction.Double };
-
-            // pick a random number between 0 - 80, this will be the total number to consider changing
-            // reduce the random number by the mutationRate to get the final number of cells to edit
-
-            foreach(var off in offspringTree) {
-                foreach(var aceDealer in off.aceTree.Children!) {
-                    foreach(var node in aceDealer.Children!) {
-                        if( node is LeafNode<CardNumberOrScore,HandAction> leafNode) {
-
+            // visit each tree in the soft totals and see if it should be updated
+            foreach (var off in offspringTree) {
+                // soft totals
+                foreach (var aceDealer in off.aceTree.Children!) {
+                    foreach (var node in aceDealer.Children!) {
+                        if (node is LeafNode<CardNumberOrScore, HandAction> leafNode) {
+                            // chance to modify the value is mutationRate
+                            var value = CardNumberHelper.GetRandomIntBetween(0, 100 + 1);
+                            if (value < mutationRate) {
+                                // candidate selected for mutation
+                                leafNode.Value = CardNumberHelper.GetRandomHandAction(Settings.UseRandomNumberGenerator, _mutateOffspringHandActions);
+                            }
                         }
                         else {
                             throw new UnexpectedNodeTypeException($"Expected LeafNode, received type: {node.GetType().FullName}");
                         }
                     }
-                    throw new NotImplementedException();
+                }
+                // hard total tree
+                foreach (var dealerNode in off.hardTotalTree.Children!) {
+                    foreach(var node in dealerNode.Children!) {
+                        if (node is LeafNode<CardNumberOrScore, HandAction> leafNode) {
+                            // chance to modify the value is mutationRate
+                            var value = CardNumberHelper.GetRandomIntBetween(0, 100 + 1);
+                            if (value < mutationRate) {
+                                // get a random action and assign it, if it's the same as the existing action that's ok too.
+                                leafNode.Value = CardNumberHelper.GetRandomHandAction(Settings.UseRandomNumberGenerator, _mutateOffspringHandActions);
+                            }
+                        }
+                        else {
+                            throw new UnexpectedNodeTypeException($"Expected LeafNode, received type: {node.GetType().FullName}");
+                        }
+                    }
+                }
+                // pairs tree
+                for (int dealerIndex = 0; dealerIndex < _mutateOffspringCardNumbers.Length; dealerIndex++) {
+                    var dealerCard = _mutateOffspringCardNumbers[dealerIndex];
+                    var dealerNode = off.pairTree.Get(CardNumberHelper.ConvertToCardNumberOrScore(dealerCard));
+
+                    for (int pairCardIndex = 0; pairCardIndex < _mutateOffspringCardNumbers.Length; pairCardIndex++) {
+                        var pairCard = _mutateOffspringCardNumbers[pairCardIndex];
+                        var value = CardNumberHelper.GetRandomIntBetween(0, 100 + 1);
+                        if (value < mutationRate) {
+                            var cnos = CardNumberHelper.ConvertToCardNumberOrScore(pairCard);
+                            
+                            var foundNode = dealerNode?.Get(cnos);
+                            if (foundNode is object) {
+                                // remove that node
+                                dealerNode!.Children!.Remove(foundNode);
+                            }
+                            else {
+                                // add it
+                                off.AddPairSplitNextAction(dealerCard, pairCard);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -124,15 +175,15 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
         /// This will return the selected parents.
         /// The list provided will be sorted when this method returns.
         /// </summary>
-        protected internal List<BlackjackStrategyTree> SelectParents(List<BlackjackStrategyTree>strategies, int numParents){
+        protected internal List<BlackjackStrategyTree> SelectParents(List<BlackjackStrategyTree> strategies, int numParents) {
             Debug.Assert(strategies?.Count > 0);
             Debug.Assert(numParents > 0);
             var list = new List<BlackjackStrategyTree>();
             var currentIndex = 0;
             // sort the list
             strategies.Sort(strategies[0].GetBlackjackTreeComparison());
-            foreach(var item in strategies){
-                if(currentIndex++ >= numParents){
+            foreach (var item in strategies) {
+                if (currentIndex++ >= numParents) {
                     break;
                 }
                 list.Add(item);
@@ -140,12 +191,12 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
 
             return list;
         }
-        protected internal List<BlackjackStrategyTree> ProduceOffspring(List<BlackjackStrategyTree> parents, int numChildren){
+        protected internal List<BlackjackStrategyTree> ProduceOffspring(List<BlackjackStrategyTree> parents, int numChildren) {
             var children = new List<BlackjackStrategyTree>();
             var numParents = parents.Count;
 
             var newParentList = new List<BlackjackStrategyTree>();
-            foreach(var parent in parents){
+            foreach (var parent in parents) {
                 newParentList.Add(parent);
             }
 
@@ -155,16 +206,16 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             newParentList.Shuffle(Settings.UseRandomNumberGenerator);
             var currentIndex = 0;
 
-            while(children.Count < numChildren){
-                if(currentIndex >= newParentList.Count - 2){
+            while (children.Count < numChildren) {
+                if (currentIndex >= newParentList.Count - 2) {
                     // shuffle the list and reset the index
                     newParentList.Shuffle(Settings.UseRandomNumberGenerator);
                     currentIndex = 0;
                 }
 
-                var offspring = ProduceOffspring(newParentList[currentIndex],newParentList[currentIndex + 1]);
+                var offspring = ProduceOffspring(newParentList[currentIndex], newParentList[currentIndex + 1]);
                 children.Add(offspring.child1);
-                if(children.Count < numChildren){
+                if (children.Count < numChildren) {
                     children.Add(offspring.child2);
                 }
                 // move the index forward to get new parents next time
@@ -178,7 +229,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
         /// The offspring will have even nodes from parent 1 and odd nodes from parent 2. Node number
         /// is determined by the index when it's being visited.
         /// </summary>
-        protected internal (BlackjackStrategyTree child1, BlackjackStrategyTree child2) ProduceOffspring(BlackjackStrategyTree parent1, BlackjackStrategyTree parent2){
+        protected internal (BlackjackStrategyTree child1, BlackjackStrategyTree child2) ProduceOffspring(BlackjackStrategyTree parent1, BlackjackStrategyTree parent2) {
             var child1 = new BlackjackStrategyTree();
             var child2 = new BlackjackStrategyTree();
             var allCardNumbers = CardDeckFactory.GetAllCardNumbers();
@@ -187,73 +238,73 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             // first half comes from parent1 and the second half from parent2
 
             // 1: pairs
-            var pairIndexCuttoff = (int)Math.Floor(allCardNumbers.Length/2F);
-            for(var dealerIndex = 0;dealerIndex <allCardNumbers.Length;dealerIndex++){
-                for(int pairIndex = 0;pairIndex < allPossiblePairs.Count;pairIndex++){
-                    var valueParent1 = parent1.GetNextHandAction(allCardNumbers[dealerIndex],allCardNumbers[pairIndex],allCardNumbers[pairIndex]);
-                    var valueParent2 = parent2.GetNextHandAction(allCardNumbers[dealerIndex],allCardNumbers[pairIndex],allCardNumbers[pairIndex]);
-                    if(pairIndex < pairIndexCuttoff){
+            var pairIndexCuttoff = (int)Math.Floor(allCardNumbers.Length / 2F);
+            for (var dealerIndex = 0; dealerIndex < allCardNumbers.Length; dealerIndex++) {
+                for (int pairIndex = 0; pairIndex < allPossiblePairs.Count; pairIndex++) {
+                    var valueParent1 = parent1.GetNextHandAction(allCardNumbers[dealerIndex], allCardNumbers[pairIndex], allCardNumbers[pairIndex]);
+                    var valueParent2 = parent2.GetNextHandAction(allCardNumbers[dealerIndex], allCardNumbers[pairIndex], allCardNumbers[pairIndex]);
+                    if (pairIndex < pairIndexCuttoff) {
                         // child1 get the Split value from parent1 and child2 gets the Split value from parent 2
-                        if(valueParent1 == HandAction.Split){
-                            child1.AddPairSplitNextAction(allCardNumbers[dealerIndex],allCardNumbers[pairIndex]);
+                        if (valueParent1 == HandAction.Split) {
+                            child1.AddPairSplitNextAction(allCardNumbers[dealerIndex], allCardNumbers[pairIndex]);
                         }
-                        if(valueParent2 == HandAction.Split){
-                            child2.AddPairSplitNextAction(allCardNumbers[dealerIndex],allCardNumbers[pairIndex]);
+                        if (valueParent2 == HandAction.Split) {
+                            child2.AddPairSplitNextAction(allCardNumbers[dealerIndex], allCardNumbers[pairIndex]);
                         }
                     }
-                    else{
+                    else {
                         // child1 get the Split value from parent2 and child2 gets the Split value from parent 1
-                        if(valueParent2 == HandAction.Split){
-                            child1.AddPairSplitNextAction(allCardNumbers[dealerIndex],allCardNumbers[pairIndex]);
+                        if (valueParent2 == HandAction.Split) {
+                            child1.AddPairSplitNextAction(allCardNumbers[dealerIndex], allCardNumbers[pairIndex]);
                         }
-                        if(valueParent1 == HandAction.Split){
-                            child2.AddPairSplitNextAction(allCardNumbers[dealerIndex],allCardNumbers[pairIndex]);
+                        if (valueParent1 == HandAction.Split) {
+                            child2.AddPairSplitNextAction(allCardNumbers[dealerIndex], allCardNumbers[pairIndex]);
                         }
                     }
                 }
             }
             // 2: soft totals
             var allSoftTotalCards = CardNumberHelper.GetAllPossibleSoftTotalValues();
-            var softTotalCardCuttoffIndex = (int)Math.Floor(allSoftTotalCards.Count/2F);
-            for(var dealerIndex = 0; dealerIndex <allCardNumbers.Length;dealerIndex++){
-                for(var stIndex = 0; stIndex < allSoftTotalCards.Count; stIndex++){
+            var softTotalCardCuttoffIndex = (int)Math.Floor(allSoftTotalCards.Count / 2F);
+            for (var dealerIndex = 0; dealerIndex < allCardNumbers.Length; dealerIndex++) {
+                for (var stIndex = 0; stIndex < allSoftTotalCards.Count; stIndex++) {
                     var valueParent1 = parent1.GetFromAceTree(allCardNumbers[dealerIndex], allSoftTotalCards[stIndex]);
                     var valueParent2 = parent1.GetFromAceTree(allCardNumbers[dealerIndex], allSoftTotalCards[stIndex]);
-                    if(stIndex < softTotalCardCuttoffIndex){
+                    if (stIndex < softTotalCardCuttoffIndex) {
                         // child1 get the Split value from parent1 and child2 gets the Split value from parent 2
-                        if(valueParent1 is not null){
-                            child1.AddSoftTotalNextAction(allCardNumbers[dealerIndex],allSoftTotalCards[stIndex],valueParent1.Value);
+                        if (valueParent1 is not null) {
+                            child1.AddSoftTotalNextAction(allCardNumbers[dealerIndex], allSoftTotalCards[stIndex], valueParent1.Value);
                         }
-                        if(valueParent2 is not null){
-                            child2.AddSoftTotalNextAction(allCardNumbers[dealerIndex],allSoftTotalCards[stIndex],valueParent2.Value);
+                        if (valueParent2 is not null) {
+                            child2.AddSoftTotalNextAction(allCardNumbers[dealerIndex], allSoftTotalCards[stIndex], valueParent2.Value);
                         }
                     }
-                    else{
+                    else {
                         // child1 get the Split value from parent2 and child2 gets the Split value from parent 1
-                        if(valueParent2 is not null){
-                            child1.AddSoftTotalNextAction(allCardNumbers[dealerIndex],allSoftTotalCards[stIndex],valueParent2.Value);
+                        if (valueParent2 is not null) {
+                            child1.AddSoftTotalNextAction(allCardNumbers[dealerIndex], allSoftTotalCards[stIndex], valueParent2.Value);
                         }
-                        if(valueParent1 is not null){
-                            child2.AddSoftTotalNextAction(allCardNumbers[dealerIndex],allSoftTotalCards[stIndex],valueParent1.Value);
+                        if (valueParent1 is not null) {
+                            child2.AddSoftTotalNextAction(allCardNumbers[dealerIndex], allSoftTotalCards[stIndex], valueParent1.Value);
                         }
                     }
                 }
             }
             // 3: hard totals
             var allHardTotalValues = CardNumberHelper.GetAllPossibleHardTotalValues();
-            var hardTotalCardCuttoffIndex = (int)Math.Floor(allHardTotalValues.Count/2F);
-            for(var dealerIndex = 0; dealerIndex <allCardNumbers.Length;dealerIndex++){
-                for(var htIndex = 0; htIndex < allCardNumbers.Length; htIndex++){
+            var hardTotalCardCuttoffIndex = (int)Math.Floor(allHardTotalValues.Count / 2F);
+            for (var dealerIndex = 0; dealerIndex < allCardNumbers.Length; dealerIndex++) {
+                for (var htIndex = 0; htIndex < allCardNumbers.Length; htIndex++) {
                     var dealerCard = allCardNumbers[dealerIndex];
-                    var valueParent1 = parent1.GetOrAddFromHardTotalTree(allCardNumbers[dealerIndex],allHardTotalValues[htIndex]);
-                    var valueParent2 = parent2.GetOrAddFromHardTotalTree(allCardNumbers[dealerIndex],allHardTotalValues[htIndex]);
+                    var valueParent1 = parent1.GetOrAddFromHardTotalTree(allCardNumbers[dealerIndex], allHardTotalValues[htIndex]);
+                    var valueParent2 = parent2.GetOrAddFromHardTotalTree(allCardNumbers[dealerIndex], allHardTotalValues[htIndex]);
                     var currentHardTotal = allHardTotalValues[htIndex];
-                    if(htIndex < hardTotalCardCuttoffIndex){
+                    if (htIndex < hardTotalCardCuttoffIndex) {
                         // child1 get the Split value from parent1 and child2 gets the Split value from parent 2
                         child1.AddHardTotalNextAction(dealerCard, currentHardTotal, valueParent1);
                         child2.AddHardTotalNextAction(dealerCard, currentHardTotal, valueParent2);
                     }
-                    else{
+                    else {
                         // child1 get the Split value from parent2 and child2 gets the Split value from parent 1
                         child1.AddHardTotalNextAction(dealerCard, currentHardTotal, valueParent2);
                         child2.AddHardTotalNextAction(dealerCard, currentHardTotal, valueParent1);
@@ -269,7 +320,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
         /// a FitnessScore, those will be skipped.
         /// The provided list will be sorted by the FitnessScore (descending) when the method returns.
         /// </summary>
-        public void PlayAndEvaluate(int numGamesToPlay, List<BlackjackStrategyTree> strategies, GameRunner gameRunner, Bankroll bankroll,BettingStrategy bettingStrategy) {
+        public void PlayAndEvaluate(int numGamesToPlay, List<BlackjackStrategyTree> strategies, GameRunner gameRunner, Bankroll bankroll, BettingStrategy bettingStrategy) {
             Debug.Assert(strategies?.Count > 0);
             Debug.Assert(gameRunner is object);
             // Debug.Assert(game is object);
@@ -281,7 +332,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                 var game = gameRunner.CreateNewGame(Settings.NumDecks, 1, pf, discardFirstCard);
 
                 // if it already has a score, skip it
-                if(strategy.FitnessScore == null || !strategy.FitnessScore.HasValue) {
+                if (strategy.FitnessScore == null || !strategy.FitnessScore.HasValue) {
                     PlayGames(Settings.NumHandsToPlayForEachStrategy, gameRunner, game);
                     // DollarsRemaining isn't working correctly, needs investigation
                     // strategy.FitnessScore = game.Opponents[0].BettingStrategy.Bankroll.DollarsRemaining;
@@ -313,10 +364,10 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             Debug.Assert(gameRunner is object);
             Debug.Assert(game is object);
 
-            if(numGamesToPlay <= 0) {
+            if (numGamesToPlay <= 0) {
                 throw new ArgumentException($"{nameof(numGamesToPlay)} must be greater than zero. Passed in value: '{numGamesToPlay}'");
             }
-            for(int i = 0; i < numGamesToPlay; i++) {
+            for (int i = 0; i < numGamesToPlay; i++) {
                 gameRunner.PlayGame(game);
             }
         }
