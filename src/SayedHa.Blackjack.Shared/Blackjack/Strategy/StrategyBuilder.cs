@@ -59,6 +59,8 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             var currentGeneration = 1;
             var mutationRate = Settings.InitialMutationRate;
             var mutationRateChange = Settings.MutationRateChangePerGeneration;
+            var allStrategies = new List<BlackjackStrategyTree>();
+            allStrategies.AddRange(initialPopulationOfStrategiesList);
             do {
                 PlayAndEvaluate(Settings.NumHandsToPlayForEachStrategy, initialPopulationOfStrategiesList, gameRunner, bankroll, bettingStrategy);
                 // sort the list with highest fitness first
@@ -71,8 +73,17 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                 // combine the parents and the children into a list, evaluate, sort and continue
                 parentStrategiesList.AddRange(children);
                 initialPopulationOfStrategiesList = parentStrategiesList;
+
+                // add children to allStrategies, sort and select
+                //allStrategies.AddRange(children);
+                //allStrategies.Sort(allStrategies[0].GetBlackjackTreeComparison());
+                //initialPopulationOfStrategiesList = allStrategies.GetRange(0, allStrategies.Count - Settings.NumStrategiesForFirstGeneration);
+
+                // trim all strategies as well so it doesn't get too big
+                //allStrategies = initialPopulationOfStrategiesList;
+
                 // update the mutation rate
-                mutationRate = mutationRate * (1 - mutationRateChange);
+                mutationRate = (int)Math.Floor(mutationRate * (100 - mutationRateChange)/100F);
                 if(mutationRate < 0) { 
                     mutationRate = 0;
                     Console.WriteLine("mutation rate at 0");
@@ -110,6 +121,12 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             if (mutationRate < 0 || mutationRate > 100) {
                 throw new UnexpectedValueException($"mutationRate: '{mutationRate}'");
             }
+
+            if(mutationRate == 0) {
+                // nothing to do.
+                return;
+            }
+
             // TODO: Maybe it's better to clone the offspringTree and then return that as a new list
 
             // visit each tree in the soft totals and see if it should be updated
@@ -328,11 +345,10 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             var discardFirstCard = true;
 
             foreach (var strategy in strategies) {
-                var pf = new StrategyBuilderParticipantFactory(strategy, bettingStrategy, Settings, NullLogger.Instance);
-                var game = gameRunner.CreateNewGame(Settings.NumDecks, 1, pf, discardFirstCard);
-
                 // if it already has a score, skip it
                 if (strategy.FitnessScore == null || !strategy.FitnessScore.HasValue) {
+                    var pf = new StrategyBuilderParticipantFactory(strategy, bettingStrategy, Settings, NullLogger.Instance);
+                    var game = gameRunner.CreateNewGame(Settings.NumDecks, 1, pf, discardFirstCard);
                     PlayGames(Settings.NumHandsToPlayForEachStrategy, gameRunner, game);
                     // DollarsRemaining isn't working correctly, needs investigation
                     // strategy.FitnessScore = game.Opponents[0].BettingStrategy.Bankroll.DollarsRemaining;

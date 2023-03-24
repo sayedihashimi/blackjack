@@ -12,6 +12,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with SayedHa.Blackjack.  If not, see <https://www.gnu.org/licenses/>.
+using BenchmarkDotNet.Running;
+using SayedHa.Blackjack;
 using SayedHa.Blackjack.Shared;
 using SayedHa.Blackjack.Shared.Betting;
 using SayedHa.Blackjack.Shared.Blackjack.Strategy;
@@ -23,6 +25,8 @@ using System.Text;
 using SB = SayedHa.Blackjack.Shared.Blackjack.Strategy.StrategyBuilder;
 // TODO: this whole class needs to be replaced, just prototyping currently.
 
+var summary = BenchmarkRunner.Run<StrategyBuilderBenchmark>();
+return;
 
 var settings = new StrategyBuilderSettings();
 Console.WriteLine(@$"starting test for: 
@@ -36,6 +40,7 @@ var stopwatch = new Stopwatch();
 stopwatch.Start();
 var result = strategy1.FindBestStrategies(5);
 stopwatch.Stop();
+
 
 var sb = new StringBuilder();
 var sWriter = new StringWriter(sb);

@@ -68,16 +68,32 @@ namespace SayedHa.Blackjack.Shared {
         /// <returns>Returns the card that was passed in</returns>
         public Card ReceiveCard(Card card) {
             Debug.Assert(card != null);
-            // _logger.LogLine($"  card: {card.ToString()}");
             DealtCards.Add(card);
-            _scoreCached = ComputeScore();
+            _scoreCacheBusted = true;
+            // TODO:Perf This call is taking up a lot of CPU time
+            //_scoreCached = ComputeScore();
 
             return card;
         }
+        public (Card card1, Card card2) ReceiveCards(Card card1, Card card2) {
+            Debug.Assert(card1 is not null);
+            Debug.Assert(card2 is not null);
 
-        public int GetScore() {
-            return _scoreCached;
+            DealtCards.Add(card1);
+            DealtCards.Add(card2);
+            _scoreCacheBusted = true;
+            // _scoreCached = ComputeScore();
+            return (card1, card2);
         }
+
+        //public int GetScore() {
+        //    return _scoreCached;
+        //}
+
+        public int GetScore() => _scoreCacheBusted switch {
+            false => _scoreCached,
+            true  => ComputeScore()
+        };
 
         /// <summary>
         /// Call this mehtod at the end of the game to indicate if the hand was a win/loss
@@ -98,6 +114,7 @@ namespace SayedHa.Blackjack.Shared {
             Status = HandStatus.Closed;
         }
 
+        protected internal bool _scoreCacheBusted = true;
         /// <summary>
         /// Returns the score for the DealtCards
         /// Note: this assumes that only the Ace card has multiple values, if that ever changes
@@ -138,6 +155,10 @@ namespace SayedHa.Blackjack.Shared {
                     }
                 }
             }
+
+            _scoreCached = bestScore;
+            _scoreCacheBusted = false;
+
             return bestScore;
         }
 

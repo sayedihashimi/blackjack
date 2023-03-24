@@ -66,22 +66,34 @@ namespace SayedHa.Blackjack.Shared {
         King
     }
     public static class CardNumberExtension {
+        // TODO:Perf This code is taking up a lot of CPU time
+        private static readonly int[] AceValues = new[] { 11, 1 };
+        private static readonly int[] TwoValues = new[] { 2 };
+        private static readonly int[] ThreeValues = new[] { 3 };
+        private static readonly int[] FourValues = new[] { 4 };
+        private static readonly int[] FiveValues = new[] { 5 };
+        private static readonly int[] SixValues = new[] { 6 };
+        private static readonly int[] SevenValues = new[] { 7 };
+        private static readonly int[] EightValues = new[] { 8 };
+        private static readonly int[] NineValues = new[] { 9 };
+        private static readonly int[] TenValues = new[] { 10 };
+
         public static int[] GetValues(this CardNumber cardNumber) {
             switch (cardNumber) {
                 // 11 value must come first here or the Hand.GetScore method must be updated
-                case CardNumber.Ace: return new int[] { 11, 1 };
-                case CardNumber.Two: return new int[] { 2 };
-                case CardNumber.Three: return new int[] { 3 };
-                case CardNumber.Four: return new int[] { 4 };
-                case CardNumber.Five: return new int[] { 5 };
-                case CardNumber.Six: return new int[] { 6 };
-                case CardNumber.Seven: return new int[] { 7 };
-                case CardNumber.Eight: return new int[] { 8 };
-                case CardNumber.Nine: return new int[] { 9 };
-                case CardNumber.Ten: return new int[] { 10 };
-                case CardNumber.Jack: return new int[] { 10 };
-                case CardNumber.Queen: return new int[] { 10 };
-                case CardNumber.King: return new int[] { 10 };
+                case CardNumber.Ace: return AceValues;
+                case CardNumber.Two: return TwoValues;
+                case CardNumber.Three: return ThreeValues;
+                case CardNumber.Four: return FourValues;
+                case CardNumber.Five: return FiveValues;
+                case CardNumber.Six: return SixValues;
+                case CardNumber.Seven: return SevenValues;
+                case CardNumber.Eight: return EightValues;
+                case CardNumber.Nine: return NineValues;
+                case CardNumber.Ten: return TenValues;
+                case CardNumber.Jack: return TenValues;
+                case CardNumber.Queen: return TenValues;
+                case CardNumber.King: return TenValues;
                 default: throw new ApplicationException($"Unknown card number:'{cardNumber}'");
             }
         }

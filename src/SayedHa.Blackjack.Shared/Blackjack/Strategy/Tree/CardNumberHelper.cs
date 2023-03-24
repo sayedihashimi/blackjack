@@ -1,6 +1,7 @@
 ﻿using SayedHa.Blackjack.Shared.Blackjack.Exceptions;
 using System.Security.Cryptography;
 using System;
+using System.Diagnostics;
 
 namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
     public static class CardNumberHelper {
@@ -113,6 +114,93 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
             }
             return hand.GetScore();
         }
+        public static int ComputeScore(CardNumber card1, CardNumber card2) => ComputeScore(new[] { card1, card2 });
+        public static int ComputeScore(CardNumber[]dealtCards) {
+            if (dealtCards == null || dealtCards.Length == 0) return 0;
+
+            // have to handle the Ace case where it has more than one value
+            var cardsWithMultipleValues = new List<CardNumber>();
+            var cardsWithSingleValue = new List<CardNumber>();
+            foreach (var card in dealtCards) {
+                if (card.GetValues().Length > 1) {
+                    cardsWithMultipleValues.Add(card);
+                }
+                else {
+                    cardsWithSingleValue.Add(card);
+                }
+            }
+
+            // calculate all scores and return the best value
+            var sumSingleValueCards = cardsWithSingleValue.Sum(card => card.GetValues()[0]);
+
+            var bestScore = sumSingleValueCards;
+            // TODO: Compute all possible scores and then return the best score.
+            var allScores = ComputeScoreForCardsWithMultipleValues(bestScore, cardsWithMultipleValues);
+            if (allScores.Count == 1) {
+                return allScores[0];
+            }
+            else {
+                allScores = allScores.OrderByDescending(x => x).ToList();
+
+                foreach (var score in allScores) {
+                    bestScore = score;
+                    if (score <= BlackjackSettings.GetBlackjackSettings().MaxScore) {
+                        break;
+                    }
+                }
+            }
+            return bestScore;
+        }
+
+        private static List<int> ComputeScoreForCardsWithMultipleValues(int currentScore, List<CardNumber> CardsWithMultipleValues) {
+            Debug.Assert(CardsWithMultipleValues != null);
+
+            var scoreList = new List<int>();
+            if (CardsWithMultipleValues?.Count == 0) {
+                return new List<int> { currentScore };
+            }
+
+            scoreList = ComputeScoreForCardsWithMultipleValues(CardsWithMultipleValues!, currentScore, new List<int>());
+
+            return scoreList;
+        }
+        private static List<int> ComputeScoreForCardsWithMultipleValues(List<CardNumber> CardsWithMultipleValues, int initialScore, List<int> previousScores) {
+            if (CardsWithMultipleValues?.Count == 0) {
+                return previousScores;
+            }
+            if (CardsWithMultipleValues.Count == 1) {
+                var newScores = new List<int>();
+                newScores.AddRange(previousScores);
+                foreach (var value in CardsWithMultipleValues[0].GetValues()) {
+                    newScores.Add(initialScore + value);
+                }
+
+                return newScores;
+            }
+            var newScores1 = new List<int>();
+            newScores1.AddRange(previousScores);
+            // now we need to take off the first card and recurse to get the value
+            foreach (var value in CardsWithMultipleValues[0].GetValues()) {
+                // iterate through the other cards to get the score of the remaining list
+                var remainingCards = new List<CardNumber>();
+                for (int i = 1; i < CardsWithMultipleValues.Count; i++) {
+                    remainingCards.Add(CardsWithMultipleValues[i]);
+                }
+                newScores1.AddRange(ComputeScoreForCardsWithMultipleValues(remainingCards, initialScore + value, newScores1));
+            }
+
+            var scoresNoDupes = new List<int>();
+            foreach (var score in newScores1) {
+                if (!scoresNoDupes.Contains(score)) {
+                    scoresNoDupes.Add(score);
+                }
+            }
+
+            return scoresNoDupes;
+        }
+
+
+
         public static bool ContainsAnAce(CardNumber[] cards) => 
             cards.Any(card => card == CardNumber.Ace);
 

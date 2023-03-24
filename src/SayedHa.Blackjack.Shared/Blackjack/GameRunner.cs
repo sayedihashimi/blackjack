@@ -59,10 +59,10 @@ namespace SayedHa.Blackjack.Shared {
             // if the discarded # of cards exceeds specified amount, shuffle the cards
             var percentRemainingCards = (float)cards.GetNumRemainingCards() / (float)cards.GetTotalNumCards();
             if (percentRemainingCards * 100 <= game.ShuffleThresholdPercent) {
-                _logger.LogLine("**** shuffling cards");
+                // _logger.LogLine("**** shuffling cards");
                 ShufflingCards?.Invoke(this, new ShufflingCardsEventArg(game));
                 game.Cards.ShuffleCards();
-                _logger.LogLine($"cards: [{game.Cards}]");
+                // _logger.LogLine($"cards: [{game.Cards}]");
                 // discard the first card after every shuffle
                 game.Cards.DiscardACard();
             }
@@ -94,12 +94,16 @@ namespace SayedHa.Blackjack.Shared {
                 int betAmount = opponent.BettingStrategy.GetNextBetAmount(game);
                 BetAmountConfigured?.Invoke(this, new BetAmountConfiguredEventArgs(game,betAmount));
                 var newhand = new Hand(betAmount, _logger);
-                tempCard = newhand.ReceiveCard(game.Cards.GetCardAndMoveNext()!);
+                //tempCard = newhand.ReceiveCard(game.Cards.GetCardAndMoveNext()!);
+                //CardReceived?.Invoke(this, new CardReceivedEventArgs(game));
+                //tempCard = newhand.ReceiveCard(game.Cards.GetCardAndMoveNext()!);
+                //CardReceived?.Invoke(this, new CardReceivedEventArgs(game));
+
+                newhand.ReceiveCards(game.Cards.GetCardAndMoveNext()!, game.Cards.GetCardAndMoveNext()!);
                 CardReceived?.Invoke(this, new CardReceivedEventArgs(game));
-                tempCard = newhand.ReceiveCard(game.Cards.GetCardAndMoveNext()!);
                 CardReceived?.Invoke(this, new CardReceivedEventArgs(game));
 
-                _logger.LogLine($"Dealing to {opponent.Name}: {newhand}, bet = ${betAmount:F0}");
+                // _logger.LogLine($"Dealing to {opponent.Name}: {newhand}, bet = ${betAmount:F0}");
                 opponent.Hands.Add(newhand);
 
                 index++;
@@ -108,12 +112,16 @@ namespace SayedHa.Blackjack.Shared {
             // deal two cards to the dealer
             var dealerHand = new DealerHand(_logger);
             game.Dealer.Hands.Add(dealerHand);
-            tempCard = dealerHand.ReceiveCard(game.Cards.GetCardAndMoveNext()!);
-            CardReceived?.Invoke(this, new CardReceivedEventArgs(game,updateUi: false));
-            tempCard = dealerHand.ReceiveCard(game.Cards.GetCardAndMoveNext()!);
+            //tempCard = dealerHand.ReceiveCard(game.Cards.GetCardAndMoveNext()!);
+            //CardReceived?.Invoke(this, new CardReceivedEventArgs(game,updateUi: false));
+            //tempCard = dealerHand.ReceiveCard(game.Cards.GetCardAndMoveNext()!);
+            //CardReceived?.Invoke(this, new CardReceivedEventArgs(game));
+
+            dealerHand.ReceiveCards(game.Cards.GetCardAndMoveNext()!, game.Cards.GetCardAndMoveNext()!);
+            CardReceived?.Invoke(this, new CardReceivedEventArgs(game));
             CardReceived?.Invoke(this, new CardReceivedEventArgs(game));
 
-            _logger.LogLine($"Dealing to Dealer: {dealerHand} (2nd card visible)");
+            // _logger.LogLine($"Dealing to Dealer: {dealerHand} (2nd card visible)");
             
 
             // TODO: Change how the flow works should be more like:
@@ -193,7 +201,7 @@ namespace SayedHa.Blackjack.Shared {
                                 sb.Append($"↓Lose ${hand.Bet:F0} ");
                             }
                         }
-                        _logger.LogLine(sb.ToString());
+                        // _logger.LogLine(sb.ToString());
                     }
                 }
             }
@@ -205,13 +213,13 @@ namespace SayedHa.Blackjack.Shared {
                         // check to see if the opponent hand has bj, if so it's a push
                         if (hand.DoesHandHaveBlackjack()) {
                             hand.SetHandResult(HandResult.Push, 0);
-                            _logger.LogLine($"Push both player and dealer have blackjack ${hand.Bet:F0} ");
+                            // _logger.LogLine($"Push both player and dealer have blackjack ${hand.Bet:F0} ");
                         }
                         else {
                             hand.SetHandResult(HandResult.DealerWon, hand.Bet * -1F);
                             op.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet * -1, op.Name);
                             game.Dealer.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet, game.Dealer.Name);
-                            _logger.LogLine($"Lose(bj) ${hand.Bet:F0} ");
+                            // _logger.LogLine($"Lose(bj) ${hand.Bet:F0} ");
                         }
                     }
                 }
@@ -236,7 +244,7 @@ namespace SayedHa.Blackjack.Shared {
             Debug.Assert(participant.Hands.Count == 1);
             // we need to play the hand for the opponent now
             // if a split occurs, we need to create a new hand and play each hand seperately
-            _logger.LogLine($"playing for {participant.Role}");
+            // _logger.LogLine($"playing for {participant.Role}");
             if(!playForDealer) {
                 // TODO: Check for blackjack and pay it out. The dealer shouldn't have blackjack here, it should have been detected already.
                 PlayHand(participant.Hands[0], (dealer.Hands[0] as DealerHand)!, participant, cards);
@@ -298,7 +306,7 @@ namespace SayedHa.Blackjack.Shared {
             NextActionSelected?.Invoke(this, new NextActionSelectedEventArgs(CurrentGame,hand, dealerHand, nextAction.HandAction, isDealerHand));
             // if the nextAction is to split we need to create two hands and deal a new card to each hand
             if (nextAction.HandAction == HandAction.Split) {
-                _logger.LogLine($"action = split. Hand={hand}");
+                // _logger.LogLine($"action = split. Hand={hand}");
 
                 var newHand = new Hand(hand.Bet, _logger);
                 newHand.ReceiveCard(hand.DealtCards[1]);
@@ -332,7 +340,7 @@ namespace SayedHa.Blackjack.Shared {
             // next action at this point shouldn't be split.
             // splits should have already been taken care of at this point
             var isDealerHand = hand as DealerHand is object;
-            _logger.LogLine($"  {nextAction}, Hand={hand}");
+            // _logger.LogLine($"  {nextAction}, Hand={hand}");
             switch (nextAction) {
                 case HandAction.Split: throw new ApplicationException("no splits here");
                 case HandAction.Stand:
@@ -355,7 +363,7 @@ namespace SayedHa.Blackjack.Shared {
                     hand.Bet *= 2;
                     hand.MarkHandAsClosed();
                     CardReceived?.Invoke(this, new CardReceivedEventArgs(CurrentGame));
-                    _logger.LogLine($"    Hit, Hand={hand}, Bet=${hand.Bet:F0}");
+                    // _logger.LogLine($"    Hit, Hand={hand}, Bet=${hand.Bet:F0}");
                     NextActionSelected?.Invoke(this, new NextActionSelectedEventArgs(CurrentGame, hand, dealerHand, HandAction.Double, isDealerHand));
                     break;
                 default:
