@@ -62,6 +62,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             var allStrategies = new List<BlackjackStrategyTree>();
             allStrategies.AddRange(initialPopulationOfStrategiesList);
             do {
+                Console.WriteLine($"generation: {currentGeneration}");
                 PlayAndEvaluate(Settings.NumHandsToPlayForEachStrategy, initialPopulationOfStrategiesList, gameRunner, bankroll, bettingStrategy);
                 // sort the list with highest fitness first
                 initialPopulationOfStrategiesList.Sort(initialPopulationOfStrategiesList[0].GetBlackjackTreeComparison());
@@ -83,11 +84,14 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                 //allStrategies = initialPopulationOfStrategiesList;
 
                 // update the mutation rate
-                mutationRate = (int)Math.Floor(mutationRate * (100 - mutationRateChange)/100F);
-                if(mutationRate < 0) { 
-                    mutationRate = 0;
-                    Console.WriteLine("mutation rate at 0");
+                if(mutationRate != Settings.MinMutationRate) {
+                    mutationRate = (int)Math.Ceiling(mutationRate * (100 - mutationRateChange) / 100F);
+                    if (mutationRate < Settings.MinMutationRate) {
+                        mutationRate = Settings.MinMutationRate;
+                        // Console.WriteLine("mutation rate at 0");
+                    }
                 }
+                
                 currentGeneration++;
             } while (currentGeneration < maxNumGenerations);
 

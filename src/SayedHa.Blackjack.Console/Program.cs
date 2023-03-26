@@ -12,6 +12,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with SayedHa.Blackjack.  If not, see <https://www.gnu.org/licenses/>.
+using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Running;
 using SayedHa.Blackjack;
 using SayedHa.Blackjack.Shared;
@@ -25,15 +26,38 @@ using System.Text;
 using SB = SayedHa.Blackjack.Shared.Blackjack.Strategy.StrategyBuilder;
 // TODO: this whole class needs to be replaced, just prototyping currently.
 
-var summary = BenchmarkRunner.Run<StrategyBuilderBenchmark>();
-return;
+//var summary = BenchmarkRunner.Run<StrategyBuilderBenchmark>();
+//return;
+
+//var summary = BenchmarkRunner.Run<RandomNumberBenchmarks>();
+//Console.WriteLine(summary);
+//return;
+
+//var stopwatch1 = new Stopwatch();
+//stopwatch1.Start();
+//var rtb = new RandomTreeBenchmarks();
+//rtb.CreateRandomTrees();
+//stopwatch1.Stop();
+//Console.WriteLine($"Elapsed seconds: '{stopwatch1.Elapsed.TotalSeconds}'");
+//return;
+
+//var summary = BenchmarkRunner.Run<RandomTreeBenchmarks>(
+//    ManualConfig
+//        .Create(DefaultConfig.Instance)
+//        .WithOptions(ConfigOptions.DisableOptimizationsValidator)
+//    );
+
+//Console.WriteLine(summary);
+//return;
 
 var settings = new StrategyBuilderSettings();
 Console.WriteLine(@$"starting test for: 
 num generations: {settings.MaxNumberOfGenerations} 
 population: {settings.NumStrategiesForFirstGeneration} 
 num parents (survivors) each gen: {settings.NumStrategiesToGoToNextGeneration}
-num hands to play for each strategy: {settings.NumHandsToPlayForEachStrategy}");
+num hands to play for each strategy: {settings.NumHandsToPlayForEachStrategy}
+initial mutation rate: {settings.InitialMutationRate}
+min mutation rate: {settings.MinMutationRate}");
 
 var strategy1 = new SB();
 var stopwatch = new Stopwatch();
@@ -41,6 +65,13 @@ stopwatch.Start();
 var result = strategy1.FindBestStrategies(5);
 stopwatch.Stop();
 
+Console.WriteLine(@$"Completed test for: 
+num generations: {settings.MaxNumberOfGenerations} 
+population: {settings.NumStrategiesForFirstGeneration} 
+num parents (survivors) each gen: {settings.NumStrategiesToGoToNextGeneration}
+num hands to play for each strategy: {settings.NumHandsToPlayForEachStrategy}
+initial mutation rate: {settings.InitialMutationRate}
+min mutation rate: {settings.MinMutationRate}");
 
 var sb = new StringBuilder();
 var sWriter = new StringWriter(sb);
