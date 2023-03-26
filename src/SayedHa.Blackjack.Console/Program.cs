@@ -46,8 +46,12 @@ using SB = SayedHa.Blackjack.Shared.Blackjack.Strategy.StrategyBuilder;
 //        .Create(DefaultConfig.Instance)
 //        .WithOptions(ConfigOptions.DisableOptimizationsValidator)
 //    );
-
 //Console.WriteLine(summary);
+
+//var summary = BenchmarkRunner.Run<StrategyTreeParallelBenchmarks>();
+//Console.WriteLine(" **** Summary below ****");
+//Console.WriteLine(summary);
+
 //return;
 
 var settings = new StrategyBuilderSettings();
@@ -75,7 +79,7 @@ min mutation rate: {settings.MinMutationRate}");
 
 var sb = new StringBuilder();
 var sWriter = new StringWriter(sb);
-sWriter.WriteLine($"elapsed time: {stopwatch.Elapsed.ToString(@"mm\:ss")}");
+sWriter.WriteLine($"elapsed time: {stopwatch.Elapsed.ToString(@"hh\:mm\:ss")}");
 sWriter.WriteLine($"Num generations: {settings.MaxNumberOfGenerations}");
 sWriter.WriteLine("Top strategies found");
 for (int i = 0; i < result.Count; i++) {

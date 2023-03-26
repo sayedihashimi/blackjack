@@ -52,4 +52,19 @@ namespace SayedHa.Blackjack {
             sb.CreateRandomTrees(num);
         }
     }
+    [MemoryDiagnoser(false)]
+    public class StrategyTreeParallelBenchmarks {
+        [Benchmark]
+        public void TestNotParallel() {
+            var sb = new StrategyBuilder();
+            sb.ExecuteInParallel = false;
+            sb.FindBestStrategies(5);
+        }
+        [Benchmark]
+        public void TestParallel() {
+            var sb = new StrategyBuilder();
+            sb.ExecuteInParallel = true;
+            sb.FindBestStrategies(5);
+        }
+    }
 }
