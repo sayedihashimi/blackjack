@@ -26,103 +26,6 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
 
         protected internal List<BlackjackStrategyTree> AllStrategiesTested { get; set; } = new List<BlackjackStrategyTree>();
 
-        //public async Task<List<BlackjackStrategyTree>> FindBestStrategiesMtAsync(int numToReturn) {
-        //    // 1. setup
-        //    //      create many strategies and evaluate them
-        //    // 2. Select parents => crossover
-        //    // 3. Mutate offspring
-        //    // 4. Merge main population and offspring
-        //    // 5. Evaluate, sort and select
-        //    // 6. Check exit criteria, if not satisfied go to step 2
-
-        //    // 1. Setup
-        //    var factory = BlackjackStrategyTreeFactory.GetInstance(Settings.UseRandomNumberGenerator);
-
-        //    var stopwatch = new Stopwatch();
-        //    stopwatch.Start();
-        //    // var initialPopulationOfStrategiesList = CreateRandomTrees(Settings.NumStrategiesForFirstGeneration);
-
-        //    // TODO: Remove this
-        //    // initialPopulationOfStrategiesList.RemoveAt(0);
-        //    // initialPopulationOfStrategiesList.Add(BlackjackStrategyTreeFactory.GetInstance(true).GetBasicStrategyTree());
-        //    // TODO: end remove
-
-        //    stopwatch.Stop();
-        //    var elapsedTimeStr = stopwatch.ElapsedMilliseconds;
-
-        //    // evaluate the strategies by playing a set number of games
-        //    var bankroll = new Bankroll(Settings.InitialBankroll, NullLogger.Instance);
-        //    var gameRunner = new GameRunner(NullReporter.Instance);
-        //    var bettingStrategy = new FixedBettingStrategy(bankroll, Settings.BetAmount);
-        //    stopwatch.Restart();
-        //    var maxNumGenerations = Settings.MaxNumberOfGenerations;
-
-        //    var currentGeneration = 1;
-        //    var mutationRate = Settings.InitialMutationRate;
-        //    var mutationRateChange = Settings.MutationRateChangePerGeneration;
-        //    //var allStrategies = new List<BlackjackStrategyTree>();
-        //    //allStrategies.AddRange(initialPopulationOfStrategiesList);
-            
-        //    var topStrategies = new List<BlackjackStrategyTree>();
-        //    do {
-        //        Console.WriteLine($"generation: {currentGeneration}");
-
-        //        var evaluatedStrategies = await PlayAndEvalMtAsync(Settings.NumHandsToPlayForEachStrategy, gameRunner, bankroll, bettingStrategy);
-        //        // PlayAndEvaluate(Settings.NumHandsToPlayForEachStrategy, initialPopulationOfStrategiesList, gameRunner, bankroll, bettingStrategy);
-        //        // sort the list with highest fitness first
-        //        evaluatedStrategies.Sort(evaluatedStrategies[0].GetBlackjackTreeComparison());
-        //        var parentStrategiesList = SelectParents(evaluatedStrategies, Settings.NumStrategiesToGoToNextGeneration);
-        //        // need to select parents now
-        //        var children = ProduceOffspring(parentStrategiesList, evaluatedStrategies.Count - parentStrategiesList.Count);
-        //        MutateOffspring(children, mutationRate);
-
-        //        // combine the parents and the children into a list, evaluate, sort and continue
-        //        parentStrategiesList.AddRange(children);
-        //        evaluatedStrategies = parentStrategiesList;
-
-        //        // add children to allStrategies, sort and select
-        //        //allStrategies.AddRange(children);
-        //        //allStrategies.Sort(allStrategies[0].GetBlackjackTreeComparison());
-        //        //initialPopulationOfStrategiesList = allStrategies.GetRange(0, allStrategies.Count - Settings.NumStrategiesForFirstGeneration);
-
-        //        // trim all strategies as well so it doesn't get too big
-        //        //allStrategies = initialPopulationOfStrategiesList;
-
-        //        // update the mutation rate
-        //        if(mutationRate != Settings.MinMutationRate) {
-        //            mutationRate = (int)Math.Ceiling(mutationRate * (100 - mutationRateChange) / 100F);
-        //            if (mutationRate < Settings.MinMutationRate) {
-        //                mutationRate = Settings.MinMutationRate;
-        //                // Console.WriteLine("mutation rate at 0");
-        //            }
-        //        }
-
-        //        evaluatedStrategies.AddRange(topStrategies);
-        //        evaluatedStrategies.Sort(evaluatedStrategies[0].GetBlackjackTreeComparison());
-
-        //        topStrategies = evaluatedStrategies.GetRange(0, Settings.NumStrategiesToGoToNextGeneration);
-
-        //        currentGeneration++;
-        //    } while (currentGeneration < maxNumGenerations);
-
-        //    // run another PlayAndEvaluate to evaluate the last set of offspring
-        //    PlayAndEvaluate(Settings.NumHandsToPlayForEachStrategy, initialPopulationOfStrategiesList, gameRunner, bankroll, bettingStrategy);
-        //    initialPopulationOfStrategiesList.Sort(initialPopulationOfStrategiesList[0].GetBlackjackTreeComparison());
-        //    stopwatch.Stop();
-
-        //    var elapsedTimeStr2 = stopwatch.ElapsedMilliseconds;
-
-        //    // return the top numToReturn items
-        //    var topStrategies = new List<BlackjackStrategyTree>(numToReturn);
-        //    for (int i = 0; i < numToReturn; i++) {
-        //        if (i >= initialPopulationOfStrategiesList.Count) {
-        //            break;
-        //        }
-        //        topStrategies.Add(initialPopulationOfStrategiesList[i]);
-        //    }
-
-        //    return topStrategies;
-        //}
         public List<BlackjackStrategyTree> FindBestStrategies(int numToReturn) {
             // 1. setup
             //      create many strategies and evaluate them
@@ -465,7 +368,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                 }
             }
         }
-        protected internal bool ExecuteInParallel { get; set; } = false;
+        protected internal bool ExecuteInParallel { get; set; } = true;
         protected internal void ProcessStrategy(BlackjackStrategyTree strategy, GameRunner gameRunner, Bankroll bankroll, BettingStrategy bettingStrategy) {
             if (strategy.FitnessScore == null || !strategy.FitnessScore.HasValue) {
                 var pf = new StrategyBuilderParticipantFactory(strategy, bettingStrategy, Settings, NullLogger.Instance);
@@ -475,67 +378,6 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                 // strategy.FitnessScore = game.Opponents[0].BettingStrategy.Bankroll.DollarsRemaining;
                 strategy.FitnessScore = Evaluate(game);
             }
-        }
-
-        public async Task<List<BlackjackStrategyTree>> PlayAndEvalMtAsync(int numGamesToPlay, GameRunner gameRunner, Bankroll bankroll, BettingStrategy bettingStrategy){
-            // Debug.Assert(strategies?.Count > 0);
-            Debug.Assert(gameRunner is object);
-
-            var queue = new BufferBlock<BlackjackStrategyTree>(new DataflowBlockOptions {
-                BoundedCapacity = Settings.MtMaxNumStrategiesPerBlock
-            });
-            var consumerOptions = new ExecutionDataflowBlockOptions {
-                BoundedCapacity = 1
-            };
-            //var consumer = new ActionBlock<BlackjackStrategyTree>(strategy => PlayAndEvalMtConsumer(strategy, gameRunner, bankroll, bettingStrategy), consumerOptions);
-            //queue.LinkTo(consumer, new DataflowLinkOptions { PropagateCompletion = true });
-            var consumers = new List<ActionBlock<BlackjackStrategyTree>>();
-            var consumerCompletionTasks = new List<Task>();
-            var consumerTreeProcessedList = new List<List<BlackjackStrategyTree>>();
-            for (int i = 0; i < Settings.MtMaxNumThreads; i++) {
-                var trees = new List<BlackjackStrategyTree>();
-                consumerTreeProcessedList.Add(trees);
-                var c = new ActionBlock<BlackjackStrategyTree>(strategy => PlayAndEvalMtConsumer(strategy, trees, numGamesToPlay, gameRunner, bankroll, bettingStrategy), consumerOptions);
-                consumers.Add(c);
-                queue.LinkTo(c, new DataflowLinkOptions { PropagateCompletion = true });
-                consumerCompletionTasks.Add(c.Completion);
-            }
-
-            // start the producer
-            var producer = Produce(queue, Settings.NumStrategiesForFirstGeneration);
-            var allTasksList = new List<Task>(consumerCompletionTasks.Count + 1);
-            allTasksList.Add(producer);
-            allTasksList.AddRange(consumerCompletionTasks);
-            
-            await Task.WhenAll(allTasksList);
-
-            var allStrategies = new List<BlackjackStrategyTree>();
-            foreach(var tree in consumerTreeProcessedList) {
-                allStrategies.Concat(tree);
-            }
-
-            return allStrategies;
-        }
-
-        protected internal void PlayAndEvalMtConsumer(BlackjackStrategyTree strategy, List<BlackjackStrategyTree>resultList, int numGamesToPlay, GameRunner gameRunner, Bankroll bankroll, BettingStrategy bettingStrategy) {
-            if(strategy.FitnessScore == null || !strategy.FitnessScore.HasValue) {
-                var pf = new StrategyBuilderParticipantFactory(strategy, bettingStrategy, Settings, NullLogger.Instance);
-                var game = gameRunner.CreateNewGame(Settings.NumDecks, 1, pf, true);
-                PlayGames(numGamesToPlay, gameRunner, game);
-                strategy.FitnessScore = Evaluate(game);
-                resultList.Add(strategy);
-            }
-        }
-
-        protected internal async Task Produce(BufferBlock<BlackjackStrategyTree> queue, int numRandomTreesToProduce) {
-            var numCreated = 0;
-            var values = CreateRandomTrees(numRandomTreesToProduce);
-            for(int i = 0;i<numCreated;i++) {
-                // await queue.SendAsync(value);
-                await queue.SendAsync(CreateRandomTree());
-                numCreated++;
-            }
-            queue.Complete();
         }
 
         protected internal float Evaluate(Game game) {

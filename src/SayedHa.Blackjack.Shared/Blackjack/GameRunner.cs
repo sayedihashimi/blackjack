@@ -94,10 +94,6 @@ namespace SayedHa.Blackjack.Shared {
                 int betAmount = opponent.BettingStrategy.GetNextBetAmount(game);
                 BetAmountConfigured?.Invoke(this, new BetAmountConfiguredEventArgs(game,betAmount));
                 var newhand = new Hand(betAmount, _logger);
-                //tempCard = newhand.ReceiveCard(game.Cards.GetCardAndMoveNext()!);
-                //CardReceived?.Invoke(this, new CardReceivedEventArgs(game));
-                //tempCard = newhand.ReceiveCard(game.Cards.GetCardAndMoveNext()!);
-                //CardReceived?.Invoke(this, new CardReceivedEventArgs(game));
 
                 newhand.ReceiveCards(game.Cards.GetCardAndMoveNext()!, game.Cards.GetCardAndMoveNext()!);
                 CardReceived?.Invoke(this, new CardReceivedEventArgs(game));
@@ -112,10 +108,6 @@ namespace SayedHa.Blackjack.Shared {
             // deal two cards to the dealer
             var dealerHand = new DealerHand(_logger);
             game.Dealer.Hands.Add(dealerHand);
-            //tempCard = dealerHand.ReceiveCard(game.Cards.GetCardAndMoveNext()!);
-            //CardReceived?.Invoke(this, new CardReceivedEventArgs(game,updateUi: false));
-            //tempCard = dealerHand.ReceiveCard(game.Cards.GetCardAndMoveNext()!);
-            //CardReceived?.Invoke(this, new CardReceivedEventArgs(game));
 
             dealerHand.ReceiveCards(game.Cards.GetCardAndMoveNext()!, game.Cards.GetCardAndMoveNext()!);
             CardReceived?.Invoke(this, new CardReceivedEventArgs(game));

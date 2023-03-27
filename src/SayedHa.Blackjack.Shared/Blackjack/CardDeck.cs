@@ -42,13 +42,18 @@ namespace SayedHa.Blackjack.Shared {
             return remainingCards;
         }
 
+        List<Card>? _cardList;
         public void ShuffleCards() {
             // clear the discarded cards
             // rebuild the linkedlist
             DiscardedCards.Clear();
-            var cardList = Cards!.ToList();
-            cardList.Shuffle();
-            Cards = new LinkedList<Card>(cardList);
+            if(_cardList == null) {
+                _cardList = Cards!.ToList();
+            }
+            _cardList.Shuffle();
+            //var cardList = Cards!.ToList();
+            //cardList.Shuffle();
+            Cards = new LinkedList<Card>(_cardList);
             CurrentCard = Cards!.First;
         }
 

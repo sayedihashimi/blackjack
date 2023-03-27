@@ -331,6 +331,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
 
             // iterate through all dealer cards and all possible player cards
             var dealerCards = ((CardNumber[])Enum.GetValues(typeof(CardNumber))).ToList();
+
             // remove J/Q/K cards because 10 will cover those in the pair tree
             dealerCards.Remove(CardNumber.Jack);
             dealerCards.Remove(CardNumber.Queen);

@@ -95,8 +95,14 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
         }
         protected internal void AddRandomHardTotals(BlackjackStrategyTree tree) {
             foreach(var dealerCardNumber in _allCardNumbers) {
-                for(int score = 5;score < 21; score++) {
+                for(int score = 5; score < 9;score++) {
+                    tree.AddHardTotalNextAction(dealerCardNumber, score, HandAction.Hit);
+                }
+                for(int score = 9;score < 17; score++) {
                     tree.AddHardTotalNextAction(dealerCardNumber, score,GetRandomHandAction(_doubleEnabled));
+                }
+                for(int score = 17; score <= 20; score++) {
+                    tree.AddHardTotalNextAction(dealerCardNumber, score, HandAction.Stand);
                 }
             }
         }
