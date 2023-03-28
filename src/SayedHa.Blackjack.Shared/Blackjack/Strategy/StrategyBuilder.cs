@@ -51,7 +51,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                 // TODO: Remove this
                 initialPopulationOfStrategiesList.RemoveAt(0);
                 var basicStrategyTree = BlackjackStrategyTreeFactory.GetInstance(true).GetBasicStrategyTree();
-                basicStrategyTree.Name = "basicStrategy";
+                basicStrategyTree.Name = "(BS)";
                 initialPopulationOfStrategiesList.Add(basicStrategyTree);
                 // TODO: end remove
             }
@@ -73,6 +73,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             var allStrategies = new List<BlackjackStrategyTree>();
             //allStrategies.AddRange(initialPopulationOfStrategiesList);
             do {
+                stopwatch.Restart();
                 if (!Settings.AllConsoleOutputDisabled) {
                     Console.Write($"generation: {currentGeneration}");
                 }
@@ -122,8 +123,13 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                         // Console.WriteLine("mutation rate at 0");
                     }
                 }
+                stopwatch.Stop();
+                if (!Settings.AllConsoleOutputDisabled) {
+                    Console.Write($"[{stopwatch.Elapsed.ToString("mm\\:ss")}]");
+                }
 
                 currentGeneration++;
+
             } while (currentGeneration < maxNumGenerations);
 
             // run another PlayAndEvaluate to evaluate the last set of offspring
@@ -131,9 +137,6 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             var bettingStrategy1 = new FixedBettingStrategy(bankroll1, Settings.BetAmount);
             PlayAndEvaluate(Settings.NumHandsToPlayForEachStrategy, initialPopulationOfStrategiesList, gameRunner, bankroll1, bettingStrategy1);
             initialPopulationOfStrategiesList.Sort(initialPopulationOfStrategiesList[0].GetBlackjackTreeComparison());
-            stopwatch.Stop();
-
-            var elapsedTimeStr2 = stopwatch.ElapsedMilliseconds;
 
             // return the top numToReturn items
             var topStrategies = new List<BlackjackStrategyTree>(numToReturn);
