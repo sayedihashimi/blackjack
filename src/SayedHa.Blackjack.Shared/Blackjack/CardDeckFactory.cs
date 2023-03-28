@@ -65,11 +65,8 @@ namespace SayedHa.Blackjack.Shared {
             }
             return _allSuits;
         }
-        private static CardNumber[]? _allCardNumbers;
+        private static readonly CardNumber[] _allCardNumbers = (CardNumber[])Enum.GetValues(typeof(CardNumber));
         public static CardNumber[] GetAllCardNumbers() {
-            if(_allCardNumbers is null) {
-                _allCardNumbers = (CardNumber[])Enum.GetValues(typeof(CardNumber));
-            }
             return _allCardNumbers;
         }
     }

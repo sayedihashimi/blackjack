@@ -122,6 +122,36 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
             true => RandomNumberGenerator.GetInt32(2) == 0,
             false => random.Next(2) == 0
         };
+        public BlackjackStrategyTree GetAllStands(bool allSplits) => GetTreeWithAllActionSetTo(HandAction.Stand, allSplits);
+        public BlackjackStrategyTree GetAllHits(bool allSplits) => GetTreeWithAllActionSetTo(HandAction.Hit, allSplits);
+        protected internal BlackjackStrategyTree GetTreeWithAllActionSetTo(HandAction handAction, bool allSplits) {
+            var bsTree = new BlackjackStrategyTree();
+
+            var allCardNumbers = CardDeckFactory.GetAllCardNumbers();
+
+            // pairs
+            foreach (var dealerCard in allCardNumbers) {
+                foreach (var pairCard in allCardNumbers) {
+                    bsTree.AddPairSplitNextAction(dealerCard, pairCard, allSplits ? HandAction.Split : HandAction.Hit);
+                }
+            }
+
+            // soft totals
+            foreach (var dealerCard in allCardNumbers) {
+                for (int i = 2; i <= 10; i++) {
+                    bsTree.AddSoftTotalNextAction(dealerCard, i, handAction);
+                }
+            }
+
+            // hard totals
+            foreach (var dealerCard in allCardNumbers) {
+                for (int score = 4; score <= 20; score++) {
+                    bsTree.AddHardTotalNextAction(dealerCard, score, handAction);
+                }
+            }
+
+            return bsTree;
+        }
         public BlackjackStrategyTree GetBasicStrategyTree() {
             var bsTree = new BlackjackStrategyTree();
 

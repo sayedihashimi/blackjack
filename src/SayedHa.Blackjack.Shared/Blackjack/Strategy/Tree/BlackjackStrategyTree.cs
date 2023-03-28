@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json.Linq;
 using SayedHa.Blackjack.Shared.Blackjack.Exceptions;
 using SayedHa.Blackjack.Shared.Extensions;
+using System.Text;
 
 namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
     public class BlackjackStrategyTree {
@@ -8,7 +9,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
         protected internal BaseTreeNode<CardNumberOrScore, HandAction> hardTotalTree = new BaseTreeNode<CardNumberOrScore, HandAction>();
         protected internal BaseTreeNode<CardNumberOrScore, HandAction> pairTree = new BaseTreeNode<CardNumberOrScore, HandAction>();
         protected internal bool DoubleEnabled { get; init; } = true;
-
+        protected internal string? Name { get; set; }
         // This is the DollarsRemaining after all the games have been played.
         // If it is set, that's an indication that this strategy doesn't need
         // to be exercised again. The assigned score will continue to be used.
@@ -17,7 +18,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
         /// <summary>
         /// Use this to register pair splits.
         /// </summary>
-        protected internal void AddPairSplitNextAction(CardNumber dealerCard, CardNumber pairCard) {
+        protected internal void AddPairSplitNextAction(CardNumber dealerCard, CardNumber pairCard, HandAction handAction = HandAction.Split) {
             // TODO: for all the cards that have a value of 10 we can use the same node, don't need different ones.
             (_, var pairRootNode) = pairTree.GetOrAdd(CardNumberHelper.ConvertToCardNumberOrScore(dealerCard), NodeType.TreeNode);
             (bool pairNodeCreated, var pairNode) = pairRootNode.GetOrAdd(CardNumberHelper.ConvertToCardNumberOrScore(pairCard), NodeType.LeafNode);
@@ -27,7 +28,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
                     // TODO: Improve this
                     // Console.WriteLine($"Over writing next hand action for pair '{pairCard}', from '{leafNode.Value}' to '{HandAction.Split}'.");
                 }
-                leafNode.Value = HandAction.Split;
+                leafNode.Value = handAction;
             }
             else {
                 throw new UnexpectedNodeTypeException($"Expected LeafNode but instead received null or an object of type '{pairNode.GetType().FullName}'");
@@ -254,26 +255,14 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
             (node1: var n1, node2: var n2) when n1.Id > n2.Id => 1,
             _ => throw new NotImplementedException()
         };
-        //public Comparison<CardNumberOrScore> GetCardNumberOrScoreComparison() => (card1, card2) => (card1, card2) switch {
-        //    (card1: var c1, card2: var c2) when c1 == c2 => 0,
-
-        //    (CardNumberOrScore.Two, CardNumberOrScore.Score2) => 0,
-        //    (CardNumberOrScore.Three, CardNumberOrScore.Score3) => 0,
-        //    (CardNumberOrScore.Four, CardNumberOrScore.Score4) => 0,
-        //    (CardNumberOrScore.Five, CardNumberOrScore.Score5) => 0,
-        //    (CardNumberOrScore.Six, CardNumberOrScore.Score6) => 0,
-        //    (CardNumberOrScore.Seven, CardNumberOrScore.Score7) => 0,
-        //    (CardNumberOrScore.Eight, CardNumberOrScore.Score8) => 0,
-        //    (CardNumberOrScore.Nine, CardNumberOrScore.Score9) => 0,
-        //    (CardNumberOrScore.Ten, CardNumberOrScore.Score10) => 0,
-
-        //    _ => throw new NotImplementedException()
-        //};
 
         public Comparison<CardNumberOrScore> GetCardNumberOrScoreComparison() => (card1, card2) => CardNumberHelper.GetNumericScore(card1).CompareTo(CardNumberHelper.GetNumericScore(card2));
 
-        private void Dele() {
-            CardNumberHelper.GetScoreTotal(null);
+        public string GetString() {
+            var sb = new StringBuilder();
+            var sWriter = new StringWriter(sb);
+            WriteTreeStringTo(sWriter);
+            return sb.ToString();
         }
         public void WriteTreeStringTo(StringWriter writer) {
             int columnWidth = 4;

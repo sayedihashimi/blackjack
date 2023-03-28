@@ -40,20 +40,30 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
 
             var stopwatch = new Stopwatch();
             stopwatch.Start();
+            
             var initialPopulationOfStrategiesList = CreateRandomTrees(Settings.NumStrategiesForFirstGeneration);
 
-            // TODO: Remove this
-            initialPopulationOfStrategiesList.RemoveAt(0);
-            initialPopulationOfStrategiesList.Add(BlackjackStrategyTreeFactory.GetInstance(true).GetBasicStrategyTree());
-            // TODO: end remove
+            // TODO: remove this
+            initialPopulationOfStrategiesList.Insert(0, factory.GetAllStands(false));
+            initialPopulationOfStrategiesList.Insert(0, factory.GetAllHits(true));
+
+            if (false) {
+                // TODO: Remove this
+                initialPopulationOfStrategiesList.RemoveAt(0);
+                var basicStrategyTree = BlackjackStrategyTreeFactory.GetInstance(true).GetBasicStrategyTree();
+                basicStrategyTree.Name = "basicStrategy";
+                initialPopulationOfStrategiesList.Add(basicStrategyTree);
+                // TODO: end remove
+            }
+
 
             stopwatch.Stop();
             var elapsedTimeStr = stopwatch.ElapsedMilliseconds;
 
             // evaluate the strategies by playing a set number of games
-            var bankroll = new Bankroll(Settings.InitialBankroll, NullLogger.Instance);
+            // var bankroll = new Bankroll(Settings.InitialBankroll, NullLogger.Instance);
             var gameRunner = new GameRunner(NullReporter.Instance);
-            var bettingStrategy = new FixedBettingStrategy(bankroll, Settings.BetAmount);
+            // var bettingStrategy = new FixedBettingStrategy(bankroll, Settings.BetAmount);
             stopwatch.Restart();
             var maxNumGenerations = Settings.MaxNumberOfGenerations;
 
@@ -61,28 +71,48 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             var mutationRate = Settings.InitialMutationRate;
             var mutationRateChange = Settings.MutationRateChangePerGeneration;
             var allStrategies = new List<BlackjackStrategyTree>();
-            allStrategies.AddRange(initialPopulationOfStrategiesList);
+            //allStrategies.AddRange(initialPopulationOfStrategiesList);
             do {
-                Console.WriteLine($"generation: {currentGeneration}");
-                PlayAndEvaluate(Settings.NumHandsToPlayForEachStrategy, initialPopulationOfStrategiesList, gameRunner, bankroll, bettingStrategy);
+                if (!Settings.AllConsoleOutputDisabled) {
+                    Console.Write($"generation: {currentGeneration}");
+                }
+                var bankroll = new Bankroll(Settings.InitialBankroll, NullLogger.Instance);
+                var bettingStrategy = new FixedBettingStrategy(bankroll, Settings.BetAmount);
+                PlayAndEvaluate(Settings.NumHandsToPlayForEachStrategy, 
+                                initialPopulationOfStrategiesList, 
+                                gameRunner, 
+                                bankroll,
+                                bettingStrategy);
                 // sort the list with highest fitness first
                 initialPopulationOfStrategiesList.Sort(initialPopulationOfStrategiesList[0].GetBlackjackTreeComparison());
+
+                // trim down the population to ensure it doesn't get too big
+                if(initialPopulationOfStrategiesList.Count > Settings.NumStrategiesForFirstGeneration) {
+                    initialPopulationOfStrategiesList = initialPopulationOfStrategiesList.GetRange(0, Settings.NumStrategiesForFirstGeneration);
+                }
+
+                if (!Settings.AllConsoleOutputDisabled) {
+                    Console.Write(". top scores: ");
+                    Console.Write($"{initialPopulationOfStrategiesList[0].FitnessScore}{initialPopulationOfStrategiesList[0].Name}, ");
+                    Console.Write($"{initialPopulationOfStrategiesList[1].FitnessScore}{initialPopulationOfStrategiesList[1].Name}, ");
+                    Console.Write($"{initialPopulationOfStrategiesList[2].FitnessScore}{initialPopulationOfStrategiesList[2].Name}, ");
+                    Console.Write($"{initialPopulationOfStrategiesList[3].FitnessScore}{initialPopulationOfStrategiesList[3].Name}, ");
+                    Console.Write($"{initialPopulationOfStrategiesList[4].FitnessScore}{initialPopulationOfStrategiesList[4].Name}, ");
+                    Console.Write($"{initialPopulationOfStrategiesList[5].FitnessScore}{initialPopulationOfStrategiesList[5].Name}, ");
+                    Console.Write($"{initialPopulationOfStrategiesList[5].FitnessScore}{initialPopulationOfStrategiesList[6].Name}, ");
+                    Console.Write($"{initialPopulationOfStrategiesList[5].FitnessScore}{initialPopulationOfStrategiesList[7].Name}, ");
+                    Console.Write($"{initialPopulationOfStrategiesList[5].FitnessScore}{initialPopulationOfStrategiesList[8].Name}, ");
+                    Console.WriteLine($"{initialPopulationOfStrategiesList[5].FitnessScore}{initialPopulationOfStrategiesList[9].Name}");
+                }
+
                 var parentStrategiesList = SelectParents(initialPopulationOfStrategiesList, Settings.NumStrategiesToGoToNextGeneration);
                 // need to select parents now
                 var children = ProduceOffspring(parentStrategiesList, initialPopulationOfStrategiesList.Count - parentStrategiesList.Count);
                 MutateOffspring(children, mutationRate);
 
-                // combine the parents and the children into a list, evaluate, sort and continue
-                parentStrategiesList.AddRange(children);
-                initialPopulationOfStrategiesList = parentStrategiesList;
+                // children.AddRange(parentStrategiesList);
 
-                // add children to allStrategies, sort and select
-                //allStrategies.AddRange(children);
-                //allStrategies.Sort(allStrategies[0].GetBlackjackTreeComparison());
-                //initialPopulationOfStrategiesList = allStrategies.GetRange(0, allStrategies.Count - Settings.NumStrategiesForFirstGeneration);
-
-                // trim all strategies as well so it doesn't get too big
-                //allStrategies = initialPopulationOfStrategiesList;
+                initialPopulationOfStrategiesList.AddRange(children);
 
                 // update the mutation rate
                 if (mutationRate != Settings.MinMutationRate) {
@@ -97,7 +127,9 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             } while (currentGeneration < maxNumGenerations);
 
             // run another PlayAndEvaluate to evaluate the last set of offspring
-            PlayAndEvaluate(Settings.NumHandsToPlayForEachStrategy, initialPopulationOfStrategiesList, gameRunner, bankroll, bettingStrategy);
+            var bankroll1 = new Bankroll(Settings.InitialBankroll, NullLogger.Instance);
+            var bettingStrategy1 = new FixedBettingStrategy(bankroll1, Settings.BetAmount);
+            PlayAndEvaluate(Settings.NumHandsToPlayForEachStrategy, initialPopulationOfStrategiesList, gameRunner, bankroll1, bettingStrategy1);
             initialPopulationOfStrategiesList.Sort(initialPopulationOfStrategiesList[0].GetBlackjackTreeComparison());
             stopwatch.Stop();
 
@@ -126,12 +158,12 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             if (mutationRate < 0 || mutationRate > 100) {
                 throw new UnexpectedValueException($"mutationRate: '{mutationRate}'");
             }
-
+            
             if(mutationRate == 0) {
                 // nothing to do.
                 return;
             }
-
+            Console.WriteLine("mutating offspring");
             // TODO: Maybe it's better to clone the offspringTree and then return that as a new list
 
             // visit each tree in the soft totals and see if it should be updated
@@ -196,6 +228,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
         /// <summary>
         /// This will return the selected parents.
         /// The list provided will be sorted when this method returns.
+        /// The list passed in should be sorted!
         /// </summary>
         protected internal List<BlackjackStrategyTree> SelectParents(List<BlackjackStrategyTree> strategies, int numParents) {
             Debug.Assert(strategies?.Count > 0);
@@ -203,7 +236,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             var list = new List<BlackjackStrategyTree>();
             var currentIndex = 0;
             // sort the list
-            strategies.Sort(strategies[0].GetBlackjackTreeComparison());
+            // strategies.Sort(strategies[0].GetBlackjackTreeComparison());
             foreach (var item in strategies) {
                 if (currentIndex++ >= numParents) {
                     break;
@@ -218,9 +251,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             var numParents = parents.Count;
 
             var newParentList = new List<BlackjackStrategyTree>();
-            foreach (var parent in parents) {
-                newParentList.Add(parent);
-            }
+            newParentList.AddRange(parents);
 
             // instead of generating two random index every loop, randomize the parents list
             // and then pick two parents to create offspring.
