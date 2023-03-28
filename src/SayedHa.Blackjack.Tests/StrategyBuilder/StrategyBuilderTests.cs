@@ -1,4 +1,5 @@
 ﻿using Microsoft.VisualStudio.TestPlatform.ObjectModel.Client.Payloads;
+using SayedHa.Blackjack.Shared;
 using SayedHa.Blackjack.Shared.Blackjack.Strategy;
 using SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree;
 using System;
@@ -58,6 +59,47 @@ namespace SayedHa.Blackjack.Tests.StrategyBuilder
             Assert.NotNull(child1);
             Assert.NotNull(child2);
 
+            var allCardNumbers = CardDeckFactory.GetAllCardNumbers();
+            // hard totals
+            foreach (var dealerCard in allCardNumbers) {
+                for (int score = 3; score <= 11; score++) {
+                    Assert.Equal(HandAction.Stand, child1.GetFromHardTotalTree(dealerCard, score));
+                    Assert.Equal(HandAction.Hit, child2.GetFromHardTotalTree(dealerCard, score));
+                }
+                for(int score = 12;score <= 20; score++) {
+                    Assert.Equal(HandAction.Hit, child1.GetFromHardTotalTree(dealerCard, score));
+                    Assert.Equal(HandAction.Stand, child2.GetFromHardTotalTree(dealerCard, score));
+                }
+            }
+            // soft totals
+            foreach (var dealerCard in allCardNumbers) {
+                for (int i = 2; i <= 5; i++) {
+                    Assert.Equal(HandAction.Stand, child1.GetFromAceTree(dealerCard, i));
+                    Assert.Equal(HandAction.Hit, child2.GetFromAceTree(dealerCard, i));
+                }
+                for (int i = 6; i <= 9; i++) {
+                    Assert.Equal(HandAction.Hit, child1.GetFromAceTree(dealerCard, i));
+                    Assert.Equal(HandAction.Stand, child2.GetFromAceTree(dealerCard, i));
+                }
+            }
+            // pairs
+            foreach(var dealerCard in allCardNumbers) {
+                for (int i = 0; i < allCardNumbers.Length; i++) {
+                    var pairCard = allCardNumbers[i];
+                    if(pairCard == CardNumber.Ace ||
+                        pairCard == CardNumber.Two ||
+                        pairCard == CardNumber.Three ||
+                        pairCard == CardNumber.Four ||
+                        pairCard == CardNumber.Five) {
+                        Assert.False(child1.DoesPairTreeContainSplit(dealerCard, pairCard));
+                        Assert.True(child2.DoesPairTreeContainSplit(dealerCard, pairCard));
+                    }
+                    else {
+                        Assert.True(child1.DoesPairTreeContainSplit(dealerCard, pairCard));
+                        Assert.False(child2.DoesPairTreeContainSplit(dealerCard, pairCard));
+                    }
+                }
+            }
         }
     }
 }

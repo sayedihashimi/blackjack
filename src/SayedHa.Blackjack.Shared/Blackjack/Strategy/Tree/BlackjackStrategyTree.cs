@@ -190,7 +190,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
             }
             return nextHandAction;
         }
-        private bool DoesPairTreeContainSplit(CardNumber dealerCard, CardNumber op1Card) {
+        protected internal bool DoesPairTreeContainSplit(CardNumber dealerCard, CardNumber op1Card) {
             var dealerNode = pairTree.Get(CardNumberHelper.ConvertToCardNumberOrScore(dealerCard));
             if (dealerNode == null) {
                 return false;
@@ -239,6 +239,18 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
             else {
                 throw new UnexpectedNodeTypeException($"Expected LeafNode but instead received null or an object of type '{scoreTotalNode.GetType().FullName}'");
             }
+        }
+        protected internal HandAction? GetFromHardTotalTree(CardNumber dealerCard, int scoreTotal) {
+            var dealerNode = hardTotalTree.Get(CardNumberHelper.ConvertToCardNumberOrScore(dealerCard));
+            if(dealerNode is null) {
+                return null;
+            }
+            var scoreTotalNode = dealerNode.Get(CardNumberHelper.ConvertToCardNumberOrScore(scoreTotal));
+            if(scoreTotalNode is LeafNode<CardNumberOrScore,HandAction> leafNode) {
+                return leafNode.Value;
+            }
+
+            return null;
         }
         public Comparison<BlackjackStrategyTree> GetBlackjackTreeComparison() => (strategy1, strategy2) => (strategy1.FitnessScore, strategy2.FitnessScore) switch {
             (null, null) => 0,

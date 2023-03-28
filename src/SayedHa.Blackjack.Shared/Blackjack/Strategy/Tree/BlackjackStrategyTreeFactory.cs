@@ -145,7 +145,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
 
             // hard totals
             foreach (var dealerCard in allCardNumbers) {
-                for (int score = 4; score <= 20; score++) {
+                for (int score = 3; score <= 20; score++) {
                     bsTree.AddHardTotalNextAction(dealerCard, score, handAction);
                 }
             }

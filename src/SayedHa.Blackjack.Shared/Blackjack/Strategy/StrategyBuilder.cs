@@ -44,10 +44,10 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             var initialPopulationOfStrategiesList = CreateRandomTrees(Settings.NumStrategiesForFirstGeneration);
 
             // TODO: remove this
-            initialPopulationOfStrategiesList.Insert(0, factory.GetAllStands(false));
-            initialPopulationOfStrategiesList.Insert(0, factory.GetAllHits(true));
+            //initialPopulationOfStrategiesList.Insert(0, factory.GetAllStands(false));
+            //initialPopulationOfStrategiesList.Insert(0, factory.GetAllHits(true));
 
-            if (false) {
+            if (true) {
                 // TODO: Remove this
                 initialPopulationOfStrategiesList.RemoveAt(0);
                 var basicStrategyTree = BlackjackStrategyTreeFactory.GetInstance(true).GetBasicStrategyTree();
@@ -291,7 +291,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             // first half comes from parent1 and the second half from parent2
 
             // 1: pairs
-            var pairIndexCuttoff = (int)Math.Floor(allCardNumbers.Length / 2F);
+            var pairIndexCuttoff = (int)Math.Floor(allPossiblePairs.Count / 2F);
             for (var dealerIndex = 0; dealerIndex < allCardNumbers.Length; dealerIndex++) {
                 for (int pairIndex = 0; pairIndex < allPossiblePairs.Count; pairIndex++) {
                     var valueParent1 = parent1.GetNextHandAction(allCardNumbers[dealerIndex], allCardNumbers[pairIndex], allCardNumbers[pairIndex]);
@@ -322,7 +322,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             for (var dealerIndex = 0; dealerIndex < allCardNumbers.Length; dealerIndex++) {
                 for (var stIndex = 0; stIndex < allSoftTotalCards.Count; stIndex++) {
                     var valueParent1 = parent1.GetFromAceTree(allCardNumbers[dealerIndex], allSoftTotalCards[stIndex]);
-                    var valueParent2 = parent1.GetFromAceTree(allCardNumbers[dealerIndex], allSoftTotalCards[stIndex]);
+                    var valueParent2 = parent2.GetFromAceTree(allCardNumbers[dealerIndex], allSoftTotalCards[stIndex]);
                     if (stIndex < softTotalCardCuttoffIndex) {
                         // child1 get the Split value from parent1 and child2 gets the Split value from parent 2
                         if (valueParent1 is not null) {
@@ -347,7 +347,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             var allHardTotalValues = CardNumberHelper.GetAllPossibleHardTotalValues();
             var hardTotalCardCuttoffIndex = (int)Math.Floor(allHardTotalValues.Count / 2F);
             for (var dealerIndex = 0; dealerIndex < allCardNumbers.Length; dealerIndex++) {
-                for (var htIndex = 0; htIndex < allCardNumbers.Length; htIndex++) {
+                for (var htIndex = 0; htIndex < allHardTotalValues.Count; htIndex++) {
                     var dealerCard = allCardNumbers[dealerIndex];
                     var valueParent1 = parent1.GetOrAddFromHardTotalTree(allCardNumbers[dealerIndex], allHardTotalValues[htIndex]);
                     var valueParent2 = parent2.GetOrAddFromHardTotalTree(allCardNumbers[dealerIndex], allHardTotalValues[htIndex]);
