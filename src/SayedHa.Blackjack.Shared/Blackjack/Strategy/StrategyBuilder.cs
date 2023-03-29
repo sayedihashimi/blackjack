@@ -51,6 +51,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                 // TODO: Remove this
                 initialPopulationOfStrategiesList.RemoveAt(0);
                 var basicStrategyTree = BlackjackStrategyTreeFactory.GetInstance(true).GetBasicStrategyTree();
+                Console.WriteLine($"Basic strategy tree ids: {basicStrategyTree.TreeIds}");
                 basicStrategyTree.Name = "(BS)";
                 initialPopulationOfStrategiesList.Add(basicStrategyTree);
                 // TODO: end remove
@@ -113,29 +114,16 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
 
                 // TODO: The TreeId isn't working, revisit later.
                 // before adding the child ensure that it hasn't already been added.
-                //foreach (var child in children) {
-                //    bool wasFound = false;
-                //    foreach(var strategy in initialPopulationOfStrategiesList) {
-                //        if(strategy.StrategyId == child.StrategyId) {
-                //            // child is already in the strategy list
-                //            Console.WriteLine($"Duplicate strategy created: '{child.StrategyId}'");
-                //            wasFound = true;
-                //            continue;
-                //        }
-                //    }
-                //    if (!wasFound) {
-                //        initialPopulationOfStrategiesList.Add(child);
-                //    }
+                foreach(var child in children) {
+                    if (!initialPopulationOfStrategiesList.Contains(child)) {
+                        initialPopulationOfStrategiesList.Add(child);
+                    }
+                    else {
+                        Console.WriteLine($"Duplicate strategy found with id: {child.TreeIds}");
+                    }
+                }
 
-                //    //var id = child.StrategyId;
-                //    //if (!initialPopulationOfStrategiesList.Contains(child)) {
-                //    //    initialPopulationOfStrategiesList.Add(child);
-                //    //}
-                //    //else {
-                //    //    Console.WriteLine($"Not adding strategy because it already has been added");
-                //    //}
-                //}
-                initialPopulationOfStrategiesList.AddRange(children);
+                // initialPopulationOfStrategiesList.AddRange(children);
 
                 // update the mutation rate
                 if (mutationRate != Settings.MinMutationRate) {

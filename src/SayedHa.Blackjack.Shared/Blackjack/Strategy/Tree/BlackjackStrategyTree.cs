@@ -6,9 +6,9 @@ using System.Text;
 
 namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
     public class BlackjackStrategyTree {
-        protected internal CardNumberOrScoreTree aceTree = new ();
-        protected internal CardNumberOrScoreTree hardTotalTree = new ();
-        protected internal CardNumberOrScoreTree pairTree = new ();
+        protected internal BaseTreeNode<CardNumberOrScore, HandAction> aceTree = new ();
+        protected internal BaseTreeNode<CardNumberOrScore, HandAction> hardTotalTree = new ();
+        protected internal BaseTreeNode<CardNumberOrScore, HandAction> pairTree = new ();
         protected internal bool DoubleEnabled { get; init; } = true;
         protected internal string? Name { get; set; }
         // This is the DollarsRemaining after all the games have been played.
@@ -16,66 +16,100 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
         // to be exercised again. The assigned score will continue to be used.
         public float? FitnessScore { get; set; }
 
-        public (int id1, int id2, int id3) GetIds() => (aceTree.TreeId, hardTotalTree.TreeId, pairTree.TreeId);
+        protected internal (ulong aceTreeId, ulong hardTotalTreeId, ulong pairTreeId)? _ids;
 
-        public override int GetHashCode() {
-            (var id1, var id2, var id3) = GetIds();
-            return id1 + id2 + id3;
-        }
-        public override bool Equals(object? obj) {
-            if(obj is BlackjackStrategyTree other) {
-                (var id1, var id2, var id3) = GetIds();
-                (var otherId1, var otherId2, var otherId3) = other.GetIds();
-                if(id1 == otherId1 &&
-                    id2 == otherId2 &&
-                    id3 == otherId3) {
-                    return true;
+        public (ulong aceTreeId, ulong hardTotalTreeId, ulong pairTreeId) TreeIds {
+            get {
+                if(_ids == null) {
+                    ComputeIds ();
                 }
+
+                return _ids!.Value;
+            }
+        }
+        public void ComputeIds() {
+            ulong aceTreeId = GetIdFor(aceTree);
+            ulong hardTotalId = GetIdFor(hardTotalTree);
+            ulong pairTreeId = GetIdFor(pairTree);
+
+            ulong GetIdFor(BaseTreeNode<CardNumberOrScore, HandAction> aceTree) {
+                ulong aceTreeId = 1;
+                foreach (var aceDealer in aceTree.Children!) {
+                    aceTreeId += GetIntFor(aceDealer.Id);
+                    foreach (var node in aceDealer.Children!) {
+                        if (node is LeafNode<CardNumberOrScore, HandAction> leafNode) {
+                            var newValue = aceTreeId + GetIntFor(leafNode.Value);
+                            if(newValue >= ulong.MaxValue) {
+                                throw new UnexpectedValueException($"overflow on the treeid");
+                            }
+                            aceTreeId = newValue;
+                        }
+                        else {
+                            throw new UnexpectedNodeTypeException($"Expected LeafNode, received: '{node.GetType().FullName}'");
+                        }
+                    }
+                }
+                return aceTreeId;
             }
 
-            return false;
+            _ids = (aceTreeId, hardTotalId, pairTreeId);
         }
+        public override int GetHashCode() {
+            return TreeIds.GetHashCode();
+        }
+        public override bool Equals(object? obj) => 
+            obj switch {
+                BlackjackStrategyTree other => TreeIds.aceTreeId == other.TreeIds.aceTreeId &&
+                                                TreeIds.hardTotalTreeId == other.TreeIds.hardTotalTreeId &&
+                                                TreeIds.pairTreeId == other.TreeIds.pairTreeId,
+                _ => false
+            };
 
-        protected internal int GetNumberFor(HandAction handAction) => handAction switch {
-            HandAction.Hit => 1,
-            HandAction.Stand => 2,
-            HandAction.Double => 3,
-            HandAction.Split => 4,
+        protected internal ulong GetIntFor(HandAction handAction) => handAction switch {
+            HandAction.Hit => 2,
+            HandAction.Stand => 3,
+            HandAction.Double => 4,
+            HandAction.Split => 5,
             _ => throw new UnknownValueException($"Unknown value for HandAction: '{handAction}'")
         };
-        public int StrategyId { get; protected internal set; } = 1;
-        private string? _tableId;
-        public string TableId {
-            get {
-                ComputeTableId();
-                return _tableId!;
-            }
-        }
-        private List<LeafNode<CardNumberOrScore, HandAction>> _allLeafNodes = new();
-        private void LeafNodeAdded(LeafNode<CardNumberOrScore, HandAction> leafNode) {
-            _allLeafNodes.Add(leafNode);
-            StrategyId = StrategyId * GetNumberFor(leafNode.Value);
-        }
-        /*
-                 public override ITreeNode<CardNumberOrScore, HandAction> AddItem(CardNumberOrScore id, NodeType nodeType) {
-                    var newItem = base.AddItem(id, nodeType);
-                    if(newItem is LeafNode<CardNumberOrScore,HandAction> leafNode) {
-                        var newId = TreeId * GetNumberFor(leafNode.Value);
-                        if(newId < TreeId) {
-                            throw new UnexpectedValueException($"_treeId: '{TreeId}' newId: '{newId}'");
-                        }
-                        TreeId = newId;
-                    }
-                    return newItem;
-                }
-         */
-        private void ComputeTableId() {
-            var sb = new StringBuilder();
-            foreach (var leafNode in _allLeafNodes) {
-                sb.Append(GetStrFor(leafNode.Value));
-            }
-            _tableId = sb.ToString();
-        }
+
+        protected internal ulong GetIntFor(CardNumberOrScore card) => card switch {
+            CardNumberOrScore.Ace => 11,
+            CardNumberOrScore.Two => 2,
+            CardNumberOrScore.Three => 3,
+            CardNumberOrScore.Four => 4,
+            CardNumberOrScore.Five => 5,
+            CardNumberOrScore.Six => 6,
+            CardNumberOrScore.Seven => 7,
+            CardNumberOrScore.Eight => 8,
+            CardNumberOrScore.Nine => 9,
+            CardNumberOrScore.Ten => 10,
+            CardNumberOrScore.Jack => 10,
+            CardNumberOrScore.Queen => 10,
+            CardNumberOrScore.King => 10,
+            CardNumberOrScore.Score21 => 21,
+            CardNumberOrScore.Score20 => 20,
+            CardNumberOrScore.Score19 => 19,
+            CardNumberOrScore.Score18 => 18,
+            CardNumberOrScore.Score17 => 17,
+            CardNumberOrScore.Score16 => 16,
+            CardNumberOrScore.Score15 => 15,
+            CardNumberOrScore.Score14 => 14,
+            CardNumberOrScore.Score13 => 13,
+            CardNumberOrScore.Score12 => 12,
+            CardNumberOrScore.Score11 => 11,
+            CardNumberOrScore.Score10 => 10,
+            CardNumberOrScore.Score9 => 9,
+            CardNumberOrScore.Score8 => 8,
+            CardNumberOrScore.Score7 => 7,
+            CardNumberOrScore.Score6 => 6,
+            CardNumberOrScore.Score5 => 5,
+            CardNumberOrScore.Score4 => 4,
+            CardNumberOrScore.Score3 => 3,
+            CardNumberOrScore.Score2 => 2,
+            CardNumberOrScore.Busted => 22,
+            _ => throw new UnexpectedValueException($"Unexpected value for CardNumberOrScore: '{card}'")
+        };
         /// <summary>
         /// Use this to register pair splits.
         /// </summary>
@@ -90,7 +124,6 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
                     // Console.WriteLine($"Over writing next hand action for pair '{pairCard}', from '{leafNode.Value}' to '{HandAction.Split}'.");
                 }
                 leafNode.Value = handAction;
-                LeafNodeAdded(leafNode);
             }
             else {
                 throw new UnexpectedNodeTypeException($"Expected LeafNode but instead received null or an object of type '{pairNode.GetType().FullName}'");
@@ -115,7 +148,6 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
                     // Console.WriteLine($"Over writing next hand action for score '{scoreTotal}', from '{leafNode.Value}' to '{nextHandAction}'.");
                 }
                 leafNode.Value = nextHandAction;
-                LeafNodeAdded(leafNode);
             }
             else {
                 throw new UnexpectedNodeTypeException($"Expected LeafNode but instead received null or an object of type '{scoreTotalNode.GetType().FullName}'");
@@ -134,7 +166,6 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
                     // Console.WriteLine($"Over writing next hand action for score '{scoreTotal}', to '{nextHandAction}'.");
                 }
                 leafNode.Value = nextHandAction;
-                LeafNodeAdded(leafNode);
             }
             else {
                 throw new UnexpectedNodeTypeException($"Expected LeafNode but instead received null or an object of type '{scoreTotalNode.GetType().FullName}'");
@@ -363,7 +394,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
             int columnWidth,
             string treeName,
             Dictionary<CardNumberOrScore, List<LeafNode<CardNumberOrScore, HandAction>>> treeAsDictionary,
-            CardNumberOrScoreTree tree) {
+            BaseTreeNode<CardNumberOrScore, HandAction> tree) {
 
             writer.WriteLine(treeName);
             writer.Write(new string(' ', columnWidth));
