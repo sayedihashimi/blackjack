@@ -1,13 +1,14 @@
 ﻿using Newtonsoft.Json.Linq;
 using SayedHa.Blackjack.Shared.Blackjack.Exceptions;
 using SayedHa.Blackjack.Shared.Extensions;
+using System.ComponentModel.Design.Serialization;
 using System.Text;
 
 namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
     public class BlackjackStrategyTree {
-        protected internal BaseTreeNode<CardNumberOrScore, HandAction> aceTree = new BaseTreeNode<CardNumberOrScore, HandAction>();
-        protected internal BaseTreeNode<CardNumberOrScore, HandAction> hardTotalTree = new BaseTreeNode<CardNumberOrScore, HandAction>();
-        protected internal BaseTreeNode<CardNumberOrScore, HandAction> pairTree = new BaseTreeNode<CardNumberOrScore, HandAction>();
+        protected internal CardNumberOrScoreTree aceTree = new ();
+        protected internal CardNumberOrScoreTree hardTotalTree = new ();
+        protected internal CardNumberOrScoreTree pairTree = new ();
         protected internal bool DoubleEnabled { get; init; } = true;
         protected internal string? Name { get; set; }
         // This is the DollarsRemaining after all the games have been played.
@@ -15,6 +16,66 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
         // to be exercised again. The assigned score will continue to be used.
         public float? FitnessScore { get; set; }
 
+        public (int id1, int id2, int id3) GetIds() => (aceTree.TreeId, hardTotalTree.TreeId, pairTree.TreeId);
+
+        public override int GetHashCode() {
+            (var id1, var id2, var id3) = GetIds();
+            return id1 + id2 + id3;
+        }
+        public override bool Equals(object? obj) {
+            if(obj is BlackjackStrategyTree other) {
+                (var id1, var id2, var id3) = GetIds();
+                (var otherId1, var otherId2, var otherId3) = other.GetIds();
+                if(id1 == otherId1 &&
+                    id2 == otherId2 &&
+                    id3 == otherId3) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        protected internal int GetNumberFor(HandAction handAction) => handAction switch {
+            HandAction.Hit => 1,
+            HandAction.Stand => 2,
+            HandAction.Double => 3,
+            HandAction.Split => 4,
+            _ => throw new UnknownValueException($"Unknown value for HandAction: '{handAction}'")
+        };
+        public int StrategyId { get; protected internal set; } = 1;
+        private string? _tableId;
+        public string TableId {
+            get {
+                ComputeTableId();
+                return _tableId!;
+            }
+        }
+        private List<LeafNode<CardNumberOrScore, HandAction>> _allLeafNodes = new();
+        private void LeafNodeAdded(LeafNode<CardNumberOrScore, HandAction> leafNode) {
+            _allLeafNodes.Add(leafNode);
+            StrategyId = StrategyId * GetNumberFor(leafNode.Value);
+        }
+        /*
+                 public override ITreeNode<CardNumberOrScore, HandAction> AddItem(CardNumberOrScore id, NodeType nodeType) {
+                    var newItem = base.AddItem(id, nodeType);
+                    if(newItem is LeafNode<CardNumberOrScore,HandAction> leafNode) {
+                        var newId = TreeId * GetNumberFor(leafNode.Value);
+                        if(newId < TreeId) {
+                            throw new UnexpectedValueException($"_treeId: '{TreeId}' newId: '{newId}'");
+                        }
+                        TreeId = newId;
+                    }
+                    return newItem;
+                }
+         */
+        private void ComputeTableId() {
+            var sb = new StringBuilder();
+            foreach (var leafNode in _allLeafNodes) {
+                sb.Append(GetStrFor(leafNode.Value));
+            }
+            _tableId = sb.ToString();
+        }
         /// <summary>
         /// Use this to register pair splits.
         /// </summary>
@@ -29,6 +90,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
                     // Console.WriteLine($"Over writing next hand action for pair '{pairCard}', from '{leafNode.Value}' to '{HandAction.Split}'.");
                 }
                 leafNode.Value = handAction;
+                LeafNodeAdded(leafNode);
             }
             else {
                 throw new UnexpectedNodeTypeException($"Expected LeafNode but instead received null or an object of type '{pairNode.GetType().FullName}'");
@@ -53,6 +115,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
                     // Console.WriteLine($"Over writing next hand action for score '{scoreTotal}', from '{leafNode.Value}' to '{nextHandAction}'.");
                 }
                 leafNode.Value = nextHandAction;
+                LeafNodeAdded(leafNode);
             }
             else {
                 throw new UnexpectedNodeTypeException($"Expected LeafNode but instead received null or an object of type '{scoreTotalNode.GetType().FullName}'");
@@ -71,6 +134,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
                     // Console.WriteLine($"Over writing next hand action for score '{scoreTotal}', to '{nextHandAction}'.");
                 }
                 leafNode.Value = nextHandAction;
+                LeafNodeAdded(leafNode);
             }
             else {
                 throw new UnexpectedNodeTypeException($"Expected LeafNode but instead received null or an object of type '{scoreTotalNode.GetType().FullName}'");
@@ -138,11 +202,11 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
                 }
             }
 
-            var nextHandAction = GetOrAddFromHardTotalTree(dealerCard, CardNumberHelper.GetScoreTotal(opCard1, opCard2));
-            if (nextHandAction == HandAction.Double && !DoubleEnabled) {
+            var nextHandAction = GetFromHardTotalTree(dealerCard, CardNumberHelper.GetScoreTotal(opCard1, opCard2));
+            if (nextHandAction!.Value == HandAction.Double && !DoubleEnabled) {
                 nextHandAction = HandAction.Hit;
             }
-            return nextHandAction;
+            return nextHandAction.Value;
         }
         public HandAction GetNextHandAction(CardNumber dealerCard, params CardNumber[] opCards) {
             // need to check to see if there is an Ace or not in the opCards
@@ -172,23 +236,23 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
                 var scoreOtherCards = CardNumberHelper.GetScoreTotal(otherCards);
                 if (scoreOtherCards <= 9) {
                     // check the aceTree for the result
-                    var nextHandActionAce = GetOrAddFromAceTree(dealerCard, scoreOtherCards);
+                    var nextHandActionAce = GetFromAceTree(dealerCard, scoreOtherCards);
                     // don't need to look at DoubleEnabled because Double isn't allowed when there are more than 2 cards dealt
-                    if (nextHandActionAce == HandAction.Double) {
+                    if (nextHandActionAce!.Value == HandAction.Double) {
                         nextHandActionAce = HandAction.Hit;
                     }
-                    return nextHandActionAce;
+                    return nextHandActionAce.Value;
                 }
             }
 
             // return result from the hardTotal tree
             var scoreTotal = CardNumberHelper.GetScoreTotal(opCards);
-            var nextHandAction = GetOrAddFromHardTotalTree(dealerCard, scoreTotal);
+            var nextHandAction = GetFromHardTotalTree(dealerCard, scoreTotal);
             // don't need to look at DoubleEnabled because Double isn't allowed when there are more than 2 cards dealt
-            if (nextHandAction == HandAction.Double) {
+            if (nextHandAction!.Value == HandAction.Double) {
                 nextHandAction = HandAction.Hit;
             }
-            return nextHandAction;
+            return nextHandAction.Value;
         }
         protected internal bool DoesPairTreeContainSplit(CardNumber dealerCard, CardNumber op1Card) {
             var dealerNode = pairTree.Get(CardNumberHelper.ConvertToCardNumberOrScore(dealerCard));
@@ -207,17 +271,17 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
                 throw new UnexpectedNodeTypeException($"Expected LeafNode, but received: '{pairNode.GetType().FullName}'");
             }
         }
-        protected internal HandAction GetOrAddFromAceTree(CardNumber dealerCard, int scoreTotalExcludingAce) {
-            (_, var rootNode) = aceTree.GetOrAdd(CardNumberHelper.ConvertToCardNumberOrScore(dealerCard), NodeType.TreeNode);
-            (_, var secondNode) = rootNode.GetOrAdd(CardNumberHelper.ConvertToCardNumberOrScore(scoreTotalExcludingAce), NodeType.LeafNode);
+        //protected internal HandAction GetOrAddFromAceTree(CardNumber dealerCard, int scoreTotalExcludingAce) {
+        //    (_, var rootNode) = aceTree.GetOrAdd(CardNumberHelper.ConvertToCardNumberOrScore(dealerCard), NodeType.TreeNode);
+        //    (_, var secondNode) = rootNode.GetOrAdd(CardNumberHelper.ConvertToCardNumberOrScore(scoreTotalExcludingAce), NodeType.LeafNode);
 
-            if (secondNode is LeafNode<CardNumberOrScore, HandAction> leafNode) {
-                return leafNode.Value;
-            }
-            else {
-                throw new UnexpectedNodeTypeException($"Expected LeafNode but instead received null or an object of type '{secondNode.GetType().FullName}'");
-            }
-        }
+        //    if (secondNode is LeafNode<CardNumberOrScore, HandAction> leafNode) {
+        //        return leafNode.Value;
+        //    }
+        //    else {
+        //        throw new UnexpectedNodeTypeException($"Expected LeafNode but instead received null or an object of type '{secondNode.GetType().FullName}'");
+        //    }
+        //}
         protected internal HandAction? GetFromAceTree(CardNumber dealerCard, int scoreTotalExcludingAce) {
             var rootNode = aceTree.Get(CardNumberHelper.ConvertToCardNumberOrScore(dealerCard));
             if (rootNode is null) { return null; }
@@ -229,17 +293,17 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
 
             return null;
         }
-        protected internal HandAction GetOrAddFromHardTotalTree(CardNumber dealerCard, int scoreTotal) {
-            (_, var dealerCardNode) = hardTotalTree.GetOrAdd(CardNumberHelper.ConvertToCardNumberOrScore(dealerCard), NodeType.TreeNode);
-            (_, var scoreTotalNode) = dealerCardNode.GetOrAdd(CardNumberHelper.ConvertToCardNumberOrScore(scoreTotal), NodeType.LeafNode);
+        //protected internal HandAction GetOrAddFromHardTotalTree(CardNumber dealerCard, int scoreTotal) {
+        //    (_, var dealerCardNode) = hardTotalTree.GetOrAdd(CardNumberHelper.ConvertToCardNumberOrScore(dealerCard), NodeType.TreeNode);
+        //    (_, var scoreTotalNode) = dealerCardNode.GetOrAdd(CardNumberHelper.ConvertToCardNumberOrScore(scoreTotal), NodeType.LeafNode);
 
-            if (scoreTotalNode is LeafNode<CardNumberOrScore, HandAction> leafNode) {
-                return leafNode.Value;
-            }
-            else {
-                throw new UnexpectedNodeTypeException($"Expected LeafNode but instead received null or an object of type '{scoreTotalNode.GetType().FullName}'");
-            }
-        }
+        //    if (scoreTotalNode is LeafNode<CardNumberOrScore, HandAction> leafNode) {
+        //        return leafNode.Value;
+        //    }
+        //    else {
+        //        throw new UnexpectedNodeTypeException($"Expected LeafNode but instead received null or an object of type '{scoreTotalNode.GetType().FullName}'");
+        //    }
+        //}
         protected internal HandAction? GetFromHardTotalTree(CardNumber dealerCard, int scoreTotal) {
             var dealerNode = hardTotalTree.Get(CardNumberHelper.ConvertToCardNumberOrScore(dealerCard));
             if(dealerNode is null) {
@@ -299,7 +363,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
             int columnWidth,
             string treeName,
             Dictionary<CardNumberOrScore, List<LeafNode<CardNumberOrScore, HandAction>>> treeAsDictionary,
-            BaseTreeNode<CardNumberOrScore, HandAction> tree) {
+            CardNumberOrScoreTree tree) {
 
             writer.WriteLine(treeName);
             writer.Write(new string(' ', columnWidth));

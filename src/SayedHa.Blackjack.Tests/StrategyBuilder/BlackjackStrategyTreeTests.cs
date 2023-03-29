@@ -98,7 +98,7 @@ namespace SayedHa.Blackjack.Tests.StrategyBuilder {
             CardNumber card2 = CardNumber.Five;
             HandAction expectedHandAction = HandAction.Hit;
             tree.AddHardTotalNextAction(dealerCard, CardNumberHelper.GetScoreTotal(card1, card2), expectedHandAction);
-            var foundHandAction = tree.GetNextHandAction(dealerCard, card1, CardNumber.Ace);
+            var foundHandAction = tree.GetNextHandAction(dealerCard, card1, card2);
             Assert.Equal(expectedHandAction, foundHandAction);
         }
         [Fact]

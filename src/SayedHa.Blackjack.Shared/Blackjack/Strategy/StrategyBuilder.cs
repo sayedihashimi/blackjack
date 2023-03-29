@@ -103,7 +103,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                     Console.Write($"{initialPopulationOfStrategiesList[5].FitnessScore}{initialPopulationOfStrategiesList[6].Name}, ");
                     Console.Write($"{initialPopulationOfStrategiesList[5].FitnessScore}{initialPopulationOfStrategiesList[7].Name}, ");
                     Console.Write($"{initialPopulationOfStrategiesList[5].FitnessScore}{initialPopulationOfStrategiesList[8].Name}, ");
-                    Console.WriteLine($"{initialPopulationOfStrategiesList[5].FitnessScore}{initialPopulationOfStrategiesList[9].Name}");
+                    Console.Write($"{initialPopulationOfStrategiesList[5].FitnessScore}{initialPopulationOfStrategiesList[9].Name}");
                 }
 
                 var parentStrategiesList = SelectParents(initialPopulationOfStrategiesList, Settings.NumStrategiesToGoToNextGeneration);
@@ -111,8 +111,30 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                 var children = ProduceOffspring(parentStrategiesList, initialPopulationOfStrategiesList.Count - parentStrategiesList.Count);
                 MutateOffspring(children, mutationRate);
 
-                // children.AddRange(parentStrategiesList);
+                // TODO: The TreeId isn't working, revisit later.
+                // before adding the child ensure that it hasn't already been added.
+                //foreach (var child in children) {
+                //    bool wasFound = false;
+                //    foreach(var strategy in initialPopulationOfStrategiesList) {
+                //        if(strategy.StrategyId == child.StrategyId) {
+                //            // child is already in the strategy list
+                //            Console.WriteLine($"Duplicate strategy created: '{child.StrategyId}'");
+                //            wasFound = true;
+                //            continue;
+                //        }
+                //    }
+                //    if (!wasFound) {
+                //        initialPopulationOfStrategiesList.Add(child);
+                //    }
 
+                //    //var id = child.StrategyId;
+                //    //if (!initialPopulationOfStrategiesList.Contains(child)) {
+                //    //    initialPopulationOfStrategiesList.Add(child);
+                //    //}
+                //    //else {
+                //    //    Console.WriteLine($"Not adding strategy because it already has been added");
+                //    //}
+                //}
                 initialPopulationOfStrategiesList.AddRange(children);
 
                 // update the mutation rate
@@ -125,7 +147,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                 }
                 stopwatch.Stop();
                 if (!Settings.AllConsoleOutputDisabled) {
-                    Console.Write($"[{stopwatch.Elapsed.ToString("mm\\:ss")}]");
+                    Console.WriteLine($" [{stopwatch.Elapsed.ToString("mm\\:ss")}]");
                 }
 
                 currentGeneration++;
@@ -352,18 +374,18 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             for (var dealerIndex = 0; dealerIndex < allCardNumbers.Length; dealerIndex++) {
                 for (var htIndex = 0; htIndex < allHardTotalValues.Count; htIndex++) {
                     var dealerCard = allCardNumbers[dealerIndex];
-                    var valueParent1 = parent1.GetOrAddFromHardTotalTree(allCardNumbers[dealerIndex], allHardTotalValues[htIndex]);
-                    var valueParent2 = parent2.GetOrAddFromHardTotalTree(allCardNumbers[dealerIndex], allHardTotalValues[htIndex]);
+                    var valueParent1 = parent1.GetFromHardTotalTree(allCardNumbers[dealerIndex], allHardTotalValues[htIndex]);
+                    var valueParent2 = parent2.GetFromHardTotalTree(allCardNumbers[dealerIndex], allHardTotalValues[htIndex]);
                     var currentHardTotal = allHardTotalValues[htIndex];
                     if (htIndex < hardTotalCardCuttoffIndex) {
                         // child1 get the Split value from parent1 and child2 gets the Split value from parent 2
-                        child1.AddHardTotalNextAction(dealerCard, currentHardTotal, valueParent1);
-                        child2.AddHardTotalNextAction(dealerCard, currentHardTotal, valueParent2);
+                        child1.AddHardTotalNextAction(dealerCard, currentHardTotal, valueParent1!.Value);
+                        child2.AddHardTotalNextAction(dealerCard, currentHardTotal, valueParent2!.Value);
                     }
                     else {
                         // child1 get the Split value from parent2 and child2 gets the Split value from parent 1
-                        child1.AddHardTotalNextAction(dealerCard, currentHardTotal, valueParent2);
-                        child2.AddHardTotalNextAction(dealerCard, currentHardTotal, valueParent1);
+                        child1.AddHardTotalNextAction(dealerCard, currentHardTotal, valueParent2!.Value);
+                        child2.AddHardTotalNextAction(dealerCard, currentHardTotal, valueParent1!.Value);
                     }
                 }
             }

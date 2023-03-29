@@ -13,7 +13,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
     }
     public class BaseTreeNode<T, J> : IBaseTreeNode<T, J> {
         public List<ITreeNode<T, J>>? Children { get; init; } = new List<ITreeNode<T, J>>();
-        public (bool, ITreeNode<T, J>) GetOrAdd(T id, NodeType nodeType) {
+        public virtual (bool, ITreeNode<T, J>) GetOrAdd(T id, NodeType nodeType) {
             if (Children == null) {
                 throw new TreeChildrenNullException();
             }
@@ -23,7 +23,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
                 return (false, foundNode);
             }
 
-            return (true, AddItem(id, nodeType));
+            return (true, this.AddItem(id, nodeType));
         }
         /// <summary>
         /// Will get the node specified.
@@ -41,10 +41,10 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
 
             return null;
         }
-        public ITreeNode<T, J> AddItem(T id) {
+        public virtual ITreeNode<T, J> AddItem(T id) {
             return AddItem(id, NodeType.TreeNode);
         }
-        public ITreeNode<T, J> AddItem(T id, NodeType nodeType) {
+        public virtual ITreeNode<T, J> AddItem(T id, NodeType nodeType) {
             TreeNode<T, J> newNode = nodeType switch {
                 NodeType.TreeNode => new TreeNode<T, J>(id),
                 NodeType.LeafNode => new LeafNode<T, J>(id),
@@ -54,6 +54,48 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
             Children!.Add(newNode);
             return newNode;
         }
+    }
+    public class CardNumberOrScoreTree : BaseTreeNode<CardNumberOrScore, HandAction> {
+        public override (bool, ITreeNode<CardNumberOrScore, HandAction>) GetOrAdd(CardNumberOrScore id, NodeType nodeType) {
+            if (Children == null) {
+                throw new TreeChildrenNullException();
+            }
+
+            var foundNode = Get(id);
+            if (foundNode is object) {
+                return (false, foundNode);
+            }
+
+            return (true, this.AddItem(id, nodeType));
+        }
+        public override ITreeNode<CardNumberOrScore, HandAction> AddItem(CardNumberOrScore id, NodeType nodeType) {
+            var newItem = base.AddItem(id, nodeType);
+            if(newItem is LeafNode<CardNumberOrScore,HandAction> leafNode) {
+                var newId = TreeId * GetNumberFor(leafNode.Value);
+                if(newId < TreeId) {
+                    throw new UnexpectedValueException($"_treeId: '{TreeId}' newId: '{newId}'");
+                }
+                TreeId = newId;
+            }
+            return newItem;
+        }
+
+        protected internal int GetNumberFor(HandAction handAction) => handAction switch {
+            HandAction.Hit => 1,
+            HandAction.Stand => 2,
+            HandAction.Double => 3,
+            HandAction.Split => 4,
+            _ => throw new UnknownValueException($"Unknown value for HandAction: '{handAction}'")
+        };
+        public int TreeId { get; protected internal set; } = 1;
+
+        public override int GetHashCode() {
+            return TreeId;
+        }
+        public override bool Equals(object? obj) => obj switch {
+            CardNumberOrScoreTree other => TreeId == other.TreeId,
+            _ => false
+        };
     }
     public interface ITreeNode<T, J> : IBaseTreeNode<T, J> {
         public T Id { get; init; }
