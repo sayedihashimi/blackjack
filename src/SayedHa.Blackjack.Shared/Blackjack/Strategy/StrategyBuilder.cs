@@ -47,23 +47,35 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             //initialPopulationOfStrategiesList.Insert(0, factory.GetAllStands(false));
             //initialPopulationOfStrategiesList.Insert(0, factory.GetAllHits(true));
 
-            if (true) {
-                // TODO: Remove this
-                initialPopulationOfStrategiesList.RemoveAt(0);
-                var basicStrategyTree = BlackjackStrategyTreeFactory.GetInstance(true).GetBasicStrategyTree();
-                Console.WriteLine($"Basic strategy tree ids: {basicStrategyTree.TreeIds}");
-                basicStrategyTree.Name = "(BS)";
-                initialPopulationOfStrategiesList.Add(basicStrategyTree);
-                // TODO: end remove
-            }
+            var gameRunner = new GameRunner(NullReporter.Instance);
+            var treesToEvaluateButNotAdd = new List<BlackjackStrategyTree>();
 
+            // TODO: Remove this
+            // initialPopulationOfStrategiesList.RemoveAt(0);
+            var basicStrategyTree = BlackjackStrategyTreeFactory.GetInstance(true).GetBasicStrategyTree();
+            basicStrategyTree.Name = "(BS)";
+            // initialPopulationOfStrategiesList.Add(basicStrategyTree);
+
+            treesToEvaluateButNotAdd.Add(basicStrategyTree);
+
+            var bankroll1 = new Bankroll(Settings.InitialBankroll, NullLogger.Instance);
+            var bettingStrategy1 = new FixedBettingStrategy(bankroll1, Settings.BetAmount);
+            PlayAndEvaluate(Settings.NumHandsToPlayForEachStrategy,
+                            treesToEvaluateButNotAdd,
+                            gameRunner,
+                            bankroll1,
+                            bettingStrategy1);
+
+            foreach(var item in treesToEvaluateButNotAdd) {
+                Console.WriteLine($"{item.Name} score: {basicStrategyTree.FitnessScore}");
+            }
 
             stopwatch.Stop();
             var elapsedTimeStr = stopwatch.ElapsedMilliseconds;
 
             // evaluate the strategies by playing a set number of games
             // var bankroll = new Bankroll(Settings.InitialBankroll, NullLogger.Instance);
-            var gameRunner = new GameRunner(NullReporter.Instance);
+            
             // var bettingStrategy = new FixedBettingStrategy(bankroll, Settings.BetAmount);
             stopwatch.Restart();
             var maxNumGenerations = Settings.MaxNumberOfGenerations;
@@ -112,14 +124,18 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                 var children = ProduceOffspring(parentStrategiesList, initialPopulationOfStrategiesList.Count - parentStrategiesList.Count);
                 MutateOffspring(children, mutationRate);
 
-                // TODO: The TreeId isn't working, revisit later.
-                // before adding the child ensure that it hasn't already been added.
                 foreach(var child in children) {
-                    if (!initialPopulationOfStrategiesList.Contains(child)) {
-                        initialPopulationOfStrategiesList.Add(child);
+                    bool wasFound = false;
+                    foreach(var other in initialPopulationOfStrategiesList) {
+                        if(child.GetTreeIdString() == other.GetTreeIdString()) {
+                            // Console.WriteLine($"Duplicate strategy detected, not adding");
+                            wasFound = true;
+                            break;
+                        }
                     }
-                    else {
-                        Console.WriteLine($"Duplicate strategy found with id: {child.TreeIds}");
+
+                    if (!wasFound) {
+                        initialPopulationOfStrategiesList.Add(child);
                     }
                 }
 
@@ -143,8 +159,8 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             } while (currentGeneration < maxNumGenerations);
 
             // run another PlayAndEvaluate to evaluate the last set of offspring
-            var bankroll1 = new Bankroll(Settings.InitialBankroll, NullLogger.Instance);
-            var bettingStrategy1 = new FixedBettingStrategy(bankroll1, Settings.BetAmount);
+            bankroll1 = new Bankroll(Settings.InitialBankroll, NullLogger.Instance);
+            bettingStrategy1 = new FixedBettingStrategy(bankroll1, Settings.BetAmount);
             PlayAndEvaluate(Settings.NumHandsToPlayForEachStrategy, initialPopulationOfStrategiesList, gameRunner, bankroll1, bettingStrategy1);
             initialPopulationOfStrategiesList.Sort(initialPopulationOfStrategiesList[0].GetBlackjackTreeComparison());
 
@@ -153,6 +169,9 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             for (int i = 0; i < numToReturn; i++) {
                 if (i >= initialPopulationOfStrategiesList.Count) {
                     break;
+                }
+                if(initialPopulationOfStrategiesList[i].GetTreeIdString() == basicStrategyTree.GetTreeIdString()) {
+                    initialPopulationOfStrategiesList[i].Name = "=bs";
                 }
                 topStrategies.Add(initialPopulationOfStrategiesList[i]);
             }
@@ -176,7 +195,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                 // nothing to do.
                 return;
             }
-            Console.WriteLine("mutating offspring");
+            // Console.WriteLine("mutating offspring");
             // TODO: Maybe it's better to clone the offspringTree and then return that as a new list
 
             // visit each tree in the soft totals and see if it should be updated

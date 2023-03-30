@@ -16,55 +16,6 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
         // to be exercised again. The assigned score will continue to be used.
         public float? FitnessScore { get; set; }
 
-        protected internal (ulong aceTreeId, ulong hardTotalTreeId, ulong pairTreeId)? _ids;
-
-        public (ulong aceTreeId, ulong hardTotalTreeId, ulong pairTreeId) TreeIds {
-            get {
-                if(_ids == null) {
-                    ComputeIds ();
-                }
-
-                return _ids!.Value;
-            }
-        }
-        public void ComputeIds() {
-            ulong aceTreeId = GetIdFor(aceTree);
-            ulong hardTotalId = GetIdFor(hardTotalTree);
-            ulong pairTreeId = GetIdFor(pairTree);
-
-            ulong GetIdFor(BaseTreeNode<CardNumberOrScore, HandAction> aceTree) {
-                ulong aceTreeId = 1;
-                foreach (var aceDealer in aceTree.Children!) {
-                    aceTreeId += GetIntFor(aceDealer.Id);
-                    foreach (var node in aceDealer.Children!) {
-                        if (node is LeafNode<CardNumberOrScore, HandAction> leafNode) {
-                            var newValue = aceTreeId + GetIntFor(leafNode.Value);
-                            if(newValue >= ulong.MaxValue) {
-                                throw new UnexpectedValueException($"overflow on the treeid");
-                            }
-                            aceTreeId = newValue;
-                        }
-                        else {
-                            throw new UnexpectedNodeTypeException($"Expected LeafNode, received: '{node.GetType().FullName}'");
-                        }
-                    }
-                }
-                return aceTreeId;
-            }
-
-            _ids = (aceTreeId, hardTotalId, pairTreeId);
-        }
-        public override int GetHashCode() {
-            return TreeIds.GetHashCode();
-        }
-        public override bool Equals(object? obj) => 
-            obj switch {
-                BlackjackStrategyTree other => TreeIds.aceTreeId == other.TreeIds.aceTreeId &&
-                                                TreeIds.hardTotalTreeId == other.TreeIds.hardTotalTreeId &&
-                                                TreeIds.pairTreeId == other.TreeIds.pairTreeId,
-                _ => false
-            };
-
         protected internal ulong GetIntFor(HandAction handAction) => handAction switch {
             HandAction.Hit => 2,
             HandAction.Stand => 3,
@@ -371,59 +322,104 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
             WriteTreeStringTo(sWriter);
             return sb.ToString();
         }
-        public void WriteTreeStringTo(StringWriter writer) {
+        private string? _treeId;
+        protected internal string GetTreeIdString() {
+            if(_treeId == null) {
+                var stringBuilder = new StringBuilder();
+                using var sWriter = new StringWriter(stringBuilder);
+                WriteTreeStringTo(sWriter, true);
+                sWriter.Flush();
+                _treeId = stringBuilder.ToString();
+            }
+
+            return _treeId;
+        }
+        public void WriteTreeStringTo(StringWriter writer, bool compactStr = false) {
             int columnWidth = 4;
             if (hardTotalTree != null
                 && hardTotalTree.Children != null
                 && hardTotalTree.Children.Count > 0) {
-                writer.WriteLine($"Fitness Score: {FitnessScore}");
+                if (!compactStr) {
+
+                    writer.WriteLine($"Fitness Score: {FitnessScore} {Name}");
+                }
+
                 var treeAsDictionary = GetDictionaryForTree(hardTotalTree);
-                WriteStringForDictionary(writer, columnWidth, "hard-totals", treeAsDictionary, hardTotalTree);
+                WriteStringForDictionary(writer, columnWidth, "hard-totals", treeAsDictionary, hardTotalTree, compactStr);
             }
             writer.WriteLine();
             if (aceTree != null && aceTree.Children!.Count > 0) {
                 var treeAsDictionary = GetDictionaryForTree(aceTree);
 
-                WriteStringForDictionary(writer, columnWidth, "soft-totals", treeAsDictionary, aceTree);
+                WriteStringForDictionary(writer, columnWidth, "soft-totals", treeAsDictionary, aceTree, compactStr);
             }
             if (pairTree?.Children?.Count > 0) {
-                WritePairTreeTo(writer, columnWidth);
+                WritePairTreeTo(writer, columnWidth, compactStr);
             }
         }
         private void WriteStringForDictionary(StringWriter writer,
             int columnWidth,
             string treeName,
             Dictionary<CardNumberOrScore, List<LeafNode<CardNumberOrScore, HandAction>>> treeAsDictionary,
-            BaseTreeNode<CardNumberOrScore, HandAction> tree) {
+            BaseTreeNode<CardNumberOrScore, HandAction> tree, 
+            bool compactStr = false) {
 
-            writer.WriteLine(treeName);
-            writer.Write(new string(' ', columnWidth));
+            if (!compactStr) {
+                writer.WriteLine(treeName);
+                writer.Write(new string(' ', columnWidth));
+            }
 
             tree.Children!.Sort(GetTreeNodeComparison());
             for (int i = 0; i < tree.Children!.Count; i++) {
                 var dealerNode = tree.Children![i];
-                var str = i == tree.Children!.Count - 1 ? $"{GetStrFor(dealerNode.Id).PadLeft(columnWidth - 1)}" : $"{GetStrFor(dealerNode.Id)},".PadLeft(columnWidth);
-                writer.Write(str);
+                if (!compactStr) {
+                    var str = i == tree.Children!.Count - 1 ? $"{GetStrFor(dealerNode.Id).PadLeft(columnWidth - 1)}" : $"{GetStrFor(dealerNode.Id)},".PadLeft(columnWidth);
+                    writer.Write(str);
+                }
+                else {
+                    writer.Write(GetStrFor(dealerNode.Id));
+                }
             }
 
-            writer.WriteLine();
+            if (!compactStr) {
+                writer.WriteLine();
+            }
+
             var keys = treeAsDictionary.Keys.ToList();
             keys.Sort(GetCardNumberOrScoreComparison());
             foreach (var key in keys) {
                 var leafNodes = treeAsDictionary[key];
                 // print the hard total value
-                writer.Write($"{GetStrFor(key)},".PadLeft(columnWidth));
+                if (!compactStr) {
+                    writer.Write($"{GetStrFor(key)},".PadLeft(columnWidth));
+                }
+                else {
+                    writer.Write(GetStrFor(key));
+                }
+
                 // write each value
                 for (int i = 0; i < leafNodes.Count; i++) {
-                    var str = i == leafNodes.Count - 1 ? $"{GetStrFor(leafNodes[i].Value).PadLeft(columnWidth - 1)}" : $"{GetStrFor(leafNodes[i].Value)},".PadLeft(columnWidth);
-                    writer.Write(str);
+                    if (!compactStr) {
+                        var str = i == leafNodes.Count - 1 ? $"{GetStrFor(leafNodes[i].Value).PadLeft(columnWidth - 1)}" : $"{GetStrFor(leafNodes[i].Value)},".PadLeft(columnWidth);
+                        writer.Write(str);
+                    }
+                    else {
+                        writer.Write(GetStrFor(leafNodes[i].Value));
+                    }
                 }
-                writer.WriteLine();
+
+                if (!compactStr) {
+                    writer.WriteLine();
+                }
+
             }
         }
-        private void WritePairTreeTo(StringWriter writer, int columnWidth) {
-            writer.WriteLine("pairs");
-            writer.Write(new string(' ', columnWidth));
+        private void WritePairTreeTo(StringWriter writer, int columnWidth, bool compactStr = false) {
+            if (!compactStr) {
+                writer.WriteLine("pairs");
+                writer.Write(new string(' ', columnWidth));
+            }
+            
 
             // iterate through all dealer cards and all possible player cards
             var dealerCards = ((CardNumber[])Enum.GetValues(typeof(CardNumber))).ToList();
@@ -437,10 +433,19 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
             // write out the dealer card number row
             for (int i = 0; i < dealerCards.Count; i++) {
                 var dealerCardScore = CardNumberHelper.ConvertToCardNumberOrScore(dealerCards[i]);
-                var str = i == dealerCards.Count - 1 ? GetStrFor(dealerCardScore).PadLeft(columnWidth - 1) : $"{GetStrFor(dealerCardScore)},".PadLeft(columnWidth);
-                writer.Write(str);
+                if (!compactStr) {
+                    var str = i == dealerCards.Count - 1 ? GetStrFor(dealerCardScore).PadLeft(columnWidth - 1) : $"{GetStrFor(dealerCardScore)},".PadLeft(columnWidth);
+                    writer.Write(str);
+                }
+                else {
+                    var str = i == dealerCards.Count - 1 ? GetStrFor(dealerCardScore) : $"{GetStrFor(dealerCardScore)}";
+                    writer.Write(str);
+                }
             }
-            writer.WriteLine();
+            if (!compactStr) {
+                writer.WriteLine();
+            }
+
             var allPlayerCards = ((CardNumber[])Enum.GetValues(typeof(CardNumber))).ToList();
             allPlayerCards.Remove(CardNumber.Jack);
             allPlayerCards.Remove(CardNumber.Queen);
@@ -449,20 +454,38 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree {
 
             for (int i = 0; i < allPlayerCards.Count; i++) {
                 var op1Card = allPlayerCards[i];
-                // writer.Write($"{GetStrFor(op1Card)},{GetStrFor(op1Card)},".PadLeft(7));
-                writer.Write($"{GetStrFor(op1Card)},".PadLeft(columnWidth));
+                if (!compactStr) {
+                    writer.Write($"{GetStrFor(op1Card)},".PadLeft(columnWidth));
+                }
+                else {
+                    writer.Write($"{GetStrFor(op1Card)}");
+                }
+
                 for (int j = 0; j < dealerCards.Count; j++) {
                     var dealerCard = dealerCards[j];
                     if (DoesPairTreeContainSplit(dealerCard, op1Card)) {
-                        var str = j == allPlayerCards.Count - 1 ? "Sp".PadLeft(columnWidth - 1) : "Sp,".PadLeft(columnWidth);
-                        writer.Write(str);
+                        if (!compactStr) {
+                            var str = j == allPlayerCards.Count - 1 ? "Sp".PadLeft(columnWidth - 1) : "Sp,".PadLeft(columnWidth);
+                            writer.Write(str);
+                        }
+                        else {
+                            writer.Write("Sp");
+                        }
                     }
                     else {
-                        var str = j == allPlayerCards.Count - 1 ? "-".PadLeft(columnWidth - 1) : "-,".PadLeft(columnWidth);
-                        writer.Write(str);
+                        if (!compactStr) {
+                            var str = j == allPlayerCards.Count - 1 ? "-".PadLeft(columnWidth - 1) : "-,".PadLeft(columnWidth);
+                            writer.Write(str);
+                        }
+                        else {
+                            writer.Write("-");
+                        }
                     }
                 }
-                writer.WriteLine();
+
+                if (!compactStr) {
+                    writer.WriteLine();
+                }
             }
         }
         private Dictionary<CardNumberOrScore, List<LeafNode<CardNumberOrScore, HandAction>>> GetDictionaryForTree(BaseTreeNode<CardNumberOrScore, HandAction> aceTree) {
