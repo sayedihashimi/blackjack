@@ -1,4 +1,5 @@
 ﻿using SayedHa.Blackjack.Shared.Blackjack.Exceptions;
+using SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -11,8 +12,10 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
     public interface INextHandActionArray {
         HandAction GetHandAction(CardNumber dealerCard, CardNumber opCard1, CardNumber opCard2);
         HandAction GetHandAction(CardNumber dealerCard, CardNumber[] opCards);
+        void SetHandAction(HandAction handAction, CardNumber dealerCard, CardNumber opCard1, CardNumber opCard2);
+        void SetHandAction(HandAction handAction, CardNumber dealerCard, CardNumber[] opCards);
         void SetHandActionForHardTotal(HandAction handAction, CardNumber dealerCard, int hardTotalScore);
-        void SetHandActionForPair(HandAction handAction, CardNumber dealerCard, CardNumber pairCard);
+        void SetSplitForPair(bool split, CardNumber dealerCard, CardNumber pairCard);
         void SetHandActionForSoftTotal(HandAction handAction, CardNumber dealerCard, int softTotalScore);
     }
 
@@ -23,8 +26,15 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
         // hard totals 3 - 18. probably could actually be 5 - 18 but not currently
         protected internal int[,] hardTotalHandActionArray = new int[10,18];
 
-        public void SetHandActionForPair(HandAction handAction, CardNumber dealerCard, CardNumber pairCard) {
-            pairHandActionArray[GetIntFor(dealerCard), GetIntFor(pairCard)] = GetIntFor(handAction);
+        public void SetSplitForPair(bool split, CardNumber dealerCard, CardNumber pairCard) {
+            pairHandActionArray[GetIntFor(dealerCard), GetIntFor(pairCard)] = GetIntFor(split);
+        }
+
+        public void SetHandAction(HandAction handAction, CardNumber dealerCard, CardNumber opCard1, CardNumber opCard2) {
+            throw new NotImplementedException();
+        }
+        public void SetHandAction(HandAction handAction, CardNumber dealerCard, CardNumber[] opCards) {
+            throw new NotImplementedException();
         }
         public void SetHandActionForSoftTotal(HandAction handAction, CardNumber dealerCard, int softTotalScore) {
             softHandActionArray[GetIntFor(dealerCard), GetIntForSoftScore(softTotalScore)] = GetIntFor(handAction);
@@ -34,33 +44,124 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
         }
         public HandAction GetHandAction(CardNumber dealerCard, CardNumber opCard1, CardNumber opCard2) {
             if (opCard1.IsAPairWith(opCard2)) {
-                // return value from pair array
-                return GetHandActionFor(pairHandActionArray[GetIntFor(dealerCard), GetIntFor(opCard1)]);
+                // see if the pair should be split if so, return it
+                var valueFromPairArray = pairHandActionArray[GetIntFor(dealerCard), GetIntFor(opCard1)];
+                bool? shouldSplit = ConvertBoolInt(valueFromPairArray);
+                if(shouldSplit is not null && shouldSplit.HasValue && shouldSplit.Value == true) {
+                    return HandAction.Split;
+                }
             }
-            // see if the cards contains an ace
-            if (opCard1.ContainsAnAce(opCard2)) {
+            // HandAction is not split here
+
+            // see if the cards contains an ace, if so return from soft-totals
+            if (!opCard1.IsAPairWith(opCard2) && opCard1.ContainsAnAce(opCard2)) {
                 // return value from soft totals
                 var nonAceCard = opCard1;
                 if(nonAceCard == CardNumber.Ace) {
                     nonAceCard = opCard2;
                 }
-                return GetHandActionFor(hardTotalHandActionArray[GetIntFor(dealerCard),GetIntFor(nonAceCard)]);
+
+                var handAction = GetFromSoftTotals(dealerCard, nonAceCard);
+                if(handAction is not null && handAction.HasValue) {
+                    return handAction.Value;
+                }
             }
+
             // return from hard totals
-
-
-            throw new NotImplementedException();
+            var score = CardNumberHelper.GetScoreTotal(opCard1, opCard2);
+            if(score >= BlackjackSettings.GetBlackjackSettings().MaxScore) {
+                return HandAction.Stand;
+            }
+            // it should be in the array
+            return GetHandActionFor(
+                hardTotalHandActionArray[GetIntFor(dealerCard), GetIntForHardTotalScore(score)])!.Value;
         }
-        public HandAction GetHandAction(CardNumber dealerCard, CardNumber[] opCards) {
+        /// <summary>
+        /// Will return the value from the soft totals.
+        /// </summary>
+        /// <param name="dealerCard">The dealers card</param>
+        /// <param name="opCard">The other card the player is holding beside the ace card.</param>
+        /// <returns></returns>
+        /// <exception cref="NotImplementedException"></exception>
+        protected internal HandAction? GetFromSoftTotals(CardNumber dealerCard, CardNumber opCard) {
+            var softValue = softHandActionArray[GetIntFor(dealerCard), GetIntFor(opCard)];
+            var handAction = GetHandActionFor(softValue);
+            if (handAction is not null && handAction.HasValue) {
+                return handAction.Value;
+            }
+            return null;
+        }
+        protected internal HandAction? GetFromSoftTotals(CardNumber dealerCard, int scoreTotal) {
+            int scoreIndex = GetIntForSoftScore(scoreTotal);
+            var softValue = softHandActionArray[GetIntFor(dealerCard), scoreIndex];
+            var handAction = GetHandActionFor(softValue);
+            if (handAction is not null && handAction.HasValue) {
+                return handAction.Value;
+            }
+            return null;
+        }
+        public HandAction GetHandAction(CardNumber dealerCard, params CardNumber[] opCards) {
             Debug.Assert(opCards != null);
+
+            if(opCards.Length < 2) {
+                throw new UnexpectedValueException($"Min cards 2, num cards: '{opCards.Length}'");
+            }
 
             if (opCards.Length == 2) {
                 return GetHandAction(dealerCard, opCards[0], opCards[1]);
             }
 
-            throw new NotImplementedException();
-        }
+            var score = CardNumberHelper.GetScoreTotal(opCards);
+            if(score >= BlackjackSettings.GetBlackjackSettings().MaxScore) {
+                return HandAction.Stand;
+            }
 
+            var containsAce = CardNumberHelper.ContainsAnAce(opCards);
+            if (containsAce) {
+                var otherCards = new CardNumber[opCards.Length - 1];
+
+                // only want to ignore 1 ace
+                bool aceCardFound = false;
+                int currentIndex = 0;
+                foreach(var card in opCards) {
+                    if(!aceCardFound && card == CardNumber.Ace) {
+                        aceCardFound = true;
+                    }
+                    else {
+                        otherCards[currentIndex++] = card;
+                    }
+                }
+                var scoreOtherCards = CardNumberHelper.GetScoreTotal(otherCards);
+                if(scoreOtherCards <= 9) {
+                    // check soft totals for the result
+                    var softHandAction = GetFromSoftTotals(dealerCard, scoreOtherCards);
+                    if(softHandAction is not null && 
+                        softHandAction.HasValue && 
+                        softHandAction.Value != HandAction.Double) {
+                        // double not allowed when there are more than 2 cards
+
+                        return softHandAction.Value;
+                    }
+                }
+            }
+
+            // return the value from the hard totals
+            var scoreTotal = CardNumberHelper.GetScoreTotal(opCards);
+            var scoreHardTotalIndex = GetIntForHardTotalScore(scoreTotal);
+            // it should be in the array
+            var hardTotalValue = hardTotalHandActionArray[GetIntFor(dealerCard), scoreHardTotalIndex];
+            return GetHandActionFor(hardTotalValue)!.Value;
+        }
+        public bool? ConvertBoolInt(int intValue) => intValue switch {
+            1 => true,
+            2 => false,
+            _ => null
+        };
+        protected internal int GetIntFor(bool boolValue) => boolValue switch {
+            // not using 0 becuase that's the default value that the array is initilized with
+            true => 1,
+            false => 2
+        };
         protected internal int GetIntFor(CardNumber cardNumber) => cardNumber switch {
             CardNumber.Two => 0,
             CardNumber.Three => 1,
@@ -110,17 +211,18 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             _ => throw new UnexpectedNodeTypeException($"Unexpected value for hard total: '{hardTotalScore}'")
         };
         protected internal int GetIntFor(HandAction handAction) => handAction switch {
-            HandAction.Double => 0,
-            HandAction.Hit => 1,
-            HandAction.Stand => 2,
-            HandAction.Split => 3,
+            HandAction.Double => 1,
+            HandAction.Hit => 2,
+            HandAction.Stand => 3,
+            HandAction.Split => 4,
             _ => throw new UnexpectedNodeTypeException($"Unexpected value for HandAction: '{handAction}'")
         };
-        protected internal HandAction GetHandActionFor(int handActionInt) => handActionInt switch {
-            0 => HandAction.Double,
-            1 => HandAction.Hit,
-            2 => HandAction.Stand,
-            3 => HandAction.Split,
+        protected internal HandAction? GetHandActionFor(int handActionInt) => handActionInt switch {
+            0 => null,
+            1 => HandAction.Double,
+            2 => HandAction.Hit,
+            3 => HandAction.Stand,
+            4 => HandAction.Split,
             _ => throw new UnexpectedNodeTypeException($"Unexpected value for handActionInt: '{handActionInt}'")
         };
     }
