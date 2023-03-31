@@ -206,7 +206,7 @@ namespace SayedHa.Blackjack.Tests.StrategyBuilder {
             }
 
             // go through them all with a stopwatch to see how long it takes
-            var numQueriesToRun = 100000;
+            var numQueriesToRun = 1000000;
             var numQueries = 0;
             var stopwatch = new Stopwatch();
             stopwatch.Start();

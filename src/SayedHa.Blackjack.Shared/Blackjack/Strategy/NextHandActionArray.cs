@@ -22,19 +22,46 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
     public class NextHandActionArray : INextHandActionArray {
         protected internal int[,] pairHandActionArray = new int[10, 10];
         // soft totals are 2 - 9
-        protected internal int[,] softHandActionArray = new int[10, 8];
+        protected internal int[,] softHandActionArray = new int[10, 9];
         // hard totals 3 - 18. probably could actually be 5 - 18 but not currently
-        protected internal int[,] hardTotalHandActionArray = new int[10,18];
+        protected internal int[,] hardTotalHandActionArray = new int[10,19];
 
         public void SetSplitForPair(bool split, CardNumber dealerCard, CardNumber pairCard) {
             pairHandActionArray[GetIntFor(dealerCard), GetIntFor(pairCard)] = GetIntFor(split);
         }
 
         public void SetHandAction(HandAction handAction, CardNumber dealerCard, CardNumber opCard1, CardNumber opCard2) {
-            throw new NotImplementedException();
+            if(handAction == HandAction.Split) {
+                // verify we have a pair otherwise it's not a valid action
+                if (!opCard1.IsAPairWith(opCard2)) {
+                    throw new UnexpectedValueException($"Expected a pair but received '{opCard1}' and '{opCard2}'");
+                }
+                SetSplitForPair(true, dealerCard, opCard1);
+            }
+            else if (!opCard1.IsAPairWith(opCard2) && opCard1.ContainsAnAce(opCard2)) {
+                (CardNumber firstCardNumber, CardNumber secondCardNumber) = opCard1.Sort(opCard2);
+                SetHandActionForSoftTotal(handAction, dealerCard, firstCardNumber.GetValues()[0]);
+            }
+            else {
+                SetHandActionForHardTotal(handAction, dealerCard, CardNumberHelper.GetScoreTotal(opCard1, opCard2));
+            }
         }
         public void SetHandAction(HandAction handAction, CardNumber dealerCard, CardNumber[] opCards) {
-            throw new NotImplementedException();
+            Debug.Assert(opCards != null);
+            if(opCards.Length < 2) {
+                throw new UnexpectedValueException($"To add a hand action, two or more cards are required, number of cards: '{opCards.Length}'");
+            }
+
+            if(opCards.Length == 2) {
+                SetHandAction(handAction, dealerCard, opCards[0], opCards[1]);
+            }
+            else {
+                if(handAction == HandAction.Split) {
+                    throw new UnexpectedValueException($"Cannot split when hand contains more than two cards, number of cards: '{opCards.Length}'");
+                }
+                var scoreTotal = CardNumberHelper.GetScoreTotal(opCards);
+                SetHandActionForHardTotal(handAction, dealerCard, scoreTotal);
+            }
         }
         public void SetHandActionForSoftTotal(HandAction handAction, CardNumber dealerCard, int softTotalScore) {
             softHandActionArray[GetIntFor(dealerCard), GetIntForSoftScore(softTotalScore)] = GetIntFor(handAction);

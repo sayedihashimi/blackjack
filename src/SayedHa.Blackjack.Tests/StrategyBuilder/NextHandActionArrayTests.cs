@@ -188,56 +188,61 @@ namespace SayedHa.Blackjack.Tests.StrategyBuilder {
                 Assert.Equal(expectedHandActionList[i], result);
             }
         }
-        //[Fact]
-        //public void Test_FullTree_100000_queries() {
-        //    var allCardNumbers = ((CardNumber[])Enum.GetValues(typeof(CardNumber))).ToArray();
-        //    var tree = new BlackjackStrategyTree();
-        //    var expectedHandAction = HandAction.Stand;
+        [Fact]
+        public void Test_FullTree_100000_queries() {
+            var allCardNumbers = ((CardNumber[])Enum.GetValues(typeof(CardNumber))).ToArray();
+            var nhaa = new NextHandActionArray();
+            var expectedHandAction = HandAction.Stand;
 
-        //    for (int i = 0; i < allCardNumbers.Length; i++) {
-        //        var dealerCard = allCardNumbers[i];
-        //        for (int j = 0; j < allCardNumbers.Length; j++) {
-        //            var op1Card = allCardNumbers[j]!;
-        //            for (int k = 0; k < allCardNumbers.Length; k++) {
-        //                var op2Card = allCardNumbers[k]!;
-        //                tree.AddNextHandAction(dealerCard, expectedHandAction, op1Card, op2Card);
-        //            }
-        //        }
-        //    }
+            for (int i = 0; i < allCardNumbers.Length; i++) {
+                var dealerCard = allCardNumbers[i];
+                for (int j = 0; j < allCardNumbers.Length; j++) {
+                    var op1Card = allCardNumbers[j]!;
+                    for (int k = 0; k < allCardNumbers.Length; k++) {
+                        var op2Card = allCardNumbers[k]!;
 
-        //    // go through them all with a stopwatch to see how long it takes
-        //    var numQueriesToRun = 100000;
-        //    var numQueries = 0;
-        //    var stopwatch = new Stopwatch();
-        //    stopwatch.Start();
-        //    while (numQueries < numQueriesToRun) {
-        //        for (int i = 0; i < allCardNumbers.Length; i++) {
-        //            var dealerCard = allCardNumbers[i];
-        //            for (int j = 0; j < allCardNumbers.Length; j++) {
-        //                var op1Card = allCardNumbers[j]!;
-        //                for (int k = 0; k < allCardNumbers.Length; k++) {
-        //                    var op2Card = allCardNumbers[k]!;
-        //                    var foundHandAction = tree.GetNextHandAction(dealerCard, op1Card!, op2Card!);
-        //                    numQueries++;
-        //                    if (numQueries > numQueriesToRun) {
-        //                        break;
-        //                    }
-        //                }
-        //                if (numQueries > numQueriesToRun) {
-        //                    break;
-        //                }
-        //            }
-        //            if (numQueries > numQueriesToRun) {
-        //                break;
-        //            }
-        //        }
-        //    }
-        //    stopwatch.Stop();
-        //    Console.WriteLine($"Elapsed time: {stopwatch.Elapsed.TotalMilliseconds} ms");
+                        int scoreTotal = CardNumberHelper.GetScoreTotal(op1Card, op2Card);
+                        // don't set the core for 21, it's blackjack
+                        if (scoreTotal < 21) {
+                            nhaa.SetHandAction(expectedHandAction, dealerCard, op1Card, op2Card);
+                        }
+                    }
+                }
+            }
 
-        //    Assert.True(stopwatch.ElapsedMilliseconds < 1000);
-        //    Assert.Equal(expectedHandAction, tree.GetNextHandAction(CardNumber.Ten, CardNumber.Nine, CardNumber.Four));
-        //    Assert.Equal(expectedHandAction, tree.GetNextHandAction(CardNumber.Ace, CardNumber.Nine, CardNumber.Nine));
-        //}
+            // go through them all with a stopwatch to see how long it takes
+            var numQueriesToRun = 1000000;
+            var numQueries = 0;
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+            while (numQueries < numQueriesToRun) {
+                for (int i = 0; i < allCardNumbers.Length; i++) {
+                    var dealerCard = allCardNumbers[i];
+                    for (int j = 0; j < allCardNumbers.Length; j++) {
+                        var op1Card = allCardNumbers[j]!;
+                        for (int k = 0; k < allCardNumbers.Length; k++) {
+                            var op2Card = allCardNumbers[k]!;
+                            var foundHandAction = nhaa.GetHandAction(dealerCard, op1Card!, op2Card!);
+                            numQueries++;
+                            if (numQueries > numQueriesToRun) {
+                                break;
+                            }
+                        }
+                        if (numQueries > numQueriesToRun) {
+                            break;
+                        }
+                    }
+                    if (numQueries > numQueriesToRun) {
+                        break;
+                    }
+                }
+            }
+            stopwatch.Stop();
+            Console.WriteLine($"Elapsed time: {stopwatch.Elapsed.TotalMilliseconds} ms");
+
+            Assert.True(stopwatch.ElapsedMilliseconds < 1000);
+            Assert.Equal(expectedHandAction, nhaa.GetHandAction(CardNumber.Ten, CardNumber.Nine, CardNumber.Four));
+            Assert.Equal(expectedHandAction, nhaa.GetHandAction(CardNumber.Ace, CardNumber.Nine, CardNumber.Nine));
+        }
     }
 }
