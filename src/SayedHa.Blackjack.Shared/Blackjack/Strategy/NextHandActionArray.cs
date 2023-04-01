@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -19,7 +20,59 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
         void SetHandActionForSoftTotal(HandAction handAction, CardNumber dealerCard, int softTotalScore);
     }
 
+    public class NextHandActionArrayFactory {
+        private static NextHandActionArray _instance = new NextHandActionArray();
+        protected internal RandomHelper RandomHelper { get; set; } = new RandomHelper();
+        public NextHandActionArray GetInstance() {
+            return _instance;
+        }
+
+        public NextHandActionArray CreateRandomStrategy() {
+            var nhaa = new NextHandActionArray();
+
+            for(int i = 0; i < nhaa.pairHandActionArray.GetLength(0); i++) {
+                for(int j = 0;j < nhaa.pairHandActionArray.GetLength(1); j++) {
+                    var pairValue = nhaa.pairHandActionArray[i, j] = RandomHelper.GetRandomIntBetween(1, 2 + 1);
+                }
+            }
+
+            for(int i = 0; i < nhaa.softHandActionArray.GetLength(0); i++) {
+                for(int j = 0; j < nhaa.softHandActionArray.GetLength(1); j++) {
+                    nhaa.softHandActionArray[i, j] = RandomHelper.GetRandomIntBetween(2, 9 + 1);
+                }
+            }
+
+            for(int i = 0; i < nhaa.hardTotalHandActionArray.GetLength(0); i++) {
+                for(int j = 0; j < nhaa.hardTotalHandActionArray.GetLength(1); j++) {
+                    nhaa.hardTotalHandActionArray[i, j] = RandomHelper.GetRandomIntBetween(3, 20 + 1);
+                }
+            }
+
+            return nhaa;
+        }
+        public IEnumerable<NextHandActionArray> CreateRandomStrategies(int numStrategies) {
+            for(int i = 0; i<numStrategies; i++) {
+                yield return CreateRandomStrategy();
+            }
+        }
+    }
+    public class RandomHelper {
+        private Random random = new Random();
+        public bool UseRandomNumberGenerator { get; set; } = true;
+
+        protected internal int GetRandomIntBetween(int fromInclusive, int toExclusive) => UseRandomNumberGenerator switch {
+            true => RandomNumberGenerator.GetInt32(fromInclusive, toExclusive),
+            false => random.Next(fromInclusive, toExclusive)
+        };
+        protected internal bool GetRandomBool() => UseRandomNumberGenerator switch {
+            true => RandomNumberGenerator.GetInt32(2) == 0,
+            false => random.Next(2) == 0
+        };
+    }
     public class NextHandActionArray : INextHandActionArray {
+        // using int instead of bool because
+        //  1. to be able to tell when the value is not set.
+        //  2. to be more consistent with the other item here.
         protected internal int[,] pairHandActionArray = new int[10, 10];
         // soft totals are 2 - 9
         protected internal int[,] softHandActionArray = new int[10, 9];

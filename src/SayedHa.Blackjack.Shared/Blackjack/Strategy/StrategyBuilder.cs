@@ -16,13 +16,13 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
     /// This is what will run the genetic algorithm to try 
     /// and build the best strategy.
     /// </summary>
-    public class StrategyBuilder {
+    public class StrategyBuilder : IStrategyBuilder {
         public StrategyBuilder() : this(new StrategyBuilderSettings()) { }
         public StrategyBuilder(StrategyBuilderSettings settings) {
             Settings = settings;
         }
 
-        public StrategyBuilderSettings Settings { get; set; }
+        public StrategyBuilderSettings Settings { get; init; }
 
         protected internal List<BlackjackStrategyTree> AllStrategiesTested { get; set; } = new List<BlackjackStrategyTree>();
 
@@ -40,7 +40,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
 
             var stopwatch = new Stopwatch();
             stopwatch.Start();
-            
+
             var initialPopulationOfStrategiesList = CreateRandomTrees(Settings.NumStrategiesForFirstGeneration);
 
             // TODO: remove this
@@ -66,7 +66,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                             bankroll1,
                             bettingStrategy1);
 
-            foreach(var item in treesToEvaluateButNotAdd) {
+            foreach (var item in treesToEvaluateButNotAdd) {
                 Console.WriteLine($"{item.Name} score: {basicStrategyTree.FitnessScore}");
             }
 
@@ -75,7 +75,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
 
             // evaluate the strategies by playing a set number of games
             // var bankroll = new Bankroll(Settings.InitialBankroll, NullLogger.Instance);
-            
+
             // var bettingStrategy = new FixedBettingStrategy(bankroll, Settings.BetAmount);
             stopwatch.Restart();
             var maxNumGenerations = Settings.MaxNumberOfGenerations;
@@ -92,16 +92,16 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                 }
                 var bankroll = new Bankroll(Settings.InitialBankroll, NullLogger.Instance);
                 var bettingStrategy = new FixedBettingStrategy(bankroll, Settings.BetAmount);
-                PlayAndEvaluate(Settings.NumHandsToPlayForEachStrategy, 
-                                initialPopulationOfStrategiesList, 
-                                gameRunner, 
+                PlayAndEvaluate(Settings.NumHandsToPlayForEachStrategy,
+                                initialPopulationOfStrategiesList,
+                                gameRunner,
                                 bankroll,
                                 bettingStrategy);
                 // sort the list with highest fitness first
                 initialPopulationOfStrategiesList.Sort(initialPopulationOfStrategiesList[0].GetBlackjackTreeComparison());
 
                 // trim down the population to ensure it doesn't get too big
-                if(initialPopulationOfStrategiesList.Count > Settings.NumStrategiesForFirstGeneration) {
+                if (initialPopulationOfStrategiesList.Count > Settings.NumStrategiesForFirstGeneration) {
                     initialPopulationOfStrategiesList = initialPopulationOfStrategiesList.GetRange(0, Settings.NumStrategiesForFirstGeneration);
                 }
 
@@ -124,10 +124,10 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                 var children = ProduceOffspring(parentStrategiesList, initialPopulationOfStrategiesList.Count - parentStrategiesList.Count);
                 MutateOffspring(children, mutationRate);
 
-                foreach(var child in children) {
+                foreach (var child in children) {
                     bool wasFound = false;
-                    foreach(var other in initialPopulationOfStrategiesList) {
-                        if(child.GetTreeIdString() == other.GetTreeIdString()) {
+                    foreach (var other in initialPopulationOfStrategiesList) {
+                        if (child.GetTreeIdString() == other.GetTreeIdString()) {
                             // Console.WriteLine($"Duplicate strategy detected, not adding");
                             wasFound = true;
                             break;
@@ -170,7 +170,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                 if (i >= initialPopulationOfStrategiesList.Count) {
                     break;
                 }
-                if(initialPopulationOfStrategiesList[i].GetTreeIdString() == basicStrategyTree.GetTreeIdString()) {
+                if (initialPopulationOfStrategiesList[i].GetTreeIdString() == basicStrategyTree.GetTreeIdString()) {
                     initialPopulationOfStrategiesList[i].Name = "=bs";
                 }
                 topStrategies.Add(initialPopulationOfStrategiesList[i]);
@@ -190,8 +190,8 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             if (mutationRate < 0 || mutationRate > 100) {
                 throw new UnexpectedValueException($"mutationRate: '{mutationRate}'");
             }
-            
-            if(mutationRate == 0) {
+
+            if (mutationRate == 0) {
                 // nothing to do.
                 return;
             }
@@ -218,7 +218,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                 }
                 // hard total tree
                 foreach (var dealerNode in off.hardTotalTree.Children!) {
-                    foreach(var node in dealerNode.Children!) {
+                    foreach (var node in dealerNode.Children!) {
                         if (node is LeafNode<CardNumberOrScore, HandAction> leafNode) {
                             // chance to modify the value is mutationRate
                             var value = CardNumberHelper.GetRandomIntBetween(0, 100 + 1);
@@ -242,7 +242,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                         var value = CardNumberHelper.GetRandomIntBetween(0, 100 + 1);
                         if (value < mutationRate) {
                             var cnos = CardNumberHelper.ConvertToCardNumberOrScore(pairCard);
-                            
+
                             var foundNode = dealerNode?.Get(cnos);
                             if (foundNode is object) {
                                 // remove that node
@@ -458,7 +458,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
 
             return initialPopulationOfStrategiesList;
         }
-        protected internal BlackjackStrategyTree CreateRandomTree() => 
+        protected internal BlackjackStrategyTree CreateRandomTree() =>
             BlackjackStrategyTreeFactory.GetInstance(Settings.UseRandomNumberGenerator).CreateNewRandomTree();
         /// <summary>
         /// This method will play the number of games specified on the provided game object.
