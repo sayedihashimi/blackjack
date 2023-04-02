@@ -54,46 +54,88 @@ using SB = SayedHa.Blackjack.Shared.Blackjack.Strategy.StrategyBuilder;
 
 //return;
 
-var settings = new StrategyBuilderSettings();
-Console.WriteLine(@$"starting test for: 
-num generations: {settings.MaxNumberOfGenerations} 
-population: {settings.NumStrategiesForFirstGeneration} 
-num parents (survivors) each gen: {settings.NumStrategiesToGoToNextGeneration}
-num hands to play for each strategy: {settings.NumHandsToPlayForEachStrategy}
-initial mutation rate: {settings.InitialMutationRate}
-min mutation rate: {settings.MinMutationRate}");
-
-var strategy1 = new SB();
-var stopwatch = new Stopwatch();
-stopwatch.Start();
-var result = strategy1.FindBestStrategies(5);
-stopwatch.Stop();
-
-Console.WriteLine(@$"Completed test for: 
-num generations: {settings.MaxNumberOfGenerations} 
-population: {settings.NumStrategiesForFirstGeneration} 
-num parents (survivors) each gen: {settings.NumStrategiesToGoToNextGeneration}
-num hands to play for each strategy: {settings.NumHandsToPlayForEachStrategy}
-initial mutation rate: {settings.InitialMutationRate}
-min mutation rate: {settings.MinMutationRate}");
-
-var sb = new StringBuilder();
-var sWriter = new StringWriter(sb);
-sWriter.WriteLine($"elapsed time: {stopwatch.Elapsed.ToString(@"hh\:mm\:ss")}");
-sWriter.WriteLine($"Num generations: {settings.MaxNumberOfGenerations}");
-sWriter.WriteLine("Top strategies found");
-for (int i = 0; i < result.Count; i++) {
-    sWriter.WriteLine($" ------------- {i} -------------");
-    result[i].WriteTreeStringTo(sWriter);
-}
-
-sWriter.Flush();
-sWriter.Close();
-
-Console.WriteLine(sb.ToString());
+StartRunningStrategyBuilder2();
 return;
 
+void StartRunningStrategyBuilder() {
+    var settings = new StrategyBuilderSettings();
+    Console.WriteLine(@$"starting test for: 
+num generations: {settings.MaxNumberOfGenerations} 
+population: {settings.NumStrategiesForFirstGeneration} 
+num parents (survivors) each gen: {settings.NumStrategiesToGoToNextGeneration}
+num hands to play for each strategy: {settings.NumHandsToPlayForEachStrategy}
+initial mutation rate: {settings.InitialMutationRate}
+min mutation rate: {settings.MinMutationRate}");
 
+    var strategy1 = new SB();
+    var stopwatch = new Stopwatch();
+    stopwatch.Start();
+    var result = strategy1.FindBestStrategies(5);
+    stopwatch.Stop();
+
+    Console.WriteLine(@$"Completed test for: 
+num generations: {settings.MaxNumberOfGenerations} 
+population: {settings.NumStrategiesForFirstGeneration} 
+num parents (survivors) each gen: {settings.NumStrategiesToGoToNextGeneration}
+num hands to play for each strategy: {settings.NumHandsToPlayForEachStrategy}
+initial mutation rate: {settings.InitialMutationRate}
+min mutation rate: {settings.MinMutationRate}");
+
+    var sb = new StringBuilder();
+    var sWriter = new StringWriter(sb);
+    sWriter.WriteLine($"elapsed time: {stopwatch.Elapsed.ToString(@"hh\:mm\:ss")}");
+    sWriter.WriteLine($"Num generations: {settings.MaxNumberOfGenerations}");
+    sWriter.WriteLine("Top strategies found");
+    for (int i = 0; i < result.Count; i++) {
+        sWriter.WriteLine($" ------------- {i} -------------");
+        result[i].WriteTreeStringTo(sWriter);
+    }
+
+    sWriter.Flush();
+    sWriter.Close();
+
+    Console.WriteLine(sb.ToString());
+
+}
+void StartRunningStrategyBuilder2() {
+    var settings = new StrategyBuilderSettings();
+    Console.WriteLine(@$"starting test for: 
+num generations: {settings.MaxNumberOfGenerations} 
+population: {settings.NumStrategiesForFirstGeneration} 
+num parents (survivors) each gen: {settings.NumStrategiesToGoToNextGeneration}
+num hands to play for each strategy: {settings.NumHandsToPlayForEachStrategy}
+initial mutation rate: {settings.InitialMutationRate}
+min mutation rate: {settings.MinMutationRate}");
+
+    var strategyBuilder = new StrategyBuilder2();
+    var stopwatch = new Stopwatch();
+    stopwatch.Start();
+    var result = strategyBuilder.FindBestStrategies(5);
+    stopwatch.Stop();
+
+    Console.WriteLine(@$"Completed test for: 
+num generations: {settings.MaxNumberOfGenerations} 
+population: {settings.NumStrategiesForFirstGeneration} 
+num parents (survivors) each gen: {settings.NumStrategiesToGoToNextGeneration}
+num hands to play for each strategy: {settings.NumHandsToPlayForEachStrategy}
+initial mutation rate: {settings.InitialMutationRate}
+min mutation rate: {settings.MinMutationRate}");
+
+    var sb = new StringBuilder();
+    var sWriter = new StringWriter(sb);
+    sWriter.WriteLine($"elapsed time: {stopwatch.Elapsed.ToString(@"hh\:mm\:ss")}");
+    sWriter.WriteLine($"Num generations: {settings.MaxNumberOfGenerations}");
+    sWriter.WriteLine("Top strategies found");
+    //for (int i = 0; i < result.Count; i++) {
+    //    sWriter.WriteLine($" ------------- {i} -------------");
+    //    result[i].WriteTreeStringTo(sWriter);
+    //}
+
+    sWriter.Flush();
+    sWriter.Close();
+
+    Console.WriteLine(sb.ToString());
+}
 
 
 

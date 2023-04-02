@@ -16,7 +16,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
     /// This is what will run the genetic algorithm to try 
     /// and build the best strategy.
     /// </summary>
-    public class StrategyBuilder : IStrategyBuilder {
+    public class StrategyBuilder{
         public StrategyBuilder() : this(new StrategyBuilderSettings()) { }
         public StrategyBuilder(StrategyBuilderSettings settings) {
             Settings = settings;

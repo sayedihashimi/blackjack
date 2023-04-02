@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
-using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -18,56 +17,51 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
         void SetHandActionForHardTotal(HandAction handAction, CardNumber dealerCard, int hardTotalScore);
         void SetSplitForPair(bool split, CardNumber dealerCard, CardNumber pairCard);
         void SetHandActionForSoftTotal(HandAction handAction, CardNumber dealerCard, int softTotalScore);
+        float? FitnessScore { get; set; }
+        string? Name { get; set; }
     }
 
     public class NextHandActionArrayFactory {
-        private static NextHandActionArray _instance = new NextHandActionArray();
+        private static NextHandActionArrayFactory _instance = new NextHandActionArrayFactory();
         protected internal RandomHelper RandomHelper { get; set; } = new RandomHelper();
-        public NextHandActionArray GetInstance() {
+        
+        public static NextHandActionArrayFactory GetInstance() {
             return _instance;
-        }
+        }        
 
         public NextHandActionArray CreateRandomStrategy() {
             var nhaa = new NextHandActionArray();
 
-            for(int i = 0; i < nhaa.pairHandActionArray.GetLength(0); i++) {
-                for(int j = 0;j < nhaa.pairHandActionArray.GetLength(1); j++) {
-                    var pairValue = nhaa.pairHandActionArray[i, j] = RandomHelper.GetRandomIntBetween(1, 2 + 1);
-                }
-            }
+            RandomHelper.RandomizeArray(nhaa.pairHandActionArray, 1, 2 + 1);
+            RandomHelper.RandomizeArray(nhaa.softHandActionArray, 1, 3 + 1);
+            RandomHelper.RandomizeArray(nhaa.hardTotalHandActionArray, 1, 3 + 1);
 
-            for(int i = 0; i < nhaa.softHandActionArray.GetLength(0); i++) {
-                for(int j = 0; j < nhaa.softHandActionArray.GetLength(1); j++) {
-                    nhaa.softHandActionArray[i, j] = RandomHelper.GetRandomIntBetween(2, 9 + 1);
-                }
-            }
+            //for(int i = 0; i < nhaa.pairHandActionArray.GetLength(0); i++) {
+            //    for(int j = 0;j < nhaa.pairHandActionArray.GetLength(1); j++) {
+            //        var pairValue = nhaa.pairHandActionArray[i, j] = RandomHelper.GetRandomIntBetween(1, 2 + 1);
+            //    }
+            //}
 
-            for(int i = 0; i < nhaa.hardTotalHandActionArray.GetLength(0); i++) {
-                for(int j = 0; j < nhaa.hardTotalHandActionArray.GetLength(1); j++) {
-                    nhaa.hardTotalHandActionArray[i, j] = RandomHelper.GetRandomIntBetween(3, 20 + 1);
-                }
-            }
+            //for(int i = 0; i < nhaa.softHandActionArray.GetLength(0); i++) {
+            //    for(int j = 0; j < nhaa.softHandActionArray.GetLength(1); j++) {
+            //        nhaa.softHandActionArray[i, j] = RandomHelper.GetRandomIntBetween(2, 9 + 1);
+            //    }
+            //}
+
+            //for(int i = 0; i < nhaa.hardTotalHandActionArray.GetLength(0); i++) {
+            //    for(int j = 0; j < nhaa.hardTotalHandActionArray.GetLength(1); j++) {
+            //        nhaa.hardTotalHandActionArray[i, j] = RandomHelper.GetRandomIntBetween(3, 20 + 1);
+            //    }
+            //}
 
             return nhaa;
         }
+        
         public IEnumerable<NextHandActionArray> CreateRandomStrategies(int numStrategies) {
             for(int i = 0; i<numStrategies; i++) {
                 yield return CreateRandomStrategy();
             }
         }
-    }
-    public class RandomHelper {
-        private Random random = new Random();
-        public bool UseRandomNumberGenerator { get; set; } = true;
-
-        protected internal int GetRandomIntBetween(int fromInclusive, int toExclusive) => UseRandomNumberGenerator switch {
-            true => RandomNumberGenerator.GetInt32(fromInclusive, toExclusive),
-            false => random.Next(fromInclusive, toExclusive)
-        };
-        protected internal bool GetRandomBool() => UseRandomNumberGenerator switch {
-            true => RandomNumberGenerator.GetInt32(2) == 0,
-            false => random.Next(2) == 0
-        };
     }
     public class NextHandActionArray : INextHandActionArray {
         // using int instead of bool because
@@ -79,6 +73,8 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
         // hard totals 3 - 18. probably could actually be 5 - 18 but not currently
         protected internal int[,] hardTotalHandActionArray = new int[10,19];
 
+        public string? Name { get; set; }
+        public float? FitnessScore { get; set; }
         public void SetSplitForPair(bool split, CardNumber dealerCard, CardNumber pairCard) {
             pairHandActionArray[GetIntFor(dealerCard), GetIntFor(pairCard)] = GetIntFor(split);
         }
@@ -304,6 +300,12 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             3 => HandAction.Stand,
             4 => HandAction.Split,
             _ => throw new UnexpectedNodeTypeException($"Unexpected value for handActionInt: '{handActionInt}'")
+        };
+        public static Comparison<NextHandActionArray> NextHandActionArrayComparison { get; } = (strategy1, strategy2) => (strategy1.FitnessScore, strategy2.FitnessScore) switch {
+            (null, null) => 0,
+            (not null, null) => -1,
+            (null, not null) => 1,
+            (_, _) => -1 * strategy1.FitnessScore.Value.CompareTo(strategy2.FitnessScore.Value),
         };
     }
 }
