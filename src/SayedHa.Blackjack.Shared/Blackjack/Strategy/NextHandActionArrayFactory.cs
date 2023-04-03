@@ -1,12 +1,9 @@
 ﻿namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
     public class NextHandActionArrayFactory {
-        private static NextHandActionArrayFactory _instance = new NextHandActionArrayFactory();
         private NextHandActionConverter Converter { get; } = NextHandActionConverter.Instance;
         protected internal RandomHelper RandomHelper { get; set; } = new RandomHelper();
-        
-        public static NextHandActionArrayFactory GetInstance() {
-            return _instance;
-        }        
+
+        public static NextHandActionArrayFactory Instance { get; } = new NextHandActionArrayFactory();
 
         public NextHandActionArray CreateRandomStrategy() {
             var nhaa = new NextHandActionArray();
@@ -17,7 +14,7 @@
 
             return nhaa;
         }
-        
+
         public IEnumerable<NextHandActionArray> CreateRandomStrategies(int numStrategies) {
             for(int i = 0; i<numStrategies; i++) {
                 yield return CreateRandomStrategy();

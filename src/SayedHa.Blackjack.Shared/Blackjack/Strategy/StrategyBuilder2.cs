@@ -22,7 +22,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
         }
 
         public List<NextHandActionArray> FindBestStrategies(int numToReturn) {
-            var initialPopulation = NextHandActionArrayFactory.GetInstance().CreateRandomStrategies(Settings.NumStrategiesForFirstGeneration).ToList();
+            var initialPopulation = NextHandActionArrayFactory.Instance.CreateRandomStrategies(Settings.NumStrategiesForFirstGeneration).ToList();
 
             var gameRunner = new GameRunner(NullReporter.Instance);
             var bankroll = new Bankroll(Settings.InitialBankroll, NullLogger.Instance);

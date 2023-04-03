@@ -54,7 +54,7 @@ using SB = SayedHa.Blackjack.Shared.Blackjack.Strategy.StrategyBuilder;
 
 //return;
 
-StartRunningStrategyBuilder2();
+StartStrategyBuilder2ProduceOffspring();
 return;
 
 void StartRunningStrategyBuilder() {
@@ -137,7 +137,32 @@ min mutation rate: {settings.MinMutationRate}");
 
     Console.WriteLine(sb.ToString());
 }
+void StartStrategyBuilder2ProduceOffspring() {
+    var factory = NextHandActionArrayFactory.Instance;
+    var parent1 = factory.CreateStrategyWithAllStands(false);
+    var parent2 = factory.CreateStrategyWithAllHits(true);
 
+    var sb = new StrategyBuilder2();
+    (var child1, var child2) = sb.ProduceOffspring(parent1, parent2);
+
+    var stringBuilder = new StringBuilder();
+    var stringWriter = new StringWriter(stringBuilder);
+    
+    stringWriter.WriteLine("---- parent 1 ----");
+    parent1.WriteTo(stringWriter);
+
+    stringWriter.WriteLine("---- parent 2 ----");
+    parent2.WriteTo(stringWriter);
+
+    stringWriter.WriteLine("---- child 1 ----");
+    child1.WriteTo(stringWriter);
+    
+    stringWriter.WriteLine("---- child 2 ----");
+    child2.WriteTo(stringWriter);
+
+    stringWriter.Flush();
+    Console.WriteLine(stringBuilder.ToString());
+}
 
 
 

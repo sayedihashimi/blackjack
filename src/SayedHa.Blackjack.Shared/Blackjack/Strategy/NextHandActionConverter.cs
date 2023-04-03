@@ -54,7 +54,24 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             CardNumber.Ace => 9,
             _ => throw new UnknownValueException($"Unknown value for CardNumber: '{cardNumber}'")
         };
-
+        /// <summary>
+        /// This is the opposite of  <code>GetIntFor(CardNumber)</code>.
+        /// </summary>
+        /// <param name="splitIndex"></param>
+        /// <returns></returns>
+        public string GetSplitCharForIndex(int splitIndex) => splitIndex switch {
+            0 => "2",
+            1 => "3",
+            2 => "4",
+            3 => "5",
+            4 => "6",
+            5 => "7",
+            6 => "8",
+            7 => "9",
+            8 => "10",
+            9 => "A",
+            _ => throw new UnknownValueException($"Unknown value for split index: '{splitIndex}'")
+        };
         public int GetIntForSoftScore(int softScore) => softScore switch {
             2 => 0,
             3 => 1,
@@ -66,14 +83,25 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             9 => 7,
             _ => throw new UnexpectedNodeTypeException($"Unexpected value for soft total: '{softScore}'")
         };
-        public int GetIntForHardTotalScore(int hardTotalScore) => hardTotalScore switch {
-            3 => 0,
-            4 => 1,
-            5 => 2,
-            6 => 3,
-            7 => 4,
-            8 => 5,
-            9 => 6,
+        public int GetSoftTotalScoreFromIndex(int softTotalIndex) => softTotalIndex switch {
+            0 => 2,
+            1 => 3,
+            2 => 4,
+            3 => 5,
+            4 => 6,
+            5 => 7,
+            6 => 8,
+            7 => 9,
+            _ => throw new UnexpectedNodeTypeException($"Unexpected value for soft total index: '{softTotalIndex}'")
+        };
+        public int GetIntHardTotalCellValueFromScore(int hardTotalScore) => hardTotalScore switch {
+            3  => 0,
+            4  => 1,
+            5  => 2,
+            6  => 3,
+            7  => 4,
+            8  => 5,
+            9  => 6,
             10 => 7,
             11 => 8,
             12 => 9,
@@ -82,10 +110,37 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             15 => 12,
             16 => 13,
             17 => 14,
-            18 => 16,
-            19 => 17,
-            20 => 18,
+            18 => 15,
+            19 => 16,
+            20 => 17,
             _ => throw new UnexpectedNodeTypeException($"Unexpected value for hard total: '{hardTotalScore}'")
+        };
+        /// <summary>
+        /// This does the opposite of <code>GetIntHardTotalCellValueFromScore</code>
+        /// </summary>
+        /// <param name="cellValue"></param>
+        /// <returns></returns>
+        /// <exception cref="UnexpectedNodeTypeException"></exception>
+        public int GetHardTotalScoreFromIndex(int cellValue) => cellValue switch {
+            0 => 3,
+            1 => 4,
+            2 => 5,
+            3 => 6,
+            4 => 7,
+            5 => 8,
+            6 => 9,
+            7 => 10,
+            8 => 11,
+            9 => 12,
+            10 => 13,
+            11 => 14,
+            12 => 15,
+            13 => 16,
+            14 => 17,
+            15 => 18,
+            16 => 19,
+            17 => 20,
+            _ => throw new UnexpectedNodeTypeException($"Unexpected value for hard total score: '{cellValue}'")
         };
         public int GetIntFor(HandAction handAction) => handAction switch {
             HandAction.Double => 1,

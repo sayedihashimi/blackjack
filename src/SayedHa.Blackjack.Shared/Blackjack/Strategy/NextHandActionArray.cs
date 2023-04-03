@@ -26,9 +26,9 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
         //  2. to be more consistent with the other item here.
         protected internal int[,] pairHandActionArray = new int[10, 10];
         // soft totals are 2 - 9
-        protected internal int[,] softHandActionArray = new int[10, 9];
+        protected internal int[,] softHandActionArray = new int[10, 8];
         // hard totals 3 - 18. probably could actually be 5 - 18 but not currently
-        protected internal int[,] hardTotalHandActionArray = new int[10,19];
+        protected internal int[,] hardTotalHandActionArray = new int[10,18];
 
         protected internal NextHandActionConverter Converter = NextHandActionConverter.Instance;
         public string? Name { get; set; }
@@ -78,7 +78,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
         public void SetHandActionForHardTotal(HandAction handAction, CardNumber dealerCard, int hardTotalScore) {
             hardTotalHandActionArray[
                 Converter.GetIntFor(dealerCard),
-                Converter.GetIntForHardTotalScore(hardTotalScore)] = Converter.GetIntFor(handAction);
+                Converter.GetIntHardTotalCellValueFromScore(hardTotalScore)] = Converter.GetIntFor(handAction);
         }
         public HandAction GetHandAction(CardNumber dealerCard, CardNumber opCard1, CardNumber opCard2) {
             if (opCard1.IsAPairWith(opCard2)) {
@@ -114,7 +114,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             }
             // it should be in the array
             return NextHandActionConverter.Instance.GetHandActionFor(
-                hardTotalHandActionArray[Converter.GetIntFor(dealerCard), Converter.GetIntForHardTotalScore(score)])!.Value;
+                hardTotalHandActionArray[Converter.GetIntFor(dealerCard), Converter.GetIntHardTotalCellValueFromScore(score)])!.Value;
         }
         /// <summary>
         /// Will return the value from the soft totals.
@@ -187,7 +187,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
 
             // return the value from the hard totals
             var scoreTotal = CardNumberHelper.GetScoreTotal(opCards);
-            var scoreHardTotalIndex = Converter.GetIntForHardTotalScore(scoreTotal);
+            var scoreHardTotalIndex = Converter.GetIntHardTotalCellValueFromScore(scoreTotal);
             // it should be in the array
             var hardTotalValue = hardTotalHandActionArray[Converter.GetIntFor(dealerCard), scoreHardTotalIndex];
             return Converter.GetHandActionFor(hardTotalValue)!.Value;
@@ -206,7 +206,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             WriteTo(sWriter, 4);
         }
         public void WriteTo(StringWriter writer, int columnWidth) {
-            writer.WriteLine("pairs");
+            writer.WriteLine("splits");
             writer.Write(new string(' ', columnWidth));
 
             foreach(var column in _columnHeaders) {
@@ -214,6 +214,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             }
             writer.WriteLine();
 
+            // write pairs
             for(int dealerIndex = 0; dealerIndex < pairHandActionArray.GetLength(0); dealerIndex++) {
                 writer.Write(_columnHeaders[dealerIndex].PadLeft(columnWidth));
                 for(int pairIndex = 0;pairIndex< pairHandActionArray.GetLength(1);pairIndex++) {
@@ -222,31 +223,35 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                 writer.WriteLine();
             }
 
+            // write hard totals
             writer.WriteLine("hard-totals");
-            writer.WriteLine("");
+            writer.Write(new string(' ', columnWidth));
             foreach (var column in _columnHeaders) {
                 writer.Write(column.PadLeft(columnWidth));
             }
             writer.WriteLine();
 
-            for (int dealerIndex = 0; dealerIndex < hardTotalHandActionArray.GetLength(0); dealerIndex++) {
-                writer.Write(_columnHeaders[dealerIndex].PadLeft(columnWidth));
-                for(int hardTotalIndex = 0; hardTotalIndex <hardTotalHandActionArray.GetLength(1); hardTotalIndex++) {
-                    writer.Write(Converter.GetCharForHandActionIndex(hardTotalHandActionArray[dealerIndex, hardTotalIndex]).ToString()!.PadLeft(columnWidth));
+            for(int hardTotalValueIndex = 0; hardTotalValueIndex < hardTotalHandActionArray.GetLength(1); hardTotalValueIndex++) {
+                var hardTotal = Converter.GetHardTotalScoreFromIndex(hardTotalValueIndex);
+                writer.Write(hardTotal.ToString().PadLeft(columnWidth));
+                for(int dealerIndex = 0; dealerIndex < hardTotalHandActionArray.GetLength(0);dealerIndex++) {
+                    writer.Write(Converter.GetCharForHandActionIndex(hardTotalHandActionArray[dealerIndex, hardTotalValueIndex]).ToString()!.PadLeft(columnWidth));
                 }
                 writer.WriteLine();
             }
 
+            // write soft totals
             writer.WriteLine("soft-totals");
-            writer.WriteLine("");
+            writer.Write(new string(' ', columnWidth));
             foreach (var column in _columnHeaders) {
                 writer.Write(column.PadLeft(columnWidth));
             }
             writer.WriteLine();
-            for (int dealerIndex = 0; dealerIndex < softHandActionArray.GetLength(0); dealerIndex++) {
-                writer.Write(_columnHeaders[dealerIndex].PadLeft(columnWidth));
-                for (int hardTotalIndex = 0; hardTotalIndex < softHandActionArray.GetLength(1); hardTotalIndex++) {
-                    writer.Write(Converter.GetCharForHandActionIndex(softHandActionArray[dealerIndex, hardTotalIndex]).ToString()!.PadLeft(columnWidth));
+            for (int softTotalIndex = 0; softTotalIndex < softHandActionArray.GetLength(1); softTotalIndex++) {
+                var softTotal = Converter.GetSoftTotalScoreFromIndex(softTotalIndex);
+                writer.Write(softTotal.ToString().PadLeft(columnWidth));
+                for (int dealerIndex = 0; dealerIndex < softHandActionArray.GetLength(0); dealerIndex++) {
+                    writer.Write(Converter.GetCharForHandActionIndex(softHandActionArray[dealerIndex, softTotalIndex]).ToString()!.PadLeft(columnWidth));
                 }
                 writer.WriteLine();
             }

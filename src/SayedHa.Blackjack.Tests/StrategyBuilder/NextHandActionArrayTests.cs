@@ -136,6 +136,44 @@ namespace SayedHa.Blackjack.Tests.StrategyBuilder {
             }
         }
         [Fact]
+        public void Test_AllHits() {
+            var allHits = NextHandActionArrayFactory.Instance.CreateStrategyWithAllHits(true);
+
+            var splitIntValue = NextHandActionConverter.Instance.ConvertBoolToInt(true);
+            for(int i =0; i< allHits.pairHandActionArray.GetLength(0); i++) {
+                for(int j = 0; j < allHits.pairHandActionArray.GetLength(1); j++) {
+                    var action = allHits.pairHandActionArray[i, j];
+                    Assert.Equal(splitIntValue, action);
+                }
+            }
+
+            var hitIntValue = NextHandActionConverter.Instance.GetIntFor(HandAction.Hit);
+            for (int i = 0; i < allHits.hardTotalHandActionArray.GetLength(0); i++) {
+                for (int j = 0; j < allHits.hardTotalHandActionArray.GetLength(1); j++) {
+                    var action = allHits.hardTotalHandActionArray[i, j];
+                    Assert.Equal(hitIntValue, action);
+                }
+            }
+            for (int i = 0; i < allHits.softHandActionArray.GetLength(0); i++) {
+                for (int j = 0; j < allHits.softHandActionArray.GetLength(1); j++) {
+                    var action = allHits.softHandActionArray[i, j];
+                    Assert.Equal(hitIntValue, action);
+                }
+            }
+        }
+        //[Fact]
+        //public void Test_AllStands() {
+        //    var hitIntValue = NextHandActionConverter.Instance.GetIntFor(HandAction.Hit);
+        //    var allHits = NextHandActionArrayFactory.GetInstance().CreateStrategyWithAllHits(true);
+        //    for (int i = 0; i < allHits.pairHandActionArray.GetLength(0); i++) {
+        //        for (int j = 0; j < allHits.pairHandActionArray.GetLength(1); j++) {
+        //            var action = allHits.pairHandActionArray[i, j];
+        //            Assert.Equal(hitIntValue, action);
+        //        }
+        //    }
+        //}
+
+        [Fact]
         public void Test_GetNextHandAction_01() {
             var dealerCardList = new List<CardNumber> {
                 CardNumber.Six,
@@ -222,6 +260,11 @@ namespace SayedHa.Blackjack.Tests.StrategyBuilder {
                         var op1Card = allCardNumbers[j]!;
                         for (int k = 0; k < allCardNumbers.Length; k++) {
                             var op2Card = allCardNumbers[k]!;
+                            // don't ask about Ace 10 it's blackjack and not in the array
+                            if (IsBlackJack(op1Card, op2Card)) {
+                                continue;
+                            }
+
                             var foundHandAction = nhaa.GetHandAction(dealerCard, op1Card!, op2Card!);
                             numQueries++;
                             if (numQueries > numQueriesToRun) {
@@ -244,5 +287,17 @@ namespace SayedHa.Blackjack.Tests.StrategyBuilder {
             Assert.Equal(expectedHandAction, nhaa.GetHandAction(CardNumber.Ten, CardNumber.Nine, CardNumber.Four));
             Assert.Equal(expectedHandAction, nhaa.GetHandAction(CardNumber.Ace, CardNumber.Nine, CardNumber.Nine));
         }
+        private bool IsBlackJack(CardNumber cardNumber1, CardNumber cardNumber2) =>
+            (cardNumber1, cardNumber2) switch{
+                (CardNumber.Ace,CardNumber.Ten) => true,
+                (CardNumber.Ace,CardNumber.Jack) => true,
+                (CardNumber.Ace, CardNumber.Queen) => true,
+                (CardNumber.Ace, CardNumber.King) => true,
+                (CardNumber.Ten, CardNumber.Ace) => true,
+                (CardNumber.Jack, CardNumber.Ace) => true,
+                (CardNumber.Queen, CardNumber.Ace) => true,
+                (CardNumber.King, CardNumber.Ace) => true,
+                _ => false
+            };
     }
 }
