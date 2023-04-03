@@ -126,10 +126,11 @@ min mutation rate: {settings.MinMutationRate}");
     sWriter.WriteLine($"elapsed time: {stopwatch.Elapsed.ToString(@"hh\:mm\:ss")}");
     sWriter.WriteLine($"Num generations: {settings.MaxNumberOfGenerations}");
     sWriter.WriteLine("Top strategies found");
-    //for (int i = 0; i < result.Count; i++) {
-    //    sWriter.WriteLine($" ------------- {i} -------------");
-    //    result[i].WriteTreeStringTo(sWriter);
-    //}
+    for (int i = 0; i < result.Count; i++) {
+        sWriter.WriteLine($" ------------- {i} -------------");
+        // result[i].WriteTreeStringTo(sWriter);
+        result[i].WriteTo(sWriter);
+    }
 
     sWriter.Flush();
     sWriter.Close();

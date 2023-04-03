@@ -20,49 +20,6 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
         float? FitnessScore { get; set; }
         string? Name { get; set; }
     }
-
-    public class NextHandActionArrayFactory {
-        private static NextHandActionArrayFactory _instance = new NextHandActionArrayFactory();
-        protected internal RandomHelper RandomHelper { get; set; } = new RandomHelper();
-        
-        public static NextHandActionArrayFactory GetInstance() {
-            return _instance;
-        }        
-
-        public NextHandActionArray CreateRandomStrategy() {
-            var nhaa = new NextHandActionArray();
-
-            RandomHelper.RandomizeArray(nhaa.pairHandActionArray, 1, 2 + 1);
-            RandomHelper.RandomizeArray(nhaa.softHandActionArray, 1, 3 + 1);
-            RandomHelper.RandomizeArray(nhaa.hardTotalHandActionArray, 1, 3 + 1);
-
-            //for(int i = 0; i < nhaa.pairHandActionArray.GetLength(0); i++) {
-            //    for(int j = 0;j < nhaa.pairHandActionArray.GetLength(1); j++) {
-            //        var pairValue = nhaa.pairHandActionArray[i, j] = RandomHelper.GetRandomIntBetween(1, 2 + 1);
-            //    }
-            //}
-
-            //for(int i = 0; i < nhaa.softHandActionArray.GetLength(0); i++) {
-            //    for(int j = 0; j < nhaa.softHandActionArray.GetLength(1); j++) {
-            //        nhaa.softHandActionArray[i, j] = RandomHelper.GetRandomIntBetween(2, 9 + 1);
-            //    }
-            //}
-
-            //for(int i = 0; i < nhaa.hardTotalHandActionArray.GetLength(0); i++) {
-            //    for(int j = 0; j < nhaa.hardTotalHandActionArray.GetLength(1); j++) {
-            //        nhaa.hardTotalHandActionArray[i, j] = RandomHelper.GetRandomIntBetween(3, 20 + 1);
-            //    }
-            //}
-
-            return nhaa;
-        }
-        
-        public IEnumerable<NextHandActionArray> CreateRandomStrategies(int numStrategies) {
-            for(int i = 0; i<numStrategies; i++) {
-                yield return CreateRandomStrategy();
-            }
-        }
-    }
     public class NextHandActionArray : INextHandActionArray {
         // using int instead of bool because
         //  1. to be able to tell when the value is not set.
@@ -73,10 +30,11 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
         // hard totals 3 - 18. probably could actually be 5 - 18 but not currently
         protected internal int[,] hardTotalHandActionArray = new int[10,19];
 
+        protected internal NextHandActionConverter Converter = NextHandActionConverter.Instance;
         public string? Name { get; set; }
         public float? FitnessScore { get; set; }
         public void SetSplitForPair(bool split, CardNumber dealerCard, CardNumber pairCard) {
-            pairHandActionArray[GetIntFor(dealerCard), GetIntFor(pairCard)] = GetIntFor(split);
+            pairHandActionArray[Converter.GetIntFor(dealerCard), Converter.GetIntFor(pairCard)] = Converter.GetIntFor(split);
         }
 
         public void SetHandAction(HandAction handAction, CardNumber dealerCard, CardNumber opCard1, CardNumber opCard2) {
@@ -113,16 +71,22 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             }
         }
         public void SetHandActionForSoftTotal(HandAction handAction, CardNumber dealerCard, int softTotalScore) {
-            softHandActionArray[GetIntFor(dealerCard), GetIntForSoftScore(softTotalScore)] = GetIntFor(handAction);
+            softHandActionArray[
+                Converter.GetIntFor(dealerCard),
+                Converter.GetIntForSoftScore(softTotalScore)] = Converter.GetIntFor(handAction);
         }
         public void SetHandActionForHardTotal(HandAction handAction, CardNumber dealerCard, int hardTotalScore) {
-            hardTotalHandActionArray[GetIntFor(dealerCard),GetIntForHardTotalScore(hardTotalScore)] = GetIntFor(handAction);
+            hardTotalHandActionArray[
+                Converter.GetIntFor(dealerCard),
+                Converter.GetIntForHardTotalScore(hardTotalScore)] = Converter.GetIntFor(handAction);
         }
         public HandAction GetHandAction(CardNumber dealerCard, CardNumber opCard1, CardNumber opCard2) {
             if (opCard1.IsAPairWith(opCard2)) {
                 // see if the pair should be split if so, return it
-                var valueFromPairArray = pairHandActionArray[GetIntFor(dealerCard), GetIntFor(opCard1)];
-                bool? shouldSplit = ConvertBoolInt(valueFromPairArray);
+                var valueFromPairArray = pairHandActionArray[
+                    Converter.GetIntFor(dealerCard),
+                    Converter.GetIntFor(opCard1)];
+                bool? shouldSplit = Converter.ConvertBoolIndex(valueFromPairArray);
                 if(shouldSplit is not null && shouldSplit.HasValue && shouldSplit.Value == true) {
                     return HandAction.Split;
                 }
@@ -149,8 +113,8 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                 return HandAction.Stand;
             }
             // it should be in the array
-            return GetHandActionFor(
-                hardTotalHandActionArray[GetIntFor(dealerCard), GetIntForHardTotalScore(score)])!.Value;
+            return NextHandActionConverter.Instance.GetHandActionFor(
+                hardTotalHandActionArray[Converter.GetIntFor(dealerCard), Converter.GetIntForHardTotalScore(score)])!.Value;
         }
         /// <summary>
         /// Will return the value from the soft totals.
@@ -160,17 +124,17 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
         /// <returns></returns>
         /// <exception cref="NotImplementedException"></exception>
         protected internal HandAction? GetFromSoftTotals(CardNumber dealerCard, CardNumber opCard) {
-            var softValue = softHandActionArray[GetIntFor(dealerCard), GetIntFor(opCard)];
-            var handAction = GetHandActionFor(softValue);
+            var softValue = softHandActionArray[Converter.GetIntFor(dealerCard), Converter.GetIntFor(opCard)];
+            var handAction = NextHandActionConverter.Instance.GetHandActionFor(softValue);
             if (handAction is not null && handAction.HasValue) {
                 return handAction.Value;
             }
             return null;
         }
         protected internal HandAction? GetFromSoftTotals(CardNumber dealerCard, int scoreTotal) {
-            int scoreIndex = GetIntForSoftScore(scoreTotal);
-            var softValue = softHandActionArray[GetIntFor(dealerCard), scoreIndex];
-            var handAction = GetHandActionFor(softValue);
+            int scoreIndex = Converter.GetIntForSoftScore(scoreTotal);
+            var softValue = softHandActionArray[Converter.GetIntFor(dealerCard), scoreIndex];
+            var handAction = Converter.GetHandActionFor(softValue);
             if (handAction is not null && handAction.HasValue) {
                 return handAction.Value;
             }
@@ -223,89 +187,71 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
 
             // return the value from the hard totals
             var scoreTotal = CardNumberHelper.GetScoreTotal(opCards);
-            var scoreHardTotalIndex = GetIntForHardTotalScore(scoreTotal);
+            var scoreHardTotalIndex = Converter.GetIntForHardTotalScore(scoreTotal);
             // it should be in the array
-            var hardTotalValue = hardTotalHandActionArray[GetIntFor(dealerCard), scoreHardTotalIndex];
-            return GetHandActionFor(hardTotalValue)!.Value;
+            var hardTotalValue = hardTotalHandActionArray[Converter.GetIntFor(dealerCard), scoreHardTotalIndex];
+            return Converter.GetHandActionFor(hardTotalValue)!.Value;
         }
-        public bool? ConvertBoolInt(int intValue) => intValue switch {
-            1 => true,
-            2 => false,
-            _ => null
-        };
-        protected internal int GetIntFor(bool boolValue) => boolValue switch {
-            // not using 0 becuase that's the default value that the array is initilized with
-            true => 1,
-            false => 2
-        };
-        protected internal int GetIntFor(CardNumber cardNumber) => cardNumber switch {
-            CardNumber.Two => 0,
-            CardNumber.Three => 1,
-            CardNumber.Four => 2,
-            CardNumber.Five => 3,
-            CardNumber.Six => 4,
-            CardNumber.Seven => 5,
-            CardNumber.Eight => 6,
-            CardNumber.Nine => 7,
-            CardNumber.Ten => 8,
-            CardNumber.Jack => 8,
-            CardNumber.Queen => 8,
-            CardNumber.King => 8,
-            CardNumber.Ace => 9,
-            _ => throw new UnknownValueException($"Unknown value for CardNumber: '{cardNumber}'")
-        };
-        protected internal int GetIntForSoftScore(int softScore) => softScore switch {
-            2 => 0, 
-            3 => 1, 
-            4 => 2, 
-            5 => 3, 
-            6 => 4, 
-            7 => 5, 
-            8 => 6, 
-            9 => 7,
-            _ => throw new UnexpectedNodeTypeException($"Unexpected value for soft total: '{softScore}'")
-        };
-        protected internal int GetIntForHardTotalScore(int hardTotalScore) => hardTotalScore switch {
-            3 => 0,
-            4 => 1,
-            5 => 2,
-            6 => 3,
-            7 => 4,
-            8 => 5,
-            9 => 6,
-            10 => 7,
-            11 => 8,
-            12 => 9,
-            13 => 10,
-            14 => 11,
-            15 => 12,
-            16 => 13,
-            17 => 14,
-            18 => 16,
-            19 => 17,
-            20 => 18,
-            _ => throw new UnexpectedNodeTypeException($"Unexpected value for hard total: '{hardTotalScore}'")
-        };
-        protected internal int GetIntFor(HandAction handAction) => handAction switch {
-            HandAction.Double => 1,
-            HandAction.Hit => 2,
-            HandAction.Stand => 3,
-            HandAction.Split => 4,
-            _ => throw new UnexpectedNodeTypeException($"Unexpected value for HandAction: '{handAction}'")
-        };
-        protected internal HandAction? GetHandActionFor(int handActionInt) => handActionInt switch {
-            0 => null,
-            1 => HandAction.Double,
-            2 => HandAction.Hit,
-            3 => HandAction.Stand,
-            4 => HandAction.Split,
-            _ => throw new UnexpectedNodeTypeException($"Unexpected value for handActionInt: '{handActionInt}'")
-        };
+        
+        
         public static Comparison<NextHandActionArray> NextHandActionArrayComparison { get; } = (strategy1, strategy2) => (strategy1.FitnessScore, strategy2.FitnessScore) switch {
             (null, null) => 0,
             (not null, null) => -1,
             (null, not null) => 1,
             (_, _) => -1 * strategy1.FitnessScore.Value.CompareTo(strategy2.FitnessScore.Value),
         };
+        private readonly List<string> _columnHeaders = new List<string> {"2","3","4","5","6","7","8","9","10","A"};
+
+        public void WriteTo(StringWriter sWriter) {
+            WriteTo(sWriter, 4);
+        }
+        public void WriteTo(StringWriter writer, int columnWidth) {
+            writer.WriteLine("pairs");
+            writer.Write(new string(' ', columnWidth));
+
+            foreach(var column in _columnHeaders) {
+                writer.Write(column.PadLeft(columnWidth));
+            }
+            writer.WriteLine();
+
+            for(int dealerIndex = 0; dealerIndex < pairHandActionArray.GetLength(0); dealerIndex++) {
+                writer.Write(_columnHeaders[dealerIndex].PadLeft(columnWidth));
+                for(int pairIndex = 0;pairIndex< pairHandActionArray.GetLength(1);pairIndex++) {
+                    writer.Write(Converter.GetCharForBoolIndex(pairHandActionArray[dealerIndex, pairIndex]).ToString()!.PadLeft(columnWidth));
+                }
+                writer.WriteLine();
+            }
+
+            writer.WriteLine("hard-totals");
+            writer.WriteLine("");
+            foreach (var column in _columnHeaders) {
+                writer.Write(column.PadLeft(columnWidth));
+            }
+            writer.WriteLine();
+
+            for (int dealerIndex = 0; dealerIndex < hardTotalHandActionArray.GetLength(0); dealerIndex++) {
+                writer.Write(_columnHeaders[dealerIndex].PadLeft(columnWidth));
+                for(int hardTotalIndex = 0; hardTotalIndex <hardTotalHandActionArray.GetLength(1); hardTotalIndex++) {
+                    writer.Write(Converter.GetCharForHandActionIndex(hardTotalHandActionArray[dealerIndex, hardTotalIndex]).ToString()!.PadLeft(columnWidth));
+                }
+                writer.WriteLine();
+            }
+
+            writer.WriteLine("soft-totals");
+            writer.WriteLine("");
+            foreach (var column in _columnHeaders) {
+                writer.Write(column.PadLeft(columnWidth));
+            }
+            writer.WriteLine();
+            for (int dealerIndex = 0; dealerIndex < softHandActionArray.GetLength(0); dealerIndex++) {
+                writer.Write(_columnHeaders[dealerIndex].PadLeft(columnWidth));
+                for (int hardTotalIndex = 0; hardTotalIndex < softHandActionArray.GetLength(1); hardTotalIndex++) {
+                    writer.Write(Converter.GetCharForHandActionIndex(softHandActionArray[dealerIndex, hardTotalIndex]).ToString()!.PadLeft(columnWidth));
+                }
+                writer.WriteLine();
+            }
+
+            writer.Flush();
+        }
     }
 }
