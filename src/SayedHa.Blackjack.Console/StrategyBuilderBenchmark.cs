@@ -67,4 +67,30 @@ namespace SayedHa.Blackjack {
             sb.FindBestStrategies(5);
         }
     }
+    [MemoryDiagnoser(false)]
+    public class StrategyBuilderVersusStrategyBuilder2 {
+        private StrategyBuilderSettings Settings { get; } = new StrategyBuilderSettings {
+            AllConsoleOutputDisabled = true,
+            NumStrategiesForFirstGeneration = 50,
+            NumStrategiesToGoToNextGeneration = 20,
+            NumHandsToPlayForEachStrategy = 10,
+            MaxNumberOfGenerations = 2,
+            InitialMutationRate = 25,
+            MinMutationRate = 5,
+            MutationRateChangePerGeneration = 1,
+            EnableMultiThreads = true,
+            MtMaxNumThreads = 72,
+        };
+
+        [Benchmark]
+        public void RunStrategyBuilder() {
+            var sb = new StrategyBuilder(Settings);
+            _ = sb.FindBestStrategies(5);
+        }
+        [Benchmark]
+        public void RunStrategyBuilder2() {
+            var sb2 = new StrategyBuilder2(Settings);
+            _ = sb2.FindBestStrategies(5);
+        }
+    }
 }

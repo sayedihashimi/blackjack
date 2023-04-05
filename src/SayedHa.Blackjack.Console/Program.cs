@@ -54,7 +54,7 @@ using SB = SayedHa.Blackjack.Shared.Blackjack.Strategy.StrategyBuilder;
 
 //return;
 
-StartStrategyBuilder2ProduceOffspring();
+StartRunningStrategyBuilder2();
 return;
 
 void StartRunningStrategyBuilder() {
@@ -107,7 +107,7 @@ num hands to play for each strategy: {settings.NumHandsToPlayForEachStrategy}
 initial mutation rate: {settings.InitialMutationRate}
 min mutation rate: {settings.MinMutationRate}");
 
-    var strategyBuilder = new StrategyBuilder2();
+    var strategyBuilder = new StrategyBuilder2(settings);
     var stopwatch = new Stopwatch();
     stopwatch.Start();
     var result = strategyBuilder.FindBestStrategies(5);
@@ -163,8 +163,27 @@ void StartStrategyBuilder2ProduceOffspring() {
     stringWriter.Flush();
     Console.WriteLine(stringBuilder.ToString());
 }
-
-
+void StartBenchmarkStrategyBuilderVersusStrategyBuilder2() {
+    BenchmarkRunner.Run<StrategyBuilderVersusStrategyBuilder2>();
+}
+void StartForProfilingStrategyBuilder2() {
+    var settings = new StrategyBuilderSettings{
+        AllConsoleOutputDisabled = true,
+        NumStrategiesForFirstGeneration = 1000,
+        NumStrategiesToGoToNextGeneration = 500,
+        NumHandsToPlayForEachStrategy = 1000,
+        MaxNumberOfGenerations = 20,
+        InitialMutationRate = 25,
+        MinMutationRate = 5,
+        MutationRateChangePerGeneration = 1,
+        EnableMultiThreads = true,
+        MtMaxNumThreads = 72,
+    };
+    Console.WriteLine("Press any key to start");
+    Console.ReadKey();
+    var sb = new StrategyBuilder2(settings);
+    _ = sb.FindBestStrategies(5);
+}
 
 // usage
 // [numGamesToPlay] [outputPath] [enableConsoleLogger] [enableFileLogger] [enableMultiThread]

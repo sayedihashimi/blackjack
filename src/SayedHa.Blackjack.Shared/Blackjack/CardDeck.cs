@@ -46,7 +46,8 @@ namespace SayedHa.Blackjack.Shared {
         public void ShuffleCards() {
             // clear the discarded cards
             // rebuild the linkedlist
-            DiscardedCards.Clear();
+            // DiscardedCards.Clear();
+            DiscardedCards = new List<Card>();
             if(_cardList == null) {
                 _cardList = Cards!.ToList();
             }

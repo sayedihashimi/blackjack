@@ -104,6 +104,40 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
         }
         protected internal void MutateOffspring(List<NextHandActionArray>children, int mutationRate) {
             // TODO: implement later
+            if(mutationRate <= 0) {
+                return;
+            }
+
+            foreach(var child in children) {
+                // splits
+                for(int dealerSplitIndex = 0;dealerSplitIndex < child.pairHandActionArray.GetLength(0); dealerSplitIndex++) {
+                    for(int pairIndex = 0;pairIndex < child.pairHandActionArray.GetLength(1); pairIndex++) {
+                        // should be assigned?
+                        var value = RandomHelper.Instance.GetRandomIntBetween(0, 100 + 1);
+                        if(value < mutationRate) {
+                            child.pairHandActionArray[dealerSplitIndex, pairIndex] = RandomHelper.Instance.GetRandomBool() ? 1 : 2;
+                        }
+                    }
+                }
+                // soft totals
+                for(int dealerIndex = 0;dealerIndex < child.softHandActionArray.GetLength(0); dealerIndex++) {
+                    for(int softIndex = 0;softIndex < child.softHandActionArray.GetLength(1); softIndex++) {
+                        var value = RandomHelper.Instance.GetRandomIntBetween(0, 100 + 1);
+                        if(value < mutationRate) {
+                            child.softHandActionArray[dealerIndex, softIndex] = RandomHelper.Instance.GetRandomIntBetween(1, 3 + 1);
+                        }
+                    }
+                }
+                // hard totals
+                for (int dealerIndex = 0; dealerIndex < child.hardTotalHandActionArray.GetLength(0); dealerIndex++) {
+                    for (int softIndex = 0; softIndex < child.hardTotalHandActionArray.GetLength(1); softIndex++) {
+                        var value = RandomHelper.Instance.GetRandomIntBetween(0, 100 + 1);
+                        if (value < mutationRate) {
+                            child.hardTotalHandActionArray[dealerIndex, softIndex] = RandomHelper.Instance.GetRandomIntBetween(1, 3 + 1);
+                        }
+                    }
+                }
+            }
         }
         public void PlayAndEvaluate(int numGamesToPlay, List<NextHandActionArray> strategies, GameRunner gameRunner, Bankroll bankroll, BettingStrategy bettingStrategy) {
             Debug.Assert(numGamesToPlay > 0);
@@ -122,7 +156,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
         }
 
         protected internal void ProcessStrategy(NextHandActionArray strategy, GameRunner gameRunner, Bankroll bankroll, BettingStrategy bettingStrategy) {
-            if(strategy.FitnessScore == null || strategy.FitnessScore.HasValue) {
+            if(strategy.FitnessScore == null || !strategy.FitnessScore.HasValue) {
                 var pf = new StrategyBuilder2ParticipantFactory(strategy, bettingStrategy, Settings, NullLogger.Instance);
                 var game = gameRunner.CreateNewGame(Settings.NumDecks, 1, pf, true);
                 PlayGames(Settings.NumHandsToPlayForEachStrategy, gameRunner, game);
@@ -135,9 +169,9 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             Debug.Assert(gameRunner is object);
             Debug.Assert(game is object);
 
-            if (numGamesToPlay <= 0) {
-                throw new ArgumentException($"{nameof(numGamesToPlay)} must be greater than zero. Passed in value: '{numGamesToPlay}'");
-            }
+            //if (numGamesToPlay <= 0) {
+            //    throw new ArgumentException($"{nameof(numGamesToPlay)} must be greater than zero. Passed in value: '{numGamesToPlay}'");
+            //}
             for (int i = 0; i < numGamesToPlay; i++) {
                 gameRunner.PlayGame(game);
             }

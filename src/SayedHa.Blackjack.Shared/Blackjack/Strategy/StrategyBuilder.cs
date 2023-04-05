@@ -66,8 +66,10 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                             bankroll1,
                             bettingStrategy1);
 
-            foreach (var item in treesToEvaluateButNotAdd) {
-                Console.WriteLine($"{item.Name} score: {basicStrategyTree.FitnessScore}");
+            if (!Settings.AllConsoleOutputDisabled) {
+                foreach (var item in treesToEvaluateButNotAdd) {
+                    Console.WriteLine($"{item.Name} score: {basicStrategyTree.FitnessScore}");
+                }
             }
 
             stopwatch.Stop();

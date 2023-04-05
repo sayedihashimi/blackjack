@@ -54,10 +54,10 @@ namespace SayedHa.Blackjack.Shared {
             Debug.Assert(game.Cards != null);
             Debug.Assert(game.Cards.GetNumRemainingCards() > 0);
 
-            var cards = game.Cards;
+            // var cards = game.Cards;
 
             // if the discarded # of cards exceeds specified amount, shuffle the cards
-            var percentRemainingCards = (float)cards.GetNumRemainingCards() / (float)cards.GetTotalNumCards();
+            var percentRemainingCards = (float)game.Cards.GetNumRemainingCards() / (float)game.Cards.GetTotalNumCards();
             if (percentRemainingCards * 100 <= game.ShuffleThresholdPercent) {
                 // _logger.LogLine("**** shuffling cards");
                 ShufflingCards?.Invoke(this, new ShufflingCardsEventArg(game));
@@ -163,20 +163,20 @@ namespace SayedHa.Blackjack.Shared {
                     var dealerScore = game.Dealer.Hands[0].GetScore();
 
                     foreach (var opponent in game.Opponents) {
-                        var sb = new StringBuilder();
-                        sb.Append("Result: ");
+                        //var sb = new StringBuilder();
+                        //sb.Append("Result: ");
                         foreach (var hand in opponent.Hands) {
                             var handScore = hand.GetScore();
                             if (handScore > 21) {
                                 hand.SetHandResult(HandResult.DealerWon, hand.Bet * 1F);
                                 opponent.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.BetResult!.Value, opponent.Name);
                                 game.Dealer.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet * -1F, game.Dealer.Name);
-                                sb.Append($"↓Busted ${hand.Bet:F0} ");
+                                // sb.Append($"↓Busted ${hand.Bet:F0} ");
                             }
                             else if (handScore == dealerScore) {
                                 hand.SetHandResult(HandResult.Push, 0);
                                 // no change to any bankroll on a push
-                                sb.Append("=Push ");
+                                // sb.Append("=Push ");
                             }
                             else if (handScore > dealerScore || dealerScore > 21) {
                                 hand.SetHandResult(HandResult.OpponentWon, hand.Bet);
@@ -184,13 +184,13 @@ namespace SayedHa.Blackjack.Shared {
                                 var amtToAdd = hand.Bet * betMultiplier;
                                 opponent.BettingStrategy.Bankroll.AddToDollarsRemaining(amtToAdd, opponent.Name);
                                 game.Dealer.BettingStrategy.Bankroll.AddToDollarsRemaining(amtToAdd * -1F, game.Dealer.Name);
-                                sb.Append($"↑Win ${amtToAdd:F0}");
+                                // sb.Append($"↑Win ${amtToAdd:F0}");
                             }
                             else {
                                 hand.SetHandResult(HandResult.DealerWon, hand.Bet * -1F);
                                 opponent.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet * -1F, opponent.Name);
                                 game.Dealer.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.Bet, game.Dealer.Name);
-                                sb.Append($"↓Lose ${hand.Bet:F0} ");
+                                // sb.Append($"↓Lose ${hand.Bet:F0} ");
                             }
                         }
                         // _logger.LogLine(sb.ToString());

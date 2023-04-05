@@ -122,7 +122,7 @@ namespace SayedHa.Blackjack.Shared {
         /// </summary>
         /// <returns>numeric score of DealtCards</returns>
         public int ComputeScore() {
-            if(DealtCards == null || DealtCards.Count == 0) return 0;
+            if(DealtCards?.Count == 0) return 0;
 
             // have to handle the Ace case where it has more than one value
             var cardsWithMultipleValues = new List<Card>();

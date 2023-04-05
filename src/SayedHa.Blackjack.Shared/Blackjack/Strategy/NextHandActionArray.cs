@@ -206,23 +206,6 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             WriteTo(sWriter, 4);
         }
         public void WriteTo(StringWriter writer, int columnWidth) {
-            writer.WriteLine("splits");
-            writer.Write(new string(' ', columnWidth));
-
-            foreach(var column in _columnHeaders) {
-                writer.Write(column.PadLeft(columnWidth));
-            }
-            writer.WriteLine();
-
-            // write pairs
-            for(int dealerIndex = 0; dealerIndex < pairHandActionArray.GetLength(0); dealerIndex++) {
-                writer.Write(_columnHeaders[dealerIndex].PadLeft(columnWidth));
-                for(int pairIndex = 0;pairIndex< pairHandActionArray.GetLength(1);pairIndex++) {
-                    writer.Write(Converter.GetCharForBoolIndex(pairHandActionArray[dealerIndex, pairIndex]).ToString()!.PadLeft(columnWidth));
-                }
-                writer.WriteLine();
-            }
-
             // write hard totals
             writer.WriteLine("hard-totals");
             writer.Write(new string(' ', columnWidth));
@@ -243,15 +226,33 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             // write soft totals
             writer.WriteLine("soft-totals");
             writer.Write(new string(' ', columnWidth));
+
             foreach (var column in _columnHeaders) {
                 writer.Write(column.PadLeft(columnWidth));
             }
             writer.WriteLine();
             for (int softTotalIndex = 0; softTotalIndex < softHandActionArray.GetLength(1); softTotalIndex++) {
                 var softTotal = Converter.GetSoftTotalScoreFromIndex(softTotalIndex);
-                writer.Write(softTotal.ToString().PadLeft(columnWidth));
+                writer.Write($"A-{softTotal.ToString()}".PadLeft(columnWidth));
                 for (int dealerIndex = 0; dealerIndex < softHandActionArray.GetLength(0); dealerIndex++) {
                     writer.Write(Converter.GetCharForHandActionIndex(softHandActionArray[dealerIndex, softTotalIndex]).ToString()!.PadLeft(columnWidth));
+                }
+                writer.WriteLine();
+            }
+
+            // write splits
+            writer.WriteLine("splits");
+            writer.Write(new string(' ', columnWidth));
+
+            foreach (var column in _columnHeaders) {
+                writer.Write(column.PadLeft(columnWidth));
+            }
+            writer.WriteLine();
+
+            for (int pairIndex = 0; pairIndex < pairHandActionArray.GetLength(1); pairIndex++) {
+                writer.Write(Converter.GetSplitCharForIndex(pairIndex).PadLeft(columnWidth));
+                for (int dealerIndex = 0; dealerIndex < pairHandActionArray.GetLength(0); dealerIndex++) {
+                    writer.Write(Converter.GetCharForBoolIndex(pairHandActionArray[dealerIndex, pairIndex]).ToString()!.PadLeft(columnWidth));
                 }
                 writer.WriteLine();
             }
