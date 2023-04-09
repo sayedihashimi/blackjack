@@ -110,7 +110,7 @@ min mutation rate: {settings.MinMutationRate}");
     var strategyBuilder = new StrategyBuilder2(settings);
     var stopwatch = new Stopwatch();
     stopwatch.Start();
-    var result = strategyBuilder.FindBestStrategies(5);
+    var result = strategyBuilder.FindBestStrategies2(5);
     stopwatch.Stop();
 
     Console.WriteLine(@$"Completed test for: 

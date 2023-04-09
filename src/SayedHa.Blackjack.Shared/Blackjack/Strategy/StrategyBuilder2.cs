@@ -20,6 +20,93 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             get; 
             init; 
         }
+        public List<NextHandActionArray> FindBestStrategies2(int numToReturn) {
+            // ignoring numToReturn for now, will only return the top strategy
+
+            float bestOverallFitness = float.MinValue;
+            NextHandActionArray bestOverallStrategy = null;
+            float bestAverageGenerationFitness = float.MinValue;
+
+            // first generation is all random strategies
+            List<NextHandActionArray> currentGeneration = NextHandActionArrayFactory.Instance.CreateRandomStrategies(Settings.NumStrategiesForFirstGeneration).ToList(); ;
+            List<NextHandActionArray> nextGeneration = new ();
+
+            var gameRunner = new GameRunner(NullReporter.Instance);
+            
+            var maxNumGenerations = Settings.MaxNumberOfGenerations;
+            int numGeneration = 0;
+            var stopwatch = new Stopwatch();
+            while (true) {
+                stopwatch.Restart();
+                // evaluate all the strategies
+                var bankroll = new Bankroll(Settings.InitialBankroll, NullLogger.Instance);
+                var bettingStrategy = new FixedBettingStrategy(bankroll, Settings.BetAmount);
+                PlayAndEvaluate(Settings.NumHandsToPlayForEachStrategy,
+                                currentGeneration,
+                                gameRunner,
+                                bankroll,
+                                bettingStrategy);
+
+                // loop through all the strategies to record the best strategy
+                float bestGenerationFitnessScore = float.MinValue;
+                NextHandActionArray bestGenerationStrategy;
+                foreach (var strategy in currentGeneration) {
+                    if(strategy.FitnessScore > bestGenerationFitnessScore) {
+                        bestGenerationFitnessScore = strategy.FitnessScore.Value;
+                        bestGenerationStrategy = strategy;
+
+                        if(strategy.FitnessScore > bestOverallFitness) {
+                            bestOverallFitness = strategy.FitnessScore.Value;
+                            bestOverallStrategy = strategy;
+                        }
+                    }
+                }
+
+                if (!Settings.AllConsoleOutputDisabled) {
+                    Console.Write($"best this generation: {bestGenerationFitnessScore}. Best overall: {bestOverallFitness}");
+                }
+
+                // check to see if we are done
+                if (numGeneration >= maxNumGenerations) {
+                    if (!Settings.AllConsoleOutputDisabled) {
+                        Console.WriteLine($" [{stopwatch.Elapsed.ToString("mm\\:ss")}]");
+                    }
+                    break;
+                }
+
+                // get the nextGeneration setup
+                nextGeneration.Clear();
+
+                // add the bestOverall
+                nextGeneration.Add(bestOverallStrategy!);
+
+                // TODO: later add the top X strategies to carry on to the next generation
+
+                var mutationRate = Settings.InitialMutationRate;
+                while (nextGeneration.Count < currentGeneration.Count) {
+                    var parents = GetTwoParentsTournament(currentGeneration);
+                    var children = ProduceOffspring(parents.parent1, parents.parent2);
+                    MutateOffspring(children.child1, mutationRate);
+                    MutateOffspring(children.child2, mutationRate);
+                    nextGeneration.Add(children.child1);
+                    nextGeneration.Add(children.child2);
+                }
+
+                if (!Settings.AllConsoleOutputDisabled) {
+                    Console.WriteLine($" [{stopwatch.Elapsed.ToString("mm\\:ss")}]");
+                }
+
+                currentGeneration.Clear();
+                foreach(var strategy in nextGeneration) {
+                    currentGeneration.Add(strategy);
+                }
+
+                numGeneration++;
+            }
+            
+
+            return new List<NextHandActionArray> { bestOverallStrategy! };
+        }
 
         public List<NextHandActionArray> FindBestStrategies(int numToReturn) {
             var initialPopulation = NextHandActionArrayFactory.Instance.CreateRandomStrategies(Settings.NumStrategiesForFirstGeneration).ToList();
@@ -103,42 +190,46 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             return topStrategies;
         }
         protected internal void MutateOffspring(List<NextHandActionArray>children, int mutationRate) {
-            // TODO: implement later
             if(mutationRate <= 0) {
                 return;
             }
 
             foreach(var child in children) {
-                // splits
-                for(int dealerSplitIndex = 0;dealerSplitIndex < child.pairHandActionArray.GetLength(0); dealerSplitIndex++) {
-                    for(int pairIndex = 0;pairIndex < child.pairHandActionArray.GetLength(1); pairIndex++) {
-                        // should be assigned?
-                        var value = RandomHelper.Instance.GetRandomIntBetween(0, 100 + 1);
-                        if(value < mutationRate) {
-                            child.pairHandActionArray[dealerSplitIndex, pairIndex] = RandomHelper.Instance.GetRandomBool() ? 1 : 2;
-                        }
+                MutateOffspring(child, mutationRate);
+            }
+        }
+
+        protected internal void MutateOffspring(NextHandActionArray child, int mutationRate) {
+            // splits
+            for (int dealerSplitIndex = 0; dealerSplitIndex < child.pairHandActionArray.GetLength(0); dealerSplitIndex++) {
+                for (int pairIndex = 0; pairIndex < child.pairHandActionArray.GetLength(1); pairIndex++) {
+                    // should be assigned?
+                    var value = RandomHelper.Instance.GetRandomIntBetween(0, 100 + 1);
+                    if (value < mutationRate) {
+                        child.pairHandActionArray[dealerSplitIndex, pairIndex] = RandomHelper.Instance.GetRandomBool() ? 1 : 2;
                     }
                 }
-                // soft totals
-                for(int dealerIndex = 0;dealerIndex < child.softHandActionArray.GetLength(0); dealerIndex++) {
-                    for(int softIndex = 0;softIndex < child.softHandActionArray.GetLength(1); softIndex++) {
-                        var value = RandomHelper.Instance.GetRandomIntBetween(0, 100 + 1);
-                        if(value < mutationRate) {
-                            child.softHandActionArray[dealerIndex, softIndex] = RandomHelper.Instance.GetRandomIntBetween(1, 3 + 1);
-                        }
+            }
+            // soft totals
+            for (int dealerIndex = 0; dealerIndex < child.softHandActionArray.GetLength(0); dealerIndex++) {
+                for (int softIndex = 0; softIndex < child.softHandActionArray.GetLength(1); softIndex++) {
+                    var value = RandomHelper.Instance.GetRandomIntBetween(0, 100 + 1);
+                    if (value < mutationRate) {
+                        child.softHandActionArray[dealerIndex, softIndex] = RandomHelper.Instance.GetRandomIntBetween(1, 3 + 1);
                     }
                 }
-                // hard totals
-                for (int dealerIndex = 0; dealerIndex < child.hardTotalHandActionArray.GetLength(0); dealerIndex++) {
-                    for (int softIndex = 0; softIndex < child.hardTotalHandActionArray.GetLength(1); softIndex++) {
-                        var value = RandomHelper.Instance.GetRandomIntBetween(0, 100 + 1);
-                        if (value < mutationRate) {
-                            child.hardTotalHandActionArray[dealerIndex, softIndex] = RandomHelper.Instance.GetRandomIntBetween(1, 3 + 1);
-                        }
+            }
+            // hard totals
+            for (int dealerIndex = 0; dealerIndex < child.hardTotalHandActionArray.GetLength(0); dealerIndex++) {
+                for (int softIndex = 0; softIndex < child.hardTotalHandActionArray.GetLength(1); softIndex++) {
+                    var value = RandomHelper.Instance.GetRandomIntBetween(0, 100 + 1);
+                    if (value < mutationRate) {
+                        child.hardTotalHandActionArray[dealerIndex, softIndex] = RandomHelper.Instance.GetRandomIntBetween(1, 3 + 1);
                     }
                 }
             }
         }
+
         public void PlayAndEvaluate(int numGamesToPlay, List<NextHandActionArray> strategies, GameRunner gameRunner, Bankroll bankroll, BettingStrategy bettingStrategy) {
             Debug.Assert(numGamesToPlay > 0);
             Debug.Assert(strategies?.Count > 0);
@@ -197,6 +288,34 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             }
 
             return list;
+        }
+        protected internal (NextHandActionArray parent1, NextHandActionArray parent2) GetTwoParentsTournament(List<NextHandActionArray>strategies) {    
+            (int index, NextHandActionArray strategy) GetAParent(List<NextHandActionArray> strategies) {
+                NextHandActionArray bestStrategy = null;
+                float bestStrategyFitness = float.MinValue;
+                int bestStrategyIndex = int.MinValue;
+                for (int i = 0; i < Settings.TournamentSize; i++) {
+                    int randomIndex = RandomHelper.Instance.GetRandomIntBetween(0, strategies.Count);
+                    if (randomIndex == bestStrategyIndex) {
+                        continue;
+                    }
+                    var randomStrategy = strategies[randomIndex];
+                    if (randomStrategy.FitnessScore!.Value > bestStrategyFitness) {
+                        bestStrategy = randomStrategy;
+                        bestStrategyIndex = randomIndex;
+                        bestStrategyFitness = randomStrategy.FitnessScore!.Value;
+                    }
+                }
+                return (bestStrategyIndex, bestStrategy!);
+            }
+
+            var parent1 = GetAParent(strategies);
+            var parent2 = GetAParent(strategies);
+            while(parent2.index == parent1.index) {
+                parent2 = GetAParent(strategies);
+            }
+
+            return (parent1.strategy, parent2.strategy);
         }
         protected internal List<NextHandActionArray> ProduceOffspring(List<NextHandActionArray> parents, int numChildren) {
             var offspring = new List<NextHandActionArray>();
