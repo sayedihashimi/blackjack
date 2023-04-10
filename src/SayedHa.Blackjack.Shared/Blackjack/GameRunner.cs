@@ -57,8 +57,12 @@ namespace SayedHa.Blackjack.Shared {
             // var cards = game.Cards;
 
             // if the discarded # of cards exceeds specified amount, shuffle the cards
-            var percentRemainingCards = (float)game.Cards.GetNumRemainingCards() / (float)game.Cards.GetTotalNumCards();
-            if (percentRemainingCards * 100 <= game.ShuffleThresholdPercent) {
+            
+            // to avoid the division and conversion to float this equation was modified
+            // var percentRemainingCards = (float)game.Cards.GetNumRemainingCards() / (float)game.Cards.GetTotalNumCards();
+            // if (percentRemainingCards * 100 <= game.ShuffleThresholdPercent) {
+
+            if (game.Cards.GetNumRemainingCards() * 100 <= game.ShuffleThresholdPercent * game.Cards.GetTotalNumCards()) { 
                 // _logger.LogLine("**** shuffling cards");
                 ShufflingCards?.Invoke(this, new ShufflingCardsEventArg(game));
                 game.Cards.ShuffleCards();
@@ -334,7 +338,6 @@ namespace SayedHa.Blackjack.Shared {
             var isDealerHand = hand as DealerHand is object;
             // _logger.LogLine($"  {nextAction}, Hand={hand}");
             switch (nextAction) {
-                case HandAction.Split: throw new ApplicationException("no splits here");
                 case HandAction.Stand:
                     hand.MarkHandAsClosed();
                     NextActionSelected?.Invoke(this, new NextActionSelectedEventArgs(CurrentGame, hand, dealerHand, HandAction.Stand, isDealerHand));
@@ -358,6 +361,7 @@ namespace SayedHa.Blackjack.Shared {
                     // _logger.LogLine($"    Hit, Hand={hand}, Bet=${hand.Bet:F0}");
                     NextActionSelected?.Invoke(this, new NextActionSelectedEventArgs(CurrentGame, hand, dealerHand, HandAction.Double, isDealerHand));
                     break;
+                case HandAction.Split: throw new ApplicationException("no splits here");
                 default:
                     throw new ApplicationException($"unknown value for nextAction:'{nextAction}'");
             }

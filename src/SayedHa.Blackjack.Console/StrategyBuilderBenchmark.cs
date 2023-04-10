@@ -93,4 +93,35 @@ namespace SayedHa.Blackjack {
             _ = sb2.FindBestStrategies(5);
         }
     }
+    [MemoryDiagnoser(false)]
+    public class CreateRandomStrategiesBenchmarks {
+        private static readonly int numToCreate = 1000;
+        [Benchmark]
+        public void RunCreateRandomStrategies() {
+            var nhaa = NextHandActionArrayFactory.Instance;
+            nhaa.CreateRandomStrategies(numToCreate).ToList();
+        }
+        [Benchmark]
+        public void RunCreateRandomStrategies2() {
+            var nhaa = NextHandActionArrayFactory.Instance;
+            nhaa.CreateRandomStrategies2(numToCreate);
+        }
+    }
+    [MemoryDiagnoser(false)]
+    public class ProduceOffspringBenchmarks {
+        public ProduceOffspringBenchmarks() {
+            Strategies = NextHandActionArrayFactory.Instance.CreateRandomStrategies(100).ToList();
+        }
+        private List<NextHandActionArray> Strategies { get; init; }
+        [Benchmark]
+        public void RunProduceOffspring() {
+            var sb = new StrategyBuilder2();
+            sb.ProduceOffspring(Strategies, 200);
+        }
+        [Benchmark]
+        public void RunProduceOffspring2() {
+            var sb = new StrategyBuilder2();
+            sb.ProduceOffspring2(Strategies, 200);
+        }
+    }
 }

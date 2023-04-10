@@ -166,6 +166,12 @@ void StartStrategyBuilder2ProduceOffspring() {
 void StartBenchmarkStrategyBuilderVersusStrategyBuilder2() {
     BenchmarkRunner.Run<StrategyBuilderVersusStrategyBuilder2>();
 }
+void StartBenchmarkCreateRandomStrategies() {
+    BenchmarkRunner.Run<CreateRandomStrategiesBenchmarks>();
+}
+void StartBenchmarkProduceOffspring() {
+    BenchmarkRunner.Run<ProduceOffspringBenchmarks>();
+}
 void StartForProfilingStrategyBuilder2() {
     var settings = new StrategyBuilderSettings{
         AllConsoleOutputDisabled = true,
@@ -179,8 +185,8 @@ void StartForProfilingStrategyBuilder2() {
         EnableMultiThreads = true,
         MtMaxNumThreads = 72,
     };
-    Console.WriteLine("Press any key to start");
-    Console.ReadKey();
+    //Console.WriteLine("Press any key to start");
+    //Console.ReadKey();
     var sb = new StrategyBuilder2(settings);
     _ = sb.FindBestStrategies(5);
 }

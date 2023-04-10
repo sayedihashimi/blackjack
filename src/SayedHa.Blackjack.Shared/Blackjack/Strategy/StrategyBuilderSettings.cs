@@ -9,9 +9,9 @@
         public int NumHandsToPlayForEachStrategy { get; set; } = 10000;
         public int InitialBankroll { get; set; } = 10000;
         public int BetAmount { get; set; } = 5;
-        public int MaxNumberOfGenerations{get;set;} = 10;
-        public int InitialMutationRate { get; set; } = 70;
-        public int MinMutationRate { get; set; } = 25;
+        public int MaxNumberOfGenerations{get;set;} = 500;
+        public int InitialMutationRate { get; set; } = 50;
+        public int MinMutationRate { get; set; } = 5;
         /// <summary>
         /// The percent to reduce the mutation by each generation. Must be >=0 and <= 100.
         /// </summary>

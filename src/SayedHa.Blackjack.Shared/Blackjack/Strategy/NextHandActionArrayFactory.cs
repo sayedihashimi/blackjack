@@ -1,4 +1,6 @@
-﻿namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
+﻿using System.Collections.Concurrent;
+
+namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
     public class NextHandActionArrayFactory {
         private NextHandActionConverter Converter { get; } = NextHandActionConverter.Instance;
         protected internal RandomHelper RandomHelper { get; set; } = new RandomHelper();
@@ -20,6 +22,22 @@
                 yield return CreateRandomStrategy();
             }
         }
+        // CreateRandomStrategies2 is slower than calling CreateRandomStrategies and then ToList(). See CreateRandomStrategiesBenchmarks
+        protected internal List<NextHandActionArray> CreateRandomStrategies2(int numStrategies) {
+            ConcurrentBag<NextHandActionArray> randomStrategies = new();
+
+            var options = new ParallelOptions {
+                // TODO: get this from settings
+                MaxDegreeOfParallelism = 72
+            };
+
+            Parallel.For(0, numStrategies, options, i => {
+                randomStrategies.Add(CreateRandomStrategy());
+            });
+
+            return randomStrategies.ToList();
+        }
+
         public NextHandActionArray CreateStrategyWithAllHits(bool allSplits) => CreateStrategyWithAll(HandAction.Hit, allSplits);
         public NextHandActionArray CreateStrategyWithAllStands(bool allSplits) => CreateStrategyWithAll(HandAction.Stand, allSplits);
         public NextHandActionArray CreateStrategyWithAll(HandAction handAction, bool allSplits) {

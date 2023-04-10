@@ -2,6 +2,7 @@
 using SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree;
 using SayedHa.Blackjack.Shared.Players;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -63,7 +64,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                 }
 
                 if (!Settings.AllConsoleOutputDisabled) {
-                    Console.Write($"best this generation: {bestGenerationFitnessScore}. Best overall: {bestOverallFitness}");
+                    Console.Write($"Gen: {numGeneration}. best this generation: {bestGenerationFitnessScore}. Best overall: {bestOverallFitness}");
                 }
 
                 // check to see if we are done
@@ -83,6 +84,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                 // TODO: later add the top X strategies to carry on to the next generation
 
                 var mutationRate = Settings.InitialMutationRate;
+                var mutationRateChange = Settings.MutationRateChangePerGeneration;
                 while (nextGeneration.Count < currentGeneration.Count) {
                     var parents = GetTwoParentsTournament(currentGeneration);
                     var children = ProduceOffspring(parents.parent1, parents.parent2);
@@ -90,6 +92,15 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                     MutateOffspring(children.child2, mutationRate);
                     nextGeneration.Add(children.child1);
                     nextGeneration.Add(children.child2);
+                }
+
+                // update the mutation rate
+                if (mutationRate != Settings.MinMutationRate) {
+                    mutationRate = (int)Math.Ceiling(mutationRate * (100 - mutationRateChange) / 100F);
+                    if (mutationRate < Settings.MinMutationRate) {
+                        mutationRate = Settings.MinMutationRate;
+                        // Console.WriteLine("mutation rate at 0");
+                    }
                 }
 
                 if (!Settings.AllConsoleOutputDisabled) {
@@ -333,6 +344,24 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             }
 
             return offspring;
+        }
+        // this is slower than ProduceOffspring
+        protected internal ConcurrentBag<NextHandActionArray> ProduceOffspring2(List<NextHandActionArray> parents, int numChildren) {
+            ConcurrentBag<NextHandActionArray> result = new();
+
+            Parallel.For(result.Count, numChildren, i => {
+                (var parent1Index, var parent2Index) = RandomHelper.Instance.GetTwoRandomNumbersBetween(0, parents.Count);
+                var parent1 = parents[parent1Index];
+                var parent2 = parents[parent2Index];
+
+                var currentOffspring = ProduceOffspring(parents[parent1Index], parents[parent2Index]);
+                result.Add(currentOffspring.child1);
+                if (result.Count < numChildren) {
+                    result.Add(currentOffspring.child2);
+                }
+            });
+
+            return result;
         }
         protected internal (NextHandActionArray child1, NextHandActionArray child2) ProduceOffspring(NextHandActionArray parent1, NextHandActionArray parent2) {
             var child1 = new NextHandActionArray();
