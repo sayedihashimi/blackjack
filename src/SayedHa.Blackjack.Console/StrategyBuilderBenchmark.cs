@@ -124,4 +124,20 @@ namespace SayedHa.Blackjack {
             sb.ProduceOffspring2(Strategies, 200);
         }
     }
+    [MemoryDiagnoser(false)]
+    public class MutateOffspringBenchmarks
+    {
+        [Benchmark]
+        public void RunMutateOffspring() {
+            var sb = new StrategyBuilder2();
+            var strategy = NextHandActionArrayFactory.Instance.CreateStrategyWithAllHits(true);
+            sb.MutateOffspring(strategy, 10);
+        }
+        [Benchmark]
+        public void RunCellMutateOffspring() {
+            var sb = new StrategyBuilder2();
+            var strategy = NextHandActionArrayFactory.Instance.CreateStrategyWithAllHits(true);
+            sb.CellMutateOffspring(strategy, 10);
+        }
+    }
 }

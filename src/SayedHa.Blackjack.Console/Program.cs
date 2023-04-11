@@ -54,7 +54,7 @@ using SB = SayedHa.Blackjack.Shared.Blackjack.Strategy.StrategyBuilder;
 
 //return;
 
-StartRunningStrategyBuilder2();
+StartBenchmarkMutateOffspringBenchmarks();
 return;
 
 void StartRunningStrategyBuilder() {
@@ -127,7 +127,7 @@ min mutation rate: {settings.MinMutationRate}");
     sWriter.WriteLine($"Num generations: {settings.MaxNumberOfGenerations}");
     sWriter.WriteLine("Top strategies found");
     for (int i = 0; i < result.Count; i++) {
-        sWriter.WriteLine($" ------------- {i} -------------");
+        sWriter.WriteLine($" ------------- {i} Score=({result[i].FitnessScore}) -------------");
         // result[i].WriteTreeStringTo(sWriter);
         result[i].WriteTo(sWriter);
     }
@@ -171,6 +171,9 @@ void StartBenchmarkCreateRandomStrategies() {
 }
 void StartBenchmarkProduceOffspring() {
     BenchmarkRunner.Run<ProduceOffspringBenchmarks>();
+}
+void StartBenchmarkMutateOffspringBenchmarks() {
+    BenchmarkRunner.Run<MutateOffspringBenchmarks>();
 }
 void StartForProfilingStrategyBuilder2() {
     var settings = new StrategyBuilderSettings{

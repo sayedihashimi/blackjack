@@ -17,6 +17,13 @@
         /// </summary>
         public int MutationRateChangePerGeneration { get; set; } = 1;
 
+        // introducing a different way to do mutations, currently it visits every cell
+        // these settings will be for that new method.
+        public float CellMutationNumCellsToChangePerChart { get; set; } = 10F;
+        public float CellMutationMinNumCellsToChangePerChart { get; set; } = 1F;
+        public float CellMutationRateChangePerGeneration { get; set; } = 0.03F;
+
+
         public bool EnableMultiThreads { get; set; } = true;
         public int MtMaxNumThreads { get; set; } = 72;
         // public int MtMaxNumThreads { get; set; } = 24;

@@ -7,7 +7,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
+using System.Diagnostics.Tracing;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -16,12 +18,21 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
         public StrategyBuilder2() : this(new StrategyBuilderSettings()) { }
         public StrategyBuilder2(StrategyBuilderSettings settings) {
             Settings = settings;
+            Console.CancelKeyPress += (sender, eventArgs) => {
+                CancelSearch = true;
+                Console.WriteLine("stopping operation");
+                eventArgs.Cancel = true;
+            };
         }
         public StrategyBuilderSettings Settings { 
             get; 
             init; 
         }
+
+        protected internal bool CancelSearch { get; set; } = false;
+
         public List<NextHandActionArray> FindBestStrategies2(int numToReturn) {
+            CancelSearch = false;
             // ignoring numToReturn for now, will only return the top strategy
 
             float bestOverallFitness = float.MinValue;
@@ -36,8 +47,13 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             
             var maxNumGenerations = Settings.MaxNumberOfGenerations;
             int numGeneration = 0;
+
+            // var mutationRate = Settings.InitialMutationRate;
+            // var mutationRateChange = Settings.MutationRateChangePerGeneration;
+            var cellMutationNumCellsToChange = Settings.CellMutationNumCellsToChangePerChart;
+            var cellMutationRateChangePerGen = Settings.CellMutationRateChangePerGeneration;
             var stopwatch = new Stopwatch();
-            while (true) {
+            while (!CancelSearch) {
                 stopwatch.Restart();
                 // evaluate all the strategies
                 var bankroll = new Bankroll(Settings.InitialBankroll, NullLogger.Instance);
@@ -64,7 +80,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                 }
 
                 if (!Settings.AllConsoleOutputDisabled) {
-                    Console.Write($"Gen: {numGeneration}. best this generation: {bestGenerationFitnessScore}. Best overall: {bestOverallFitness}");
+                    Console.Write($"Gen: {numGeneration}. best this generation: {bestGenerationFitnessScore}. Best overall: {bestOverallFitness}. Mutation rate: '{cellMutationNumCellsToChange}'");
                 }
 
                 // check to see if we are done
@@ -83,23 +99,23 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
 
                 // TODO: later add the top X strategies to carry on to the next generation
 
-                var mutationRate = Settings.InitialMutationRate;
-                var mutationRateChange = Settings.MutationRateChangePerGeneration;
+
                 while (nextGeneration.Count < currentGeneration.Count) {
                     var parents = GetTwoParentsTournament(currentGeneration);
                     var children = ProduceOffspring(parents.parent1, parents.parent2);
-                    MutateOffspring(children.child1, mutationRate);
-                    MutateOffspring(children.child2, mutationRate);
+                    // MutateOffspring(children.child1, mutationRate);
+                    // MutateOffspring(children.child2, mutationRate);
+                    CellMutateOffspring(children.child1, (int)Math.Round(cellMutationNumCellsToChange));
+                    CellMutateOffspring(children.child2, (int)Math.Round(cellMutationNumCellsToChange));
                     nextGeneration.Add(children.child1);
                     nextGeneration.Add(children.child2);
                 }
 
-                // update the mutation rate
-                if (mutationRate != Settings.MinMutationRate) {
-                    mutationRate = (int)Math.Ceiling(mutationRate * (100 - mutationRateChange) / 100F);
-                    if (mutationRate < Settings.MinMutationRate) {
-                        mutationRate = Settings.MinMutationRate;
-                        // Console.WriteLine("mutation rate at 0");
+                if(cellMutationNumCellsToChange != Settings.CellMutationMinNumCellsToChangePerChart) {
+                    cellMutationNumCellsToChange -= cellMutationRateChangePerGen;
+
+                    if(cellMutationNumCellsToChange < Settings.CellMutationMinNumCellsToChangePerChart) {
+                        cellMutationNumCellsToChange = Settings.CellMutationMinNumCellsToChangePerChart;
                     }
                 }
 
@@ -114,7 +130,6 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
 
                 numGeneration++;
             }
-            
 
             return new List<NextHandActionArray> { bestOverallStrategy! };
         }
@@ -200,6 +215,28 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
 
             return topStrategies;
         }
+        protected internal void CellMutateOffspring(NextHandActionArray child, int numCellsToMutatePerChart) {
+            if(numCellsToMutatePerChart < 1) { return; }
+
+            for(int i  = 0; i < numCellsToMutatePerChart; i++) {
+                // splits
+                var splitDealerIndex = RandomHelper.Instance.GetRandomIntBetween(0, child.pairHandActionArray.GetLength(0));
+                var splitPairIndex = RandomHelper.Instance.GetRandomIntBetween(0, child.pairHandActionArray.GetLength(1));
+                child.pairHandActionArray[splitDealerIndex, splitPairIndex] = 
+                    RandomHelper.Instance.GetRandomBool() ? 1 : 2;
+                // hard totals
+                var hardTotalDealerIndex = RandomHelper.Instance.GetRandomIntBetween(0, child.hardTotalHandActionArray.GetLength(0));
+                var hardTotalIndex = RandomHelper.Instance.GetRandomIntBetween(0, child.hardTotalHandActionArray.GetLength(1));
+                child.hardTotalHandActionArray[hardTotalDealerIndex, hardTotalIndex] = 
+                    RandomHelper.Instance.GetRandomIntBetween(1, 3 + 1);
+                // soft totals
+                var softTotalDealerIndex = RandomHelper.Instance.GetRandomIntBetween(0, child.softHandActionArray.GetLength(0));
+                var softTotalIndex = RandomHelper.Instance.GetRandomIntBetween(0, child.softHandActionArray.GetLength(1));
+                child.hardTotalHandActionArray[softTotalDealerIndex, softTotalIndex] =
+                    RandomHelper.Instance.GetRandomIntBetween(1, 3 + 1);
+            }
+        }
+
         protected internal void MutateOffspring(List<NextHandActionArray>children, int mutationRate) {
             if(mutationRate <= 0) {
                 return;
