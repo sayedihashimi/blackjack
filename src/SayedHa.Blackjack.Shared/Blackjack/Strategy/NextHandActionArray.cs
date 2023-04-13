@@ -33,6 +33,33 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
         protected internal NextHandActionConverter Converter = NextHandActionConverter.Instance;
         public string? Name { get; set; }
         public float? FitnessScore { get; set; }
+
+        public NextHandActionArray Clone() {
+            NextHandActionArray clone = new NextHandActionArray();
+
+            // don't clone the fitnessscore
+            clone.Name = Name;
+
+            for(var i = 0; i < pairHandActionArray.GetLength(0); i++) {
+                for(var j = 0;j< pairHandActionArray.GetLength(1); j++) {
+                    clone.pairHandActionArray[i, j] = pairHandActionArray[i,j];
+                }
+            }
+            for (var i = 0; i < softHandActionArray.GetLength(0); i++) {
+                for (var j = 0; j < softHandActionArray.GetLength(1); j++) {
+                    clone.softHandActionArray[i, j] = softHandActionArray[i, j];
+                }
+            }
+            for (var i = 0; i < hardTotalHandActionArray.GetLength(0); i++) {
+                for (var j = 0; j < hardTotalHandActionArray.GetLength(1); j++) {
+                    clone.hardTotalHandActionArray[i, j] = hardTotalHandActionArray[i, j];
+                }
+            }
+
+            return clone;
+        }
+
+
         public void SetSplitForPair(bool split, CardNumber dealerCard, CardNumber pairCard) {
             pairHandActionArray[Converter.GetIntFor(dealerCard), Converter.GetIntFor(pairCard)] = Converter.GetIntFor(split);
         }

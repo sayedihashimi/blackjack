@@ -54,7 +54,7 @@ using SB = SayedHa.Blackjack.Shared.Blackjack.Strategy.StrategyBuilder;
 
 //return;
 
-StartBenchmarkMutateOffspringBenchmarks();
+StartRunningStrategyBuilder2();
 return;
 
 void StartRunningStrategyBuilder() {

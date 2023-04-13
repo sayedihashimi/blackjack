@@ -97,6 +97,11 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                 // add the bestOverall
                 nextGeneration.Add(bestOverallStrategy!);
 
+                // clone best strategy, change a single cell and add it to the next generation
+                var bestClone = bestOverallStrategy!.Clone();
+                CellMutateOffspring(bestClone, 1);
+                nextGeneration.Add(bestClone);
+
                 // TODO: later add the top X strategies to carry on to the next generation
 
 
