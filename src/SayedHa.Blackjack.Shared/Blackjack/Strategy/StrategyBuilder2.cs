@@ -18,6 +18,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
         public StrategyBuilder2() : this(new StrategyBuilderSettings()) { }
         public StrategyBuilder2(StrategyBuilderSettings settings) {
             Settings = settings;
+            NextHandActionArrayFactory.Instance.Settings = settings;
             Console.CancelKeyPress += (sender, eventArgs) => {
                 CancelSearch = true;
                 Console.WriteLine("stopping operation");
@@ -104,7 +105,6 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
 
                 // TODO: later add the top X strategies to carry on to the next generation
 
-
                 while (nextGeneration.Count < currentGeneration.Count) {
                     var parents = GetTwoParentsTournament(currentGeneration);
                     var children = ProduceOffspring(parents.parent1, parents.parent2);
@@ -112,6 +112,13 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                     // MutateOffspring(children.child2, mutationRate);
                     CellMutateOffspring(children.child1, (int)Math.Round(cellMutationNumCellsToChange));
                     CellMutateOffspring(children.child2, (int)Math.Round(cellMutationNumCellsToChange));
+
+                    if (Settings.CreateSmartRandomStrategies) {
+                        // TODO: To improve perf we could prevent modifying these values instead
+                        NextHandActionArrayFactory.Instance.ApplySmartDefaults(children.child1);
+                        NextHandActionArrayFactory.Instance.ApplySmartDefaults(children.child2);
+                    }
+
                     nextGeneration.Add(children.child1);
                     nextGeneration.Add(children.child2);
                 }

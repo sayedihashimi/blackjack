@@ -67,7 +67,7 @@ num hands to play for each strategy: {settings.NumHandsToPlayForEachStrategy}
 initial mutation rate: {settings.InitialMutationRate}
 min mutation rate: {settings.MinMutationRate}");
 
-    var strategy1 = new SB();
+    var strategy1 = new SB(settings);
     var stopwatch = new Stopwatch();
     stopwatch.Start();
     var result = strategy1.FindBestStrategies(5);

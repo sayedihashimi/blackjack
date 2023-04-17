@@ -4,12 +4,12 @@
         public int NumDecks { get; set; } = 4;
         // TODO: Get this from somewhere.
         public bool UseRandomNumberGenerator { get; set; } = true;
-        public int NumStrategiesForFirstGeneration { get; set; } = 1000;
+        public int NumStrategiesForFirstGeneration { get; set; } = 100;
         public int NumStrategiesToGoToNextGeneration {get;set;} = 30;
-        public int NumHandsToPlayForEachStrategy { get; set; } = 10000;
+        public int NumHandsToPlayForEachStrategy { get; set; } = 500000;
         public int InitialBankroll { get; set; } = 10000;
         public int BetAmount { get; set; } = 5;
-        public int MaxNumberOfGenerations{get;set;} = 500;
+        public int MaxNumberOfGenerations{get;set;} = 100;
         public int InitialMutationRate { get; set; } = 50;
         public int MinMutationRate { get; set; } = 5;
         /// <summary>
@@ -22,7 +22,7 @@
         public float CellMutationNumCellsToChangePerChart { get; set; } = 10F;
         public float CellMutationMinNumCellsToChangePerChart { get; set; } = 1F;
         public float CellMutationRateChangePerGeneration { get; set; } = 0.03F;
-
+        public bool CreateSmartRandomStrategies { get; set; } = true;
 
         public bool EnableMultiThreads { get; set; } = true;
         public int MtMaxNumThreads { get; set; } = 72;

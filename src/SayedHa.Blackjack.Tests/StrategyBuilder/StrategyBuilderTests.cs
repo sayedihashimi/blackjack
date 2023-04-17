@@ -32,8 +32,8 @@ namespace SayedHa.Blackjack.Tests.StrategyBuilder
             var sWriter = new StringWriter(sb);
 
             sWriter.WriteLine($"elapsed time: {stopwatch.Elapsed.ToString(@"mm\:ss")}");
-
-            sWriter.WriteLine($"Num generations: {new StrategyBuilderSettings().MaxNumberOfGenerations}");
+            
+            sWriter.WriteLine($"Num generations: {strategy.Settings.MaxNumberOfGenerations}");
             sWriter.WriteLine("Top strategies found");
             for (int i = 0; i < result.Count; i++)
             {

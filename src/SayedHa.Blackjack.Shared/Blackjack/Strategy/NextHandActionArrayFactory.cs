@@ -4,22 +4,42 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
     public class NextHandActionArrayFactory {
         private NextHandActionConverter Converter { get; } = NextHandActionConverter.Instance;
         protected internal RandomHelper RandomHelper { get; set; } = new RandomHelper();
-
         public static NextHandActionArrayFactory Instance { get; } = new NextHandActionArrayFactory();
 
-        public NextHandActionArray CreateRandomStrategy() {
+        public StrategyBuilderSettings Settings { get; set; } = new StrategyBuilderSettings();
+
+        private static readonly int HandActionHitValue = 2;
+        private static readonly int HandActionStandValue = 3;
+        public NextHandActionArray CreateRandomStrategy(bool smartStrategy = false) {
             var nhaa = new NextHandActionArray();
 
             RandomHelper.RandomizeArray(nhaa.pairHandActionArray, 1, 2 + 1);
             RandomHelper.RandomizeArray(nhaa.softHandActionArray, 1, 3 + 1);
             RandomHelper.RandomizeArray(nhaa.hardTotalHandActionArray, 1, 3 + 1);
 
+            if (smartStrategy) {
+                ApplySmartDefaults(nhaa);
+            }
+
             return nhaa;
+        }
+
+        protected internal void ApplySmartDefaults(NextHandActionArray nhaa) {
+            for (int dealerIndex = 0; dealerIndex < nhaa.hardTotalHandActionArray.GetLength(0); dealerIndex++) {
+                // always hit on 3 - 8
+                for (int hardIndex = 0; hardIndex <= 5; hardIndex++) {
+                    nhaa.hardTotalHandActionArray[dealerIndex, hardIndex] = HandActionHitValue;
+                }
+                // always stand on 17 - 20 14 - 17
+                for (int hardIndex = 14; hardIndex <= 17; hardIndex++) {
+                    nhaa.hardTotalHandActionArray[dealerIndex, hardIndex] = HandActionStandValue;
+                }
+            }
         }
 
         public IEnumerable<NextHandActionArray> CreateRandomStrategies(int numStrategies) {
             for(int i = 0; i<numStrategies; i++) {
-                yield return CreateRandomStrategy();
+                yield return CreateRandomStrategy(Settings.CreateSmartRandomStrategies);
             }
         }
         // CreateRandomStrategies2 is slower than calling CreateRandomStrategies and then ToList(). See CreateRandomStrategiesBenchmarks
@@ -32,7 +52,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             };
 
             Parallel.For(0, numStrategies, options, i => {
-                randomStrategies.Add(CreateRandomStrategy());
+                randomStrategies.Add(CreateRandomStrategy(Settings.CreateSmartRandomStrategies));
             });
 
             return randomStrategies.ToList();
