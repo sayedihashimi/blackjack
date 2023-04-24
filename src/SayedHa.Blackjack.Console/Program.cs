@@ -105,7 +105,10 @@ population: {settings.NumStrategiesForFirstGeneration}
 num parents (survivors) each gen: {settings.NumStrategiesToGoToNextGeneration}
 num hands to play for each strategy: {settings.NumHandsToPlayForEachStrategy}
 initial mutation rate: {settings.InitialMutationRate}
-min mutation rate: {settings.MinMutationRate}");
+min mutation rate: {settings.MinMutationRate}
+num best clones per gen: {settings.NumOfBestStrategyClonesToMakePerGeneration}
+create smart strategies: {settings.CreateSmartRandomStrategies}
+tournament size: {settings.TournamentSize}");
 
     var strategyBuilder = new StrategyBuilder2(settings);
     var stopwatch = new Stopwatch();
@@ -119,7 +122,10 @@ population: {settings.NumStrategiesForFirstGeneration}
 num parents (survivors) each gen: {settings.NumStrategiesToGoToNextGeneration}
 num hands to play for each strategy: {settings.NumHandsToPlayForEachStrategy}
 initial mutation rate: {settings.InitialMutationRate}
-min mutation rate: {settings.MinMutationRate}");
+min mutation rate: {settings.MinMutationRate}
+num best clones per gen: {settings.NumOfBestStrategyClonesToMakePerGeneration}
+create smart strategies: {settings.CreateSmartRandomStrategies}
+tournament size: {settings.TournamentSize}");
 
     var sb = new StringBuilder();
     var sWriter = new StringWriter(sb);
@@ -174,6 +180,9 @@ void StartBenchmarkProduceOffspring() {
 }
 void StartBenchmarkMutateOffspringBenchmarks() {
     BenchmarkRunner.Run<MutateOffspringBenchmarks>();
+}
+void StartBenchmarkTournamentSize() {
+    BenchmarkRunner.Run<TournamentSizeBenchmarks>();
 }
 void StartForProfilingStrategyBuilder2() {
     var settings = new StrategyBuilderSettings{

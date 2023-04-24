@@ -23,6 +23,8 @@
         public float CellMutationMinNumCellsToChangePerChart { get; set; } = 1F;
         public float CellMutationRateChangePerGeneration { get; set; } = 0.03F;
         public bool CreateSmartRandomStrategies { get; set; } = true;
+        public int NumOfBestStrategyClonesToMakePerGeneration { get; set; } = 10;
+
 
         public bool EnableMultiThreads { get; set; } = true;
         public int MtMaxNumThreads { get; set; } = 72;

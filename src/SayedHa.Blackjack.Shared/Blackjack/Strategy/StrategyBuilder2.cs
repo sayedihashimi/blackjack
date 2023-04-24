@@ -49,8 +49,6 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             var maxNumGenerations = Settings.MaxNumberOfGenerations;
             int numGeneration = 0;
 
-            // var mutationRate = Settings.InitialMutationRate;
-            // var mutationRateChange = Settings.MutationRateChangePerGeneration;
             var cellMutationNumCellsToChange = Settings.CellMutationNumCellsToChangePerChart;
             var cellMutationRateChangePerGen = Settings.CellMutationRateChangePerGeneration;
             var stopwatch = new Stopwatch();
@@ -67,6 +65,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
 
                 // loop through all the strategies to record the best strategy
                 float bestGenerationFitnessScore = float.MinValue;
+                float totalFitnessScore = 0;
                 NextHandActionArray bestGenerationStrategy;
                 foreach (var strategy in currentGeneration) {
                     if(strategy.FitnessScore > bestGenerationFitnessScore) {
@@ -78,10 +77,16 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                             bestOverallStrategy = strategy;
                         }
                     }
+                    totalFitnessScore += strategy.FitnessScore!.Value;
+                }
+                float avgFitnessScoreThisGen = totalFitnessScore / currentGeneration.Count;
+
+                if(avgFitnessScoreThisGen > bestAverageGenerationFitness) {
+                    bestAverageGenerationFitness = avgFitnessScoreThisGen;
                 }
 
                 if (!Settings.AllConsoleOutputDisabled) {
-                    Console.Write($"Gen: {numGeneration}. best this generation: {bestGenerationFitnessScore}. Best overall: {bestOverallFitness}. Mutation rate: '{cellMutationNumCellsToChange}'");
+                    Console.Write($"Gen: {numGeneration} Best(gen): {bestGenerationFitnessScore:0.##}\tBest overall: {bestOverallFitness:0.##}.\tAvg (gen): {avgFitnessScoreThisGen:0.##}\tBest gen avg: {bestAverageGenerationFitness:0.##}\tMutation rate: '{cellMutationNumCellsToChange:0.##}'");
                 }
 
                 // check to see if we are done
@@ -98,27 +103,22 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                 // add the bestOverall
                 nextGeneration.Add(bestOverallStrategy!);
 
-                // clone best strategy, change a single cell and add it to the next generation
-                var bestClone = bestOverallStrategy!.Clone();
-                CellMutateOffspring(bestClone, 1);
-                nextGeneration.Add(bestClone);
+                // clone best strategy, change a single cell and add a small # of cells
+                int numBestClones = 0;
+                while(numBestClones < Settings.NumOfBestStrategyClonesToMakePerGeneration) {
+                    var bestClone = bestOverallStrategy!.Clone();
+                    CellMutateOffspring(bestClone, RandomHelper.Instance.GetRandomIntBetween(1, 3));
+                    nextGeneration.Add(bestClone);
+                    numBestClones++;
+                }
 
                 // TODO: later add the top X strategies to carry on to the next generation
 
                 while (nextGeneration.Count < currentGeneration.Count) {
                     var parents = GetTwoParentsTournament(currentGeneration);
                     var children = ProduceOffspring(parents.parent1, parents.parent2);
-                    // MutateOffspring(children.child1, mutationRate);
-                    // MutateOffspring(children.child2, mutationRate);
                     CellMutateOffspring(children.child1, (int)Math.Round(cellMutationNumCellsToChange));
                     CellMutateOffspring(children.child2, (int)Math.Round(cellMutationNumCellsToChange));
-
-                    if (Settings.CreateSmartRandomStrategies) {
-                        // TODO: To improve perf we could prevent modifying these values instead
-                        NextHandActionArrayFactory.Instance.ApplySmartDefaults(children.child1);
-                        NextHandActionArrayFactory.Instance.ApplySmartDefaults(children.child2);
-                    }
-
                     nextGeneration.Add(children.child1);
                     nextGeneration.Add(children.child2);
                 }
@@ -238,13 +238,17 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                     RandomHelper.Instance.GetRandomBool() ? 1 : 2;
                 // hard totals
                 var hardTotalDealerIndex = RandomHelper.Instance.GetRandomIntBetween(0, child.hardTotalHandActionArray.GetLength(0));
-                var hardTotalIndex = RandomHelper.Instance.GetRandomIntBetween(0, child.hardTotalHandActionArray.GetLength(1));
+
+                var hardTotalIndex = Settings.CreateSmartRandomStrategies ? 
+                    RandomHelper.Instance.GetRandomIntBetween(6, 13 + 1) : 
+                    RandomHelper.Instance.GetRandomIntBetween(0, child.hardTotalHandActionArray.GetLength(1));
+
                 child.hardTotalHandActionArray[hardTotalDealerIndex, hardTotalIndex] = 
                     RandomHelper.Instance.GetRandomIntBetween(1, 3 + 1);
                 // soft totals
                 var softTotalDealerIndex = RandomHelper.Instance.GetRandomIntBetween(0, child.softHandActionArray.GetLength(0));
                 var softTotalIndex = RandomHelper.Instance.GetRandomIntBetween(0, child.softHandActionArray.GetLength(1));
-                child.hardTotalHandActionArray[softTotalDealerIndex, softTotalIndex] =
+                child.softHandActionArray[softTotalDealerIndex, softTotalIndex] =
                     RandomHelper.Instance.GetRandomIntBetween(1, 3 + 1);
             }
         }
@@ -349,7 +353,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
 
             return list;
         }
-        protected internal (NextHandActionArray parent1, NextHandActionArray parent2) GetTwoParentsTournament(List<NextHandActionArray>strategies) {    
+        protected internal (NextHandActionArray parent1, NextHandActionArray parent2) GetTwoParentsTournament(List<NextHandActionArray>strategies) {
             (int index, NextHandActionArray strategy) GetAParent(List<NextHandActionArray> strategies) {
                 NextHandActionArray bestStrategy = null;
                 float bestStrategyFitness = float.MinValue;
@@ -417,19 +421,20 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             var child2 = new NextHandActionArray();
 
             // pairs
-            (child1.pairHandActionArray, child2.pairHandActionArray) = ProduceOffspringArray(parent1.pairHandActionArray, parent2.pairHandActionArray);
-            (child1.softHandActionArray, child2.softHandActionArray) = ProduceOffspringArray(parent1.softHandActionArray, parent2.softHandActionArray);
-            (child1.hardTotalHandActionArray, child2.hardTotalHandActionArray) = ProduceOffspringArray(parent1.hardTotalHandActionArray, parent2.hardTotalHandActionArray);
+            (child1.pairHandActionArray, child2.pairHandActionArray) = ProduceOffspringArray(parent1.pairHandActionArray, parent2.pairHandActionArray, false);
+            (child1.softHandActionArray, child2.softHandActionArray) = ProduceOffspringArray(parent1.softHandActionArray, parent2.softHandActionArray, false);
+            (child1.hardTotalHandActionArray, child2.hardTotalHandActionArray) = ProduceOffspringArray(parent1.hardTotalHandActionArray, parent2.hardTotalHandActionArray, true);
 
             return (child1, child2);
         }
-        protected internal (int[,] child1Array, int[,] child2Array) ProduceOffspringArray(int[,] parent1Array, int[,] parent2Array) {
+        protected internal (int[,] child1Array, int[,] child2Array) ProduceOffspringArray(int[,] parent1Array, int[,] parent2Array, bool isHardTotals) {
             var child1 = new int[parent1Array.GetLength(0), parent1Array.GetLength(1)];
             var child2 = new int[parent1Array.GetLength(0), parent1Array.GetLength(1)];
 
             var numAllCells = parent1Array.Length;
             var numCutoff = (int)Math.Floor(numAllCells / 2F);
             var currentIndex = 0;
+
             for (int dealerIndex = 0; dealerIndex < parent1Array.GetLength(0); dealerIndex++) {
                 for (int pairCardIndex = 0; pairCardIndex < parent1Array.GetLength(1); pairCardIndex++) {
                     var valueParent1 = parent1Array[dealerIndex, pairCardIndex];
@@ -488,7 +493,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             new Bankroll(Settings.InitialBankroll, NullLogger.Instance));
     }
     public class StrategyBuilderParticipant : Participant {
-        // TODO: would be better to get the 5 from settings
+        // TODO: would be better to get the bet amount from settings
         public StrategyBuilderParticipant(ParticipantRole role, Player player, Bankroll bankroll) : base(role, player, new FixedBettingStrategy(bankroll, 5)) {
 
         }

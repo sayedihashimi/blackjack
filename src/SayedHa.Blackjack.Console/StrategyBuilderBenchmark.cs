@@ -125,8 +125,7 @@ namespace SayedHa.Blackjack {
         }
     }
     [MemoryDiagnoser(false)]
-    public class MutateOffspringBenchmarks
-    {
+    public class MutateOffspringBenchmarks {
         [Benchmark]
         public void RunMutateOffspring() {
             var sb = new StrategyBuilder2();
@@ -138,6 +137,51 @@ namespace SayedHa.Blackjack {
             var sb = new StrategyBuilder2();
             var strategy = NextHandActionArrayFactory.Instance.CreateStrategyWithAllHits(true);
             sb.CellMutateOffspring(strategy, 10);
+        }
+    }
+    [MemoryDiagnoser(false)]
+    public class TournamentSizeBenchmarks {
+        [Benchmark]
+        public void RunWithTournamentSize_5() {
+            var settings = new StrategyBuilderSettings {
+                AllConsoleOutputDisabled = true,
+                NumStrategiesForFirstGeneration = 100,
+                NumStrategiesToGoToNextGeneration = 50,
+                NumHandsToPlayForEachStrategy = 100,
+                MaxNumberOfGenerations = 5,
+                InitialMutationRate = 25,
+                MinMutationRate = 5,
+                MutationRateChangePerGeneration = 1,
+                EnableMultiThreads = true,
+                MtMaxNumThreads = 72,
+                CellMutationNumCellsToChangePerChart = 10F,
+                CellMutationMinNumCellsToChangePerChart = 1F,
+                CellMutationRateChangePerGeneration = 0.3F,
+                TournamentSize = 5
+            };
+            var sb2 = new StrategyBuilder2(settings);
+            sb2.FindBestStrategies(5);
+        }
+        [Benchmark]
+        public void RunWithTournamentSize_10() {
+            var settings = new StrategyBuilderSettings {
+                AllConsoleOutputDisabled = true,
+                NumStrategiesForFirstGeneration = 100,
+                NumStrategiesToGoToNextGeneration = 50,
+                NumHandsToPlayForEachStrategy = 100,
+                MaxNumberOfGenerations = 5,
+                InitialMutationRate = 25,
+                MinMutationRate = 5,
+                MutationRateChangePerGeneration = 1,
+                EnableMultiThreads = true,
+                MtMaxNumThreads = 72,
+                CellMutationNumCellsToChangePerChart = 10F,
+                CellMutationMinNumCellsToChangePerChart = 1F,
+                CellMutationRateChangePerGeneration = 0.3F,
+                TournamentSize = 10
+            };
+            var sb2 = new StrategyBuilder2(settings);
+            sb2.FindBestStrategies(5);
         }
     }
 }
