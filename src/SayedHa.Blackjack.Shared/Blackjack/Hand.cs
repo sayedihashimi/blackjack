@@ -29,23 +29,26 @@ namespace SayedHa.Blackjack.Shared {
         }
     }
     public class Hand {
-        private ILogger _logger = new NullLogger();
-        public Hand(float bet, ILogger logger) {
+        private ILogger _logger = NullLogger.Instance;
+        public Hand(float bet, ILogger logger, float? betResult = null) {
             Debug.Assert(bet >= 0);
             Bet = bet;
-            _logger = logger ?? new NullLogger();
+            _logger = logger ?? NullLogger.Instance;
+            if(betResult is not null) {
+                BetResult = betResult;
+            }
         }
 
         // TODO: Still not sure if this property is needed, let's see.
-        public HandStatus Status { get; protected set; } = HandStatus.InPlay;
-        public HandResult HandResult { get; protected set; } = HandResult.InPlay;
+        public HandStatus Status { get; protected internal set; } = HandStatus.InPlay;
+        public HandResult HandResult { get; protected internal set; } = HandResult.InPlay;
 
         public float Bet { get; set; }
         /// <summary>
         /// The amount won or lost in this hand. Negative for amounts paid to the dealer
         /// and positive amounts for hands that have won.
         /// </summary>
-        public float? BetResult { get; protected set; }
+        public float? BetResult { get; set; }
 
         private List<Card> _dealtCards = new List<Card>();
         public List<Card> DealtCards {
@@ -65,16 +68,32 @@ namespace SayedHa.Blackjack.Shared {
         /// <returns>Returns the card that was passed in</returns>
         public Card ReceiveCard(Card card) {
             Debug.Assert(card != null);
-            // _logger.LogLine($"  card: {card.ToString()}");
             DealtCards.Add(card);
-            _scoreCached = ComputeScore();
+            _scoreCacheBusted = true;
+            // TODO:Perf This call is taking up a lot of CPU time
+            //_scoreCached = ComputeScore();
 
             return card;
         }
+        public (Card card1, Card card2) ReceiveCards(Card card1, Card card2) {
+            Debug.Assert(card1 is not null);
+            Debug.Assert(card2 is not null);
 
-        public int GetScore() {
-            return _scoreCached;
+            DealtCards.Add(card1);
+            DealtCards.Add(card2);
+            _scoreCacheBusted = true;
+            // _scoreCached = ComputeScore();
+            return (card1, card2);
         }
+
+        //public int GetScore() {
+        //    return _scoreCached;
+        //}
+
+        public int GetScore() => _scoreCacheBusted switch {
+            false => _scoreCached,
+            true  => ComputeScore()
+        };
 
         /// <summary>
         /// Call this mehtod at the end of the game to indicate if the hand was a win/loss
@@ -95,6 +114,7 @@ namespace SayedHa.Blackjack.Shared {
             Status = HandStatus.Closed;
         }
 
+        protected internal bool _scoreCacheBusted = true;
         /// <summary>
         /// Returns the score for the DealtCards
         /// Note: this assumes that only the Ace card has multiple values, if that ever changes
@@ -102,7 +122,7 @@ namespace SayedHa.Blackjack.Shared {
         /// </summary>
         /// <returns>numeric score of DealtCards</returns>
         public int ComputeScore() {
-            if(DealtCards == null || DealtCards.Count == 0) return 0;
+            if(DealtCards?.Count == 0) return 0;
 
             // have to handle the Ace case where it has more than one value
             var cardsWithMultipleValues = new List<Card>();
@@ -135,6 +155,10 @@ namespace SayedHa.Blackjack.Shared {
                     }
                 }
             }
+
+            _scoreCached = bestScore;
+            _scoreCacheBusted = false;
+
             return bestScore;
         }
 

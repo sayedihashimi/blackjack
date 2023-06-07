@@ -32,12 +32,13 @@ namespace SayedHa.Blackjack.Cli {
     public class PlayCommand : CommandBase {
         /// TODO: move this to CommandBase
         private readonly IReporter _reporter;
-
+        private readonly BlackjackAppSettings _appSettings;
         private int NumDecks { get; set; }
         private SessionReportData _sessionReportData { get; set; }
         private int BetAmount { get; set; } = 0;
-        public PlayCommand(IReporter reporter) {
+        public PlayCommand(IReporter reporter, BlackjackAppSettings appSettings) {
             _reporter = reporter;
+            _appSettings = appSettings;
         }
 
         public override Command CreateCommand() =>
@@ -159,7 +160,7 @@ namespace SayedHa.Blackjack.Cli {
             grid.AddRow("Initial bankroll", $"{sessionReportData.Player.BettingStrategy.Bankroll.InitialBankroll:C0}");
             grid.AddRow("Final bankroll", 
                 $"{sessionReportData.Player.BettingStrategy.Bankroll.DollarsRemaining:C0} diff: {sessionReportData.Player.BettingStrategy.Bankroll.DollarsRemaining- sessionReportData.Player.BettingStrategy.Bankroll.InitialBankroll:C0}");
-            grid.AddRow("Number of hands played", $"{sessionReportData.Player.AllHands.Count}");
+            grid.AddRow("Number of hands played", $"{sessionReportData.Player.GetAllHands().Count}");
             grid.AddRow("Avg bet amount", $"{averagebet:C0}");
             // TODO: grid.AddRow("Avg hand result", "");
             grid.AddRow("Number of wrong actions selected", $"{numIncorrectActions}");

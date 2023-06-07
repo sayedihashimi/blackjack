@@ -4,8 +4,6 @@ make any errors.
 
 ![gif showing game play using blackjack play](src/SayedHa.Blackjack.Cli/media/2023.blackjack.readme.gif)
 
-dotnet CLI tool to play blackjack, more info coming soon here.
-
 ## Installation
 
 To install this tool you must have .NET 7 installed and execute the command below.

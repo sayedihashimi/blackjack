@@ -12,14 +12,196 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with SayedHa.Blackjack.  If not, see <https://www.gnu.org/licenses/>.
+using BenchmarkDotNet.Configs;
+using BenchmarkDotNet.Running;
+using SayedHa.Blackjack;
 using SayedHa.Blackjack.Shared;
 using SayedHa.Blackjack.Shared.Betting;
+using SayedHa.Blackjack.Shared.Blackjack.Strategy;
 using System.Diagnostics;
 using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Text;
-
+// TODO: Get rid of this
+using SB = SayedHa.Blackjack.Shared.Blackjack.Strategy.StrategyBuilder;
 // TODO: this whole class needs to be replaced, just prototyping currently.
+
+//var summary = BenchmarkRunner.Run<StrategyBuilderBenchmark>();
+//return;
+
+//var summary = BenchmarkRunner.Run<RandomNumberBenchmarks>();
+//Console.WriteLine(summary);
+//return;
+
+//var stopwatch1 = new Stopwatch();
+//stopwatch1.Start();
+//var rtb = new RandomTreeBenchmarks();
+//rtb.CreateRandomTrees();
+//stopwatch1.Stop();
+//Console.WriteLine($"Elapsed seconds: '{stopwatch1.Elapsed.TotalSeconds}'");
+//return;
+
+//var summary = BenchmarkRunner.Run<RandomTreeBenchmarks>(
+//    ManualConfig
+//        .Create(DefaultConfig.Instance)
+//        .WithOptions(ConfigOptions.DisableOptimizationsValidator)
+//    );
+//Console.WriteLine(summary);
+
+//var summary = BenchmarkRunner.Run<StrategyTreeParallelBenchmarks>();
+//Console.WriteLine(" **** Summary below ****");
+//Console.WriteLine(summary);
+
+//return;
+
+StartRunningStrategyBuilder2();
+return;
+
+void StartRunningStrategyBuilder() {
+    var settings = new StrategyBuilderSettings();
+    Console.WriteLine(@$"starting test for: 
+num generations: {settings.MaxNumberOfGenerations} 
+population: {settings.NumStrategiesForFirstGeneration} 
+num parents (survivors) each gen: {settings.NumStrategiesToGoToNextGeneration}
+num hands to play for each strategy: {settings.NumHandsToPlayForEachStrategy}
+initial mutation rate: {settings.InitialMutationRate}
+min mutation rate: {settings.MinMutationRate}");
+
+    var strategy1 = new SB(settings);
+    var stopwatch = new Stopwatch();
+    stopwatch.Start();
+    var result = strategy1.FindBestStrategies(5);
+    stopwatch.Stop();
+
+    Console.WriteLine(@$"Completed test for: 
+num generations: {settings.MaxNumberOfGenerations} 
+population: {settings.NumStrategiesForFirstGeneration} 
+num parents (survivors) each gen: {settings.NumStrategiesToGoToNextGeneration}
+num hands to play for each strategy: {settings.NumHandsToPlayForEachStrategy}
+initial mutation rate: {settings.InitialMutationRate}
+min mutation rate: {settings.MinMutationRate}");
+
+    var sb = new StringBuilder();
+    var sWriter = new StringWriter(sb);
+    sWriter.WriteLine($"elapsed time: {stopwatch.Elapsed.ToString(@"hh\:mm\:ss")}");
+    sWriter.WriteLine($"Num generations: {settings.MaxNumberOfGenerations}");
+    sWriter.WriteLine("Top strategies found");
+    for (int i = 0; i < result.Count; i++) {
+        sWriter.WriteLine($" ------------- {i} -------------");
+        result[i].WriteTreeStringTo(sWriter);
+    }
+
+    sWriter.Flush();
+    sWriter.Close();
+
+    Console.WriteLine(sb.ToString());
+
+}
+void StartRunningStrategyBuilder2() {
+    var settings = new StrategyBuilderSettings();
+    Console.WriteLine(@$"starting test for: 
+num generations: {settings.MaxNumberOfGenerations} 
+population: {settings.NumStrategiesForFirstGeneration} 
+num parents (survivors) each gen: {settings.NumStrategiesToGoToNextGeneration}
+num hands to play for each strategy: {settings.NumHandsToPlayForEachStrategy}
+initial mutation rate: {settings.InitialMutationRate}
+min mutation rate: {settings.MinMutationRate}
+num best clones per gen: {settings.NumOfBestStrategyClonesToMakePerGeneration}
+create smart strategies: {settings.CreateSmartRandomStrategies}
+tournament size: {settings.TournamentSize}");
+
+    var strategyBuilder = new StrategyBuilder2(settings);
+    var stopwatch = new Stopwatch();
+    stopwatch.Start();
+    var result = strategyBuilder.FindBestStrategies2(5);
+    stopwatch.Stop();
+
+    Console.WriteLine(@$"Completed test for: 
+num generations: {settings.MaxNumberOfGenerations} 
+population: {settings.NumStrategiesForFirstGeneration} 
+num parents (survivors) each gen: {settings.NumStrategiesToGoToNextGeneration}
+num hands to play for each strategy: {settings.NumHandsToPlayForEachStrategy}
+initial mutation rate: {settings.InitialMutationRate}
+min mutation rate: {settings.MinMutationRate}
+num best clones per gen: {settings.NumOfBestStrategyClonesToMakePerGeneration}
+create smart strategies: {settings.CreateSmartRandomStrategies}
+tournament size: {settings.TournamentSize}");
+
+    var sb = new StringBuilder();
+    var sWriter = new StringWriter(sb);
+    sWriter.WriteLine($"elapsed time: {stopwatch.Elapsed.ToString(@"hh\:mm\:ss")}");
+    sWriter.WriteLine($"Num generations: {settings.MaxNumberOfGenerations}");
+    sWriter.WriteLine("Top strategies found");
+    for (int i = 0; i < result.Count; i++) {
+        sWriter.WriteLine($" ------------- {i} Score=({result[i].FitnessScore}) -------------");
+        // result[i].WriteTreeStringTo(sWriter);
+        result[i].WriteTo(sWriter);
+    }
+
+    sWriter.Flush();
+    sWriter.Close();
+
+    Console.WriteLine(sb.ToString());
+}
+void StartStrategyBuilder2ProduceOffspring() {
+    var factory = NextHandActionArrayFactory.Instance;
+    var parent1 = factory.CreateStrategyWithAllStands(false);
+    var parent2 = factory.CreateStrategyWithAllHits(true);
+
+    var sb = new StrategyBuilder2();
+    (var child1, var child2) = sb.ProduceOffspring(parent1, parent2);
+
+    var stringBuilder = new StringBuilder();
+    var stringWriter = new StringWriter(stringBuilder);
+    
+    stringWriter.WriteLine("---- parent 1 ----");
+    parent1.WriteTo(stringWriter);
+
+    stringWriter.WriteLine("---- parent 2 ----");
+    parent2.WriteTo(stringWriter);
+
+    stringWriter.WriteLine("---- child 1 ----");
+    child1.WriteTo(stringWriter);
+    
+    stringWriter.WriteLine("---- child 2 ----");
+    child2.WriteTo(stringWriter);
+
+    stringWriter.Flush();
+    Console.WriteLine(stringBuilder.ToString());
+}
+void StartBenchmarkStrategyBuilderVersusStrategyBuilder2() {
+    BenchmarkRunner.Run<StrategyBuilderVersusStrategyBuilder2>();
+}
+void StartBenchmarkCreateRandomStrategies() {
+    BenchmarkRunner.Run<CreateRandomStrategiesBenchmarks>();
+}
+void StartBenchmarkProduceOffspring() {
+    BenchmarkRunner.Run<ProduceOffspringBenchmarks>();
+}
+void StartBenchmarkMutateOffspringBenchmarks() {
+    BenchmarkRunner.Run<MutateOffspringBenchmarks>();
+}
+void StartBenchmarkTournamentSize() {
+    BenchmarkRunner.Run<TournamentSizeBenchmarks>();
+}
+void StartForProfilingStrategyBuilder2() {
+    var settings = new StrategyBuilderSettings{
+        AllConsoleOutputDisabled = true,
+        NumStrategiesForFirstGeneration = 1000,
+        NumStrategiesToGoToNextGeneration = 500,
+        NumHandsToPlayForEachStrategy = 1000,
+        MaxNumberOfGenerations = 20,
+        InitialMutationRate = 25,
+        MinMutationRate = 5,
+        MutationRateChangePerGeneration = 1,
+        EnableMultiThreads = true,
+        MtMaxNumThreads = 72,
+    };
+    //Console.WriteLine("Press any key to start");
+    //Console.ReadKey();
+    var sb = new StrategyBuilder2(settings);
+    _ = sb.FindBestStrategies(5);
+}
 
 // usage
 // [numGamesToPlay] [outputPath] [enableConsoleLogger] [enableFileLogger] [enableMultiThread]
@@ -166,7 +348,7 @@ string GetSummaryString(int numGames,Game game) {
     var currentNumOpponentConWins = 0;
     var currentNumDealerConWins = 0;
 
-    var currentNode = opponent.AllHands.First;
+    var currentNode = opponent.GetAllHands().First;
     while (currentNode != null) {
         switch (currentNode.Value.HandResult) {
             case HandResult.DealerWon:

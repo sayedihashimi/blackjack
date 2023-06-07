@@ -60,7 +60,7 @@ namespace SayedHa.Blackjack.Shared {
                 int shuffleThresholdPercent,
                 ILogger? logger = null) {
 
-            logger = logger ?? new NullLogger();
+            logger = logger ?? NullLogger.Instance;
             Debug.Assert(numDecks > 0);
             Debug.Assert(numOpponents > 0);
 
@@ -84,7 +84,7 @@ namespace SayedHa.Blackjack.Shared {
                 int shuffleThresholdPercent,
                 ILogger? logger = null) {
 
-            logger = logger ?? new NullLogger();
+            logger = logger ?? NullLogger.Instance;
             Debug.Assert(cards != null);
             Debug.Assert(numOpponents > 0);
 
@@ -114,6 +114,7 @@ namespace SayedHa.Blackjack.Shared {
         StandOn20,
         AlwaysStand,
         Random,
-        UserInput
+        UserInput,
+        Custom
     }
 }

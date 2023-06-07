@@ -74,6 +74,8 @@ namespace SayedHa.Blackjack.Shared {
         }
     }
     public class NullReporter : IReporter {
+        private NullReporter() { }
+        public static NullReporter Instance { get; private set; } = new NullReporter();
         public bool EnableVerbose { get; set; } = false;
         public bool EnableConsoleLogger { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 

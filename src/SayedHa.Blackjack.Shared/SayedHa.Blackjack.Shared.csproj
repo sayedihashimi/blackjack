@@ -9,8 +9,11 @@
 		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
 			<_Parameter1>SayedHa.Blackjack.Tests</_Parameter1>
 		</AssemblyAttribute>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <_Parameter1>SayedHa.Blackjack.Console</_Parameter1>
+    </AssemblyAttribute>
 	</ItemGroup>
 	<ItemGroup>
-	  <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+	  <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
 	</ItemGroup>
 </Project>

@@ -173,7 +173,7 @@ namespace SayedHa.Blackjack.Shared {
             var currentNumOpponentConWins = 0;
             var currentNumDealerConWins = 0;
 
-            var currentNode = opponent.AllHands.First;
+            var currentNode = opponent.GetAllHands().First;
             while (currentNode != null) {
                 switch (currentNode.Value.HandResult) {
                     case HandResult.DealerWon:

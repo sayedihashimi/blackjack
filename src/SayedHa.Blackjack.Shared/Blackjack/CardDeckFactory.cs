@@ -20,7 +20,7 @@ namespace SayedHa.Blackjack.Shared {
     public class CardDeckFactory {
         public CardDeck CreateCardDeck(int numDecks, bool shuffle, ILogger? logger=null) {
             Debug.Assert(numDecks > 0);
-            logger = logger ?? new NullLogger();
+            logger = logger ?? NullLogger.Instance;
 
             var cardList = new List<Card>();
             for (var i = 0; i < numDecks; i++) {
@@ -36,7 +36,7 @@ namespace SayedHa.Blackjack.Shared {
         }
         public CardDeck CreateCardDeck(List<Card> cards, int numDecks, ILogger? logger = null) {
             Debug.Assert(cards != null && cards.Count > 0);
-            logger = logger ?? new NullLogger();
+            logger = logger ?? NullLogger.Instance;
 
             return new CardDeck(logger, cards.ConvertToLinkedList(), numDecks);
         }
@@ -65,11 +65,8 @@ namespace SayedHa.Blackjack.Shared {
             }
             return _allSuits;
         }
-        private static CardNumber[]? _allCardNumbers;
+        private static readonly CardNumber[] _allCardNumbers = (CardNumber[])Enum.GetValues(typeof(CardNumber));
         public static CardNumber[] GetAllCardNumbers() {
-            if(_allCardNumbers is null) {
-                _allCardNumbers = (CardNumber[])Enum.GetValues(typeof(CardNumber));
-            }
             return _allCardNumbers;
         }
     }
