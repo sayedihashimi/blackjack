@@ -2,13 +2,14 @@ version: 1.0.{build}
 image: Visual Studio 2022
 configuration: Release
 before_build:
-- ps: dotnet restore src/SayedHa.Blackjack.sln
+- pwsh: .\dotnet-install.ps1 -Version 8.0.300
+- pwsh: dotnet restore src/SayedHa.Blackjack.sln
 build:
   project: src/SayedHa.Blackjack.sln
   verbosity: normal
 after_build:
-- ps: dotnet pack src/SayedHa.Blackjack.Console/SayedHa.Blackjack.Console.csproj -c Release
-- ps: dotnet pack src/SayedHa.Blackjack.Cli/SayedHa.Blackjack.Cli.csproj -c Release
+- pwsh: dotnet pack src/SayedHa.Blackjack.Console/SayedHa.Blackjack.Console.csproj -c Release
+- pwsh: dotnet pack src/SayedHa.Blackjack.Cli/SayedHa.Blackjack.Cli.csproj -c Release
 artifacts:
 - path: src/SayedHa.Blackjack.Console/bin/Release/*.nupkg
 - path: src/SayedHa.Blackjack.Cli/nupkg/*.nupkg
