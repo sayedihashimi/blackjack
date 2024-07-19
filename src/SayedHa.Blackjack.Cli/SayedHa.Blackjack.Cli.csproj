@@ -1,55 +1,50 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-	
-	<PropertyGroup>
-		<OutputType>Exe</OutputType>
-		<TargetFramework>net7.0</TargetFramework>
-		<ImplicitUsings>enable</ImplicitUsings>
-
-		<!-- nuget related properties -->
-		<Authors>Sayed Ibrahim Hashimi</Authors>
-		<Description>Play blackjack in your console.</Description>
-		<Version>0.0.9</Version>
-		<Copyright>Copyright 2022 - 2023 © Sayed Ibrahim Hashimi. All rights reserved.</Copyright>
-		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-		<PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
-		<PackageProjectUrl>https://github.com/sayedihashimi/blackjack</PackageProjectUrl>
-		<RepositoryUrl>https://github.com/sayedihashimi/blackjack</RepositoryUrl>
-		<RepositoryType>git</RepositoryType>
-		<PackageType>DotNetCliTool</PackageType>
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- nuget related properties -->
+    <Authors>Sayed Ibrahim Hashimi</Authors>
+    <Description>Play blackjack in your console.</Description>
+    <Version>0.0.9</Version>
+    <Copyright>Copyright 2022 - 2023 © Sayed Ibrahim Hashimi. All rights reserved.</Copyright>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/sayedihashimi/blackjack</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/sayedihashimi/blackjack</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageType>DotNetCliTool</PackageType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-		<!-- tool related properties -->
-		<PackAsTool>true</PackAsTool>
-		<ToolCommandName>blackjack</ToolCommandName>
-		<PackageOutputPath>./nupkg</PackageOutputPath>
-	</PropertyGroup>
-	
-	<ItemGroup>
-	  <None Remove="appsettings.development.json" />
-	  <None Remove="appsettings.json" />
-	</ItemGroup>
-	
-	<ItemGroup>
-	  <Content Include="appsettings.development.json">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </Content>
-	  <Content Include="appsettings.json">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </Content>
-	</ItemGroup>
-	<ItemGroup>
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
-		<PackageReference Include="Spectre.Console" Version="0.46.0" />
-		<PackageReference Include="System.CommandLine" Version="2.0.0-beta1.20371.2" />
-	</ItemGroup>
-	<ItemGroup>
-	  <ProjectReference Include="..\SayedHa.Blackjack.Shared\SayedHa.Blackjack.Shared.csproj" />
+    <!-- tool related properties -->
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>blackjack</ToolCommandName>
+    <PackageOutputPath>./nupkg</PackageOutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Remove="appsettings.development.json" />
+    <None Remove="appsettings.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="appsettings.development.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Spectre.Console" Version="0.46.0" />
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.20371.2" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SayedHa.Blackjack.Shared\SayedHa.Blackjack.Shared.csproj" />
     <None Include="README.md" Pack="true" PackagePath="\" />
-	</ItemGroup>
-
-	<Target Name="InstallTool" DependsOnTargets="Pack">
-		<Exec Command="dotnet tool uninstall --global $(MSBuildProjectName)" IgnoreExitCode="true" />
-		<Exec Command="dotnet tool install --global --prerelease --add-source $(PackageOutputPath) $(MSBuildProjectName)" />
-		<Exec Command="$(ToolCommandName) --help" />
-	</Target>
+  </ItemGroup>
+  <Target Name="InstallTool" DependsOnTargets="Pack">
+    <Exec Command="dotnet tool uninstall --global $(MSBuildProjectName)" IgnoreExitCode="true" />
+    <Exec Command="dotnet tool install --global --prerelease --add-source $(PackageOutputPath) $(MSBuildProjectName)" />
+    <Exec Command="$(ToolCommandName) --help" />
+  </Target>
 </Project>
