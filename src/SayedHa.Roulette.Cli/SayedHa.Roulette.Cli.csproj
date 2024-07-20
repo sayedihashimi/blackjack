@@ -7,7 +7,7 @@
     <Authors>Sayed Ibrahim Hashimi</Authors>
     <Description>Roulette simulator</Description>
     <Version>0.0.2</Version>
-    <Copyright>Copyright 2022 © Sayed Ibrahim Hashimi. All rights reserved.</Copyright>
+    <Copyright>Copyright 2022 - 2024 © Sayed Ibrahim Hashimi. All rights reserved.</Copyright>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageLicenseExpression>AGPL-3.0-only</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/sayedihashimi/blackjack</PackageProjectUrl>
