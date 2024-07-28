@@ -11,5 +11,7 @@
     "type": "BasicHiLoStrategy",
     "betUnitValue": 1,
     "maxBetSpread": 12
-  }
+  },
+  "MaxNumberOfGenerations": 20,
+  "d": 4
 }

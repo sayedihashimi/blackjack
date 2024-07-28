@@ -315,7 +315,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                 var pf = new StrategyBuilder2ParticipantFactory(strategy, bettingStrategy, Settings, NullLogger.Instance);
                 var game = gameRunner.CreateNewGame(Settings.NumDecks, 1, pf, true);
                 PlayGames(Settings.NumHandsToPlayForEachStrategy, gameRunner, game);
-                strategy.FitnessScore = Evaluate(game);
+                strategy.FitnessScore = Evaluate(game)/Settings.NumHandsToPlayForEachStrategy;
             }
         }
 

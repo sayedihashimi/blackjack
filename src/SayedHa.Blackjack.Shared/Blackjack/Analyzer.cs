@@ -30,7 +30,7 @@ namespace SayedHa.Blackjack.Shared {
         public string? PathToBlackjackSettingsFile { get; set; }
 
         public async Task AnalyzeAsync() {
-            var settings = GetAndSetBlackjackSettings();
+            var settings = await GetAndSetBlackjackSettingsAsync();
             // each run will create it's own logger and cannot be shared
 
             string? outputPathFull = null;
@@ -85,14 +85,15 @@ namespace SayedHa.Blackjack.Shared {
             }
             return logger;
         }
-        protected BlackjackSettings GetAndSetBlackjackSettings() {
+        protected async Task<BlackjackSettings> GetAndSetBlackjackSettingsAsync() {
             var blackjackSettings = BlackjackSettings.GetBlackjackSettings();
             if (!string.IsNullOrEmpty(PathToBlackjackSettingsFile)) {
                 if (EnableConsoleLogger) {
                     Console.WriteLine($"loading blackjack settings from file at '{PathToBlackjackSettingsFile}'");
                 }
-                var settings = BlackjackSettings.LoadFromJson(PathToBlackjackSettingsFile);
+                var settings = await BlackjackSettings.LoadFromJsonFileAsync(PathToBlackjackSettingsFile);
                 BlackjackSettings.SetBlackjackSettings(settings);
+                return settings;
             }
             
             return blackjackSettings;

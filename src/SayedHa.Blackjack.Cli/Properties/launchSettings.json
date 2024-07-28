@@ -1,8 +1,12 @@
 {
   "profiles": {
-    "SayedHa.Blackjack.Cli": {
+    "SayedHa.Blackjack.Cli-play": {
       "commandName": "Project",
       "commandLineArgs": "play"
+    },
+    "SayedHa.Blackjack.Cli-analyze": {
+        "commandName": "Project",
+        "commandLineArgs": "analyze --blackjackPlayerSettingsFilepath C:\\data\\mycode\\blackjack\\src\\SayedHa.Blackjack.Tests\\assets\\blackjack.settings.test01.json"
     }
   }
 }
