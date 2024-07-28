@@ -108,8 +108,8 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                 while(numBestClones < Settings.NumOfBestStrategyClonesToMakePerGeneration) {
                     var bestClone = bestOverallStrategy!.Clone();
                     CellMutateOffspring(bestClone, RandomHelper.Instance.GetRandomIntBetween(1, 3));
-                    nextGeneration.Add(bestClone);
-                    numBestClones++;
+					nextGeneration.Add(bestClone);
+					numBestClones++;
                 }
 
                 // TODO: later add the top X strategies to carry on to the next generation
@@ -119,9 +119,9 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                     var children = ProduceOffspring(parents.parent1, parents.parent2);
                     CellMutateOffspring(children.child1, (int)Math.Round(cellMutationNumCellsToChange));
                     CellMutateOffspring(children.child2, (int)Math.Round(cellMutationNumCellsToChange));
-                    nextGeneration.Add(children.child1);
-                    nextGeneration.Add(children.child2);
-                }
+					nextGeneration.Add(children.child1);
+					nextGeneration.Add(children.child2);
+				}
 
                 if(cellMutationNumCellsToChange != Settings.CellMutationMinNumCellsToChangePerChart) {
                     cellMutationNumCellsToChange -= cellMutationRateChangePerGen;
@@ -147,8 +147,19 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
         }
 
         public List<NextHandActionArray> FindBestStrategies(int numToReturn) {
+            
             var initialPopulation = NextHandActionArrayFactory.Instance.CreateRandomStrategies(Settings.NumStrategiesForFirstGeneration).ToList();
+#if DEBUG
+            var tempNumBefore = initialPopulation.Count;
+#endif
+            initialPopulation = (List<NextHandActionArray>)initialPopulation!.Distinct();
+#if DEBUG
+            var tempNumAfter = initialPopulation.Count;
 
+            if(tempNumBefore != tempNumAfter) {
+                System.Console.WriteLine($"***** num before '{tempNumBefore}' num after '{tempNumAfter}'");
+            }
+#endif
             var gameRunner = new GameRunner(NullReporter.Instance);
             var bankroll = new Bankroll(Settings.InitialBankroll, NullLogger.Instance);
             var bettingStrategy = new FixedBettingStrategy(bankroll, Settings.BetAmount);
@@ -193,8 +204,19 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                 var children = ProduceOffspring(parents, initialPopulation.Count - parents.Count);
                 MutateOffspring(children!, mutationRate);
 
-                // TODO: Look for possible duplicates before adding
                 initialPopulation.AddRange(children);
+
+                // remove duplicates
+#if DEBUG
+                tempNumBefore = initialPopulation.Count;
+#endif
+                initialPopulation = (List<NextHandActionArray>)initialPopulation!.Distinct();
+#if DEBUG
+                tempNumAfter = initialPopulation.Count;
+				if (tempNumBefore != tempNumAfter) {
+					System.Console.WriteLine($"*****= num before '{tempNumBefore}' num after '{tempNumAfter}'");
+				}
+#endif
 
                 stopwatch.Stop();
                 if (!Settings.AllConsoleOutputDisabled) {

@@ -20,6 +20,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
         float? FitnessScore { get; set; }
         string? Name { get; set; }
     }
+    [DebuggerDisplay("ID: {DebugString}")]
     public class NextHandActionArray : INextHandActionArray {
         // using int instead of bool because
         //  1. to be able to tell when the value is not set.
@@ -28,7 +29,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
         // soft totals are 2 - 9
         protected internal int[,] softHandActionArray = new int[10, 8];
         // hard totals 3 - 18. probably could actually be 5 - 18 but not currently
-        protected internal int[,] hardTotalHandActionArray = new int[10,18];
+        protected internal int[,] hardTotalHandActionArray = new int[10, 18];
 
         protected internal NextHandActionConverter Converter = NextHandActionConverter.Instance;
         public string? Name { get; set; }
@@ -40,9 +41,9 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             // don't clone the fitnessscore
             clone.Name = Name;
 
-            for(var i = 0; i < pairHandActionArray.GetLength(0); i++) {
-                for(var j = 0;j< pairHandActionArray.GetLength(1); j++) {
-                    clone.pairHandActionArray[i, j] = pairHandActionArray[i,j];
+            for (var i = 0; i < pairHandActionArray.GetLength(0); i++) {
+                for (var j = 0; j < pairHandActionArray.GetLength(1); j++) {
+                    clone.pairHandActionArray[i, j] = pairHandActionArray[i, j];
                 }
             }
             for (var i = 0; i < softHandActionArray.GetLength(0); i++) {
@@ -59,8 +60,57 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             return clone;
         }
 
+        public override bool Equals(object? obj) {
+            var other = obj as NextHandActionArray;
+            if (other == null) { return false; }
 
-        public void SetSplitForPair(bool split, CardNumber dealerCard, CardNumber pairCard) {
+            return ArrayComparer.AreEqual(pairHandActionArray, other.pairHandActionArray) &&
+                    ArrayComparer.AreEqual(softHandActionArray, other.softHandActionArray) &&
+                    ArrayComparer.AreEqual(hardTotalHandActionArray, other.hardTotalHandActionArray);
+        }
+        public override int GetHashCode() {
+            return pairHandActionArray.GetHashCode() +
+                    softHandActionArray.GetHashCode() +
+                    hardTotalHandActionArray.GetHashCode();
+        }
+
+        private string _debugString = string.Empty;
+        public string DebugString { 
+            get {
+                if (string.IsNullOrEmpty(_debugString)) {
+                    _debugString = GetDebugString();
+                }
+                return _debugString;
+            } 
+        }
+
+        private string GetDebugString() {
+			var sb = new StringBuilder();
+			for (var i = 0; i < pairHandActionArray.GetLength(0); i++) {
+				for (var j = 0; j < pairHandActionArray.GetLength(1); j++) {
+					// clone.pairHandActionArray[i, j] = pairHandActionArray[i, j];
+					sb.Append(pairHandActionArray[i, j]);
+				}
+			}
+			for (var i = 0; i < softHandActionArray.GetLength(0); i++) {
+				for (var j = 0; j < softHandActionArray.GetLength(1); j++) {
+					// clone.softHandActionArray[i, j] = softHandActionArray[i, j];
+					sb.Append(softHandActionArray[i, j]);
+				}
+			}
+			for (var i = 0; i < hardTotalHandActionArray.GetLength(0); i++) {
+				for (var j = 0; j < hardTotalHandActionArray.GetLength(1); j++) {
+					// clone.hardTotalHandActionArray[i, j] = hardTotalHandActionArray[i, j];
+					sb.Append(hardTotalHandActionArray[i, j]);
+				}
+			}
+			return sb.ToString();
+		}
+        private void ResetDebugString() {
+            _debugString = string.Empty;
+        }
+
+		public void SetSplitForPair(bool split, CardNumber dealerCard, CardNumber pairCard) {
             pairHandActionArray[Converter.GetIntFor(dealerCard), Converter.GetIntFor(pairCard)] = Converter.GetIntFor(split);
         }
 
@@ -287,4 +337,28 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             writer.Flush();
         }
     }
+
+	public class ArrayComparer {
+		public static bool AreEqual(int[,] array1, int[,] array2) {
+			if (array1 == null || array2 == null)
+				return array1 == array2;
+
+			int rows1 = array1.GetLength(0);
+			int cols1 = array1.GetLength(1);
+			int rows2 = array2.GetLength(0);
+			int cols2 = array2.GetLength(1);
+
+			if (rows1 != rows2 || cols1 != cols2)
+				return false;
+
+			for (int i = 0; i < rows1; i++) {
+				for (int j = 0; j < cols1; j++) {
+					if (array1[i, j] != array2[i, j])
+						return false;
+				}
+			}
+
+			return true;
+		}
+	}
 }

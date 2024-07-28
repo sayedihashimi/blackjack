@@ -287,6 +287,33 @@ namespace SayedHa.Blackjack.Tests.StrategyBuilder {
             Assert.Equal(expectedHandAction, nhaa.GetHandAction(CardNumber.Ten, CardNumber.Nine, CardNumber.Four));
             Assert.Equal(expectedHandAction, nhaa.GetHandAction(CardNumber.Ace, CardNumber.Nine, CardNumber.Nine));
         }
+
+        [Fact]
+        public void Test_Equals() {
+			// build 3 nhaa objects with the same content
+			var dealerCardList = new List<CardNumber> {
+				CardNumber.Nine,
+				CardNumber.Four,
+				CardNumber.Ace,
+			};
+			var pairCardList = new List<CardNumber> {
+				CardNumber.Six,
+				CardNumber.Ten,
+				CardNumber.Nine
+			};
+
+			var nhaa1 = new NextHandActionArray();
+            var nhaa2 = new NextHandActionArray();
+            var nhaa3 = new NextHandActionArray();
+			for (int i = 0; i < dealerCardList.Count; i++) {
+				nhaa1.SetSplitForPair(true, dealerCardList[i], pairCardList[i]);
+				nhaa2.SetSplitForPair(true, dealerCardList[i], pairCardList[i]);
+				nhaa3.SetSplitForPair(true, dealerCardList[i], pairCardList[i]);
+			}
+
+            Assert.Equal(nhaa1, nhaa2);
+            Assert.Equal(nhaa2, nhaa3);
+		}
         private bool IsBlackJack(CardNumber cardNumber1, CardNumber cardNumber2) =>
             (cardNumber1, cardNumber2) switch{
                 (CardNumber.Ace,CardNumber.Ten) => true,

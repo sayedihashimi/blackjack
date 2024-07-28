@@ -6,7 +6,7 @@
         public bool UseRandomNumberGenerator { get; set; } = true;
         public int NumStrategiesForFirstGeneration { get; set; } = 2000;
         public int NumStrategiesToGoToNextGeneration {get;set;} = 30;
-        public int NumHandsToPlayForEachStrategy { get; set; } = 500000;
+        public int NumHandsToPlayForEachStrategy { get; set; } = 5000;
         public int InitialBankroll { get; set; } = 10000;
         public int BetAmount { get; set; } = 5;
         public int MaxNumberOfGenerations{get;set;} = 10;
