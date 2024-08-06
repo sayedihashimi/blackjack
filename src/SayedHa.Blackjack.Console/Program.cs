@@ -133,6 +133,7 @@ tournament size: {settings.TournamentSize}");
     sWriter.WriteLine($"Num generations: {settings.MaxNumberOfGenerations}");
     sWriter.WriteLine("Top strategies found");
     for (int i = 0; i < result.Count; i++) {
+        sWriter.WriteLine($"Num diff from Basic Strategy: {result[i].NumDifferencesFromBasicStrategy}");
         sWriter.WriteLine($" ------------- {i} Score=({result[i].FitnessScore}) -------------");
         // result[i].WriteTreeStringTo(sWriter);
         result[i].WriteTo(sWriter);

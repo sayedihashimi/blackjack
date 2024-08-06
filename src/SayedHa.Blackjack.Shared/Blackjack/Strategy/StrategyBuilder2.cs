@@ -1,4 +1,5 @@
-﻿using SayedHa.Blackjack.Shared.Betting;
+﻿using KellermanSoftware.CompareNetObjects;
+using SayedHa.Blackjack.Shared.Betting;
 using SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree;
 using SayedHa.Blackjack.Shared.Players;
 using System;
@@ -18,21 +19,39 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
         public StrategyBuilder2() : this(new StrategyBuilderSettings()) { }
         public StrategyBuilder2(StrategyBuilderSettings settings) {
             Settings = settings;
-            NextHandActionArrayFactory.Instance.Settings = settings;
+
+            ProduceOffspringArrayMethod = ProduceOffspringArrayByRows;
+			NextHandActionArrayFactory.Instance.Settings = settings;
             Console.CancelKeyPress += (sender, eventArgs) => {
                 CancelSearch = true;
                 Console.WriteLine("stopping operation");
                 eventArgs.Cancel = true;
             };
-        }
+
+            BasicStrategyNhaa = NextHandActionArrayFactory.Instance.CreateBasicStrategy();
+            CompareLogic = new CompareLogic() {
+                Config = {
+                    MaxDifferences = int.MaxValue
+                }
+            };
+		}
         public StrategyBuilderSettings Settings { 
             get; 
             init; 
         }
 
         protected internal bool CancelSearch { get; set; } = false;
+		public delegate (int[,] child1Array, int[,] child2Array) ProduceOffspringArrayDelegate(int[,] parent1Array, int[,] parent2Array, bool isHardTotals);
 
-        public List<NextHandActionArray> FindBestStrategies2(int numToReturn) {
+		public ProduceOffspringArrayDelegate ProduceOffspringArrayMethod { get; set; }
+
+        protected NextHandActionArray BasicStrategyNhaa { get; init; }
+
+        [CompareIgnore]
+        public int NumDifferenceFromBasicStrategy { get; set; } = int.MaxValue;
+        protected CompareLogic CompareLogic { get; init; }
+
+		public List<NextHandActionArray> FindBestStrategies2(int numToReturn) {
             CancelSearch = false;
             // ignoring numToReturn for now, will only return the top strategy
 
@@ -86,8 +105,12 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                 }
 
                 if (!Settings.AllConsoleOutputDisabled) {
-                    Console.Write($"Gen: {numGeneration} Best(gen): {bestGenerationFitnessScore:0.##}\tBest overall: {bestOverallFitness:0.##}.\tAvg (gen): {avgFitnessScoreThisGen:0.##}\tBest gen avg: {bestAverageGenerationFitness:0.##}\tMutation rate: '{cellMutationNumCellsToChange:0.##}'");
-                }
+                    Console.Write($"Gen: {numGeneration} Best(gen): {bestGenerationFitnessScore:0.00}\t");
+                    Console.Write($"Best overall: {bestOverallFitness:0.00}.\t");
+					Console.Write($"Avg (gen): {avgFitnessScoreThisGen:0.00}\t");
+					Console.Write($"Best gen avg: {bestAverageGenerationFitness:0.00}\t");
+					Console.Write($"Mutation rate: '{cellMutationNumCellsToChange:0.00}'");
+				}
 
                 // check to see if we are done
                 if (numGeneration >= maxNumGenerations) {
@@ -139,14 +162,25 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                 foreach(var strategy in nextGeneration) {
                     currentGeneration.Add(strategy);
                 }
-
+                    
                 numGeneration++;
             }
 
-            return new List<NextHandActionArray> { bestOverallStrategy! };
+            bestOverallStrategy!.NumDifferencesFromBasicStrategy = GetDifference(BasicStrategyNhaa, bestOverallStrategy!);
+
+			return new List<NextHandActionArray> { bestOverallStrategy! };
+        }
+        protected int GetDifference(NextHandActionArray nhaa1, NextHandActionArray nhaa2) {
+            int numDiffs = 0;
+
+            numDiffs += CompareLogic.Compare(nhaa1.hardTotalHandActionArray, nhaa2.hardTotalHandActionArray).Differences.Count;
+            numDiffs += CompareLogic.Compare(nhaa1.softHandActionArray, nhaa2.softHandActionArray).Differences.Count;
+            numDiffs += CompareLogic.Compare(nhaa1.pairHandActionArray, nhaa2.pairHandActionArray).Differences.Count;
+
+			return numDiffs;
         }
 
-        public List<NextHandActionArray> FindBestStrategies(int numToReturn) {
+		public List<NextHandActionArray> FindBestStrategies(int numToReturn) {
             
             var initialPopulation = NextHandActionArrayFactory.Instance.CreateRandomStrategies(Settings.NumStrategiesForFirstGeneration).ToList();
 #if DEBUG
@@ -443,9 +477,9 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             var child2 = new NextHandActionArray();
 
             // pairs
-            (child1.pairHandActionArray, child2.pairHandActionArray) = ProduceOffspringArray(parent1.pairHandActionArray, parent2.pairHandActionArray, false);
-            (child1.softHandActionArray, child2.softHandActionArray) = ProduceOffspringArray(parent1.softHandActionArray, parent2.softHandActionArray, false);
-            (child1.hardTotalHandActionArray, child2.hardTotalHandActionArray) = ProduceOffspringArray(parent1.hardTotalHandActionArray, parent2.hardTotalHandActionArray, true);
+            (child1.pairHandActionArray, child2.pairHandActionArray) = ProduceOffspringArrayMethod(parent1.pairHandActionArray, parent2.pairHandActionArray, false);
+            (child1.softHandActionArray, child2.softHandActionArray) = ProduceOffspringArrayMethod(parent1.softHandActionArray, parent2.softHandActionArray, false);
+            (child1.hardTotalHandActionArray, child2.hardTotalHandActionArray) = ProduceOffspringArrayMethod(parent1.hardTotalHandActionArray, parent2.hardTotalHandActionArray, true);
 
             return (child1, child2);
         }
@@ -479,7 +513,34 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
 
             return (child1, child2);
         }
-    }
+        /// <summary>
+        /// Takes first half of rows from parent 1 and the remaining rows from parent 2
+        /// </summary>
+		protected internal (int[,] child1Array, int[,] child2Array) ProduceOffspringArrayByRows(int[,] parent1Array, int[,] parent2Array, bool isHardTotals) {
+			var child1 = new int[parent1Array.GetLength(0), parent1Array.GetLength(1)];
+			var child2 = new int[parent1Array.GetLength(0), parent1Array.GetLength(1)];
+
+            var rowNumCutoff = (int)Math.Floor(parent1Array.GetLength(1)/2F);
+
+            for (int dealerIndex = 0; dealerIndex < parent1Array.GetLength(0); dealerIndex++) {
+                for (int pairCardIndex = 0; pairCardIndex < parent1Array.GetLength(1); pairCardIndex++) {
+                    var valueParent1 = parent1Array[dealerIndex, pairCardIndex];
+                    var valueParent2 = parent2Array[dealerIndex, pairCardIndex];
+
+                    if(pairCardIndex <= rowNumCutoff) {
+						child1[dealerIndex, pairCardIndex] = valueParent1;
+						child2[dealerIndex, pairCardIndex] = valueParent2;
+					}
+                    else {
+						child1[dealerIndex, pairCardIndex] = valueParent2;
+						child2[dealerIndex, pairCardIndex] = valueParent1;
+					}
+                }
+            }
+
+            return (child1, child2);
+		}
+	}
     
     public class StrategyBuilder2Player : Player {
         public StrategyBuilder2Player(NextHandActionArray strategy) {

@@ -22,18 +22,67 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
     }
     [DebuggerDisplay("ID: {DebugString}")]
     public class NextHandActionArray : INextHandActionArray {
-        // using int instead of bool because
-        //  1. to be able to tell when the value is not set.
-        //  2. to be more consistent with the other item here.
-        protected internal int[,] pairHandActionArray = new int[10, 10];
-        // soft totals are 2 - 9
-        protected internal int[,] softHandActionArray = new int[10, 8];
-        // hard totals 3 - 18. probably could actually be 5 - 18 but not currently
-        protected internal int[,] hardTotalHandActionArray = new int[10, 18];
+		// using int instead of bool because
+		//  1. to be able to tell when the value is not set.
+		//  2. to be more consistent with the other item here.
+		/*
+		          2  3  4  5  6  7  8  9 10  A       | ← player pair card
+              2  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },    | 
+              3  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },    |
+              4  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },    |
+              5  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },    |
+              6  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },    |
+              7  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },    |
+              8  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },    |
+              9  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },    |
+             10  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },    |
+             11  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }     |
+           ------------------------------------------|
+              ↑ dealer upcard
+         */
+		protected internal int[,] pairHandActionArray = new int[10, 10];
+
+
+		/*
+                  2  3  4  5  6  7  8  9       |   ← player card that's not the Ace
+             2  { 0, 0, 0, 0, 0, 0, 0, 0 },    |
+             3  { 0, 0, 0, 0, 0, 0, 0, 0 },    |
+             4  { 0, 0, 0, 0, 0, 0, 0, 0 },    |
+             5  { 0, 0, 0, 0, 0, 0, 0, 0 },    |
+             6  { 0, 0, 0, 0, 0, 0, 0, 0 },    |
+             7  { 0, 0, 0, 0, 0, 0, 0, 0 },    |
+             8  { 0, 0, 0, 0, 0, 0, 0, 0 },    |
+             9  { 0, 0, 0, 0, 0, 0, 0, 0 },    |
+            10  { 0, 0, 0, 0, 0, 0, 0, 0 },    |
+            11  { 0, 0, 0, 0, 0, 0, 0, 0 }     |
+            -----------------------------------|
+              ↑ dealer upcard
+         */
+		// soft totals are 2 - 9
+		protected internal int[,] softHandActionArray = new int[10, 8];
+		// hard totals 3 - 18. probably could actually be 5 - 18 but not currently
+		/*
+                 3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20       |  ← sum of players cards     
+		    2  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },    |        
+		    3  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },    |        
+		    4  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },    |        
+		    5  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },    |        
+		    6  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },    |        
+		    7  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },    |        
+		    8  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },    |        
+		    9  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },    |        
+		    10 { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },    |        
+		    A  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }     |       
+        --------------------------------------------------------------------|
+            ↑ dealer card that is visible
+        */
+		protected internal int[,] hardTotalHandActionArray = new int[10, 18];
 
         protected internal NextHandActionConverter Converter = NextHandActionConverter.Instance;
         public string? Name { get; set; }
         public float? FitnessScore { get; set; }
+
+        public int NumDifferencesFromBasicStrategy { get; set; } = int.MaxValue;
 
         public NextHandActionArray Clone() {
             NextHandActionArray clone = new NextHandActionArray();
@@ -179,10 +228,18 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                 }
 
                 var handAction = GetFromSoftTotals(dealerCard, nonAceCard);
-                if(handAction is not null && handAction.HasValue) {
-                    return handAction.Value;
-                }
-            }
+				if (handAction is not null && handAction.HasValue) {
+					return handAction.Value;
+				}
+                // changing the code above to the following causes a stack overflow
+				//if(handAction == HandAction.Split) {
+				//    return HandAction.Split;
+				//}
+				//else {
+				//    return GetHandAction(dealerCard, new CardNumber[2] { opCard1, opCard2 });
+				//}
+
+			}
 
             // return from hard totals
             var score = CardNumberHelper.GetScoreTotal(opCard1, opCard2);

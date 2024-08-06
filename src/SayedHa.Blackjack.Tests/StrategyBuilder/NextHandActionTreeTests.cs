@@ -1,5 +1,7 @@
 ﻿using SayedHa.Blackjack.Shared;
+using SayedHa.Blackjack.Shared.Blackjack.Strategy;
 using SayedHa.Blackjack.Shared.Blackjack.Strategy.Tree;
+using SayedHa.Blackjack.Shared.Players;
 using SayedHa.Blackjack.Shared.Roulette;
 using System;
 using System.Collections.Generic;
@@ -112,6 +114,30 @@ namespace SayedHa.Blackjack.Tests.StrategyBuilder {
             Assert.Equal(1183, naTree.NumSecondCardNodesCreated);
             Assert.True( stopwatch.ElapsedMilliseconds < 1000 );
             Assert.Equal(expectedHandAction, naTree.GetNextHandActionFor(CardNumber.Ten, CardNumber.Nine, CardNumber.Four));
+        }
+
+        [Fact]
+        public void Test_BasicStrategy() {
+			var allCardNumbers = ((CardNumber[])Enum.GetValues(typeof(CardNumber))).ToArray();
+            var nhaaBs = NextHandActionArrayFactory.Instance.CreateBasicStrategy();
+			var bsplayer = new BasicStrategyPlayer(NullLogger.Instance);
+
+            // TODO: Add more test cases to cover all possibilities
+
+            // player has 17
+            foreach(var card in allCardNumbers) {
+				Assert.Equal(HandAction.Stand, nhaaBs.GetHandAction(card, CardNumber.Ten, CardNumber.Seven));
+			}
+            Assert.Equal(HandAction.Stand, nhaaBs.GetHandAction(CardNumber.Two, CardNumber.Ten, CardNumber.Six));
+            Assert.Equal(HandAction.Stand, nhaaBs.GetHandAction(CardNumber.Three, CardNumber.Ten, CardNumber.Six));
+            Assert.Equal(HandAction.Stand, nhaaBs.GetHandAction(CardNumber.Four, CardNumber.Ten, CardNumber.Six));
+            Assert.Equal(HandAction.Stand, nhaaBs.GetHandAction(CardNumber.Five, CardNumber.Ten, CardNumber.Six));
+            Assert.Equal(HandAction.Stand, nhaaBs.GetHandAction(CardNumber.Six, CardNumber.Ten, CardNumber.Six));
+            Assert.Equal(HandAction.Hit, nhaaBs.GetHandAction(CardNumber.Seven, CardNumber.Ten, CardNumber.Six));
+            Assert.Equal(HandAction.Hit, nhaaBs.GetHandAction(CardNumber.Eight, CardNumber.Ten, CardNumber.Six));
+            Assert.Equal(HandAction.Hit, nhaaBs.GetHandAction(CardNumber.Nine, CardNumber.Ten, CardNumber.Six));
+			Assert.Equal(HandAction.Hit, nhaaBs.GetHandAction(CardNumber.Ten, CardNumber.Ten, CardNumber.Six));
+			Assert.Equal(HandAction.Hit, nhaaBs.GetHandAction(CardNumber.Ace, CardNumber.Ten, CardNumber.Six));
         }
     }
 }
