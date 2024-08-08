@@ -74,6 +74,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
             while (!CancelSearch) {
                 stopwatch.Restart();
                 // evaluate all the strategies
+                // TODO: Should this be outside the while loop?
                 var bankroll = new Bankroll(Settings.InitialBankroll, NullLogger.Instance);
                 var bettingStrategy = new FixedBettingStrategy(bankroll, Settings.BetAmount);
                 PlayAndEvaluate(Settings.NumHandsToPlayForEachStrategy,
@@ -90,13 +91,12 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                     if(strategy.FitnessScore > bestGenerationFitnessScore) {
                         bestGenerationFitnessScore = strategy.FitnessScore.Value;
                         bestGenerationStrategy = strategy;
-
-                        if(strategy.FitnessScore > bestOverallFitness) {
-                            bestOverallFitness = strategy.FitnessScore.Value;
-                            bestOverallStrategy = strategy;
-                        }
                     }
-                    totalFitnessScore += strategy.FitnessScore!.Value;
+					if (strategy.FitnessScore > bestOverallFitness) {
+						bestOverallFitness = strategy.FitnessScore.Value;
+						bestOverallStrategy = strategy;
+					}
+					totalFitnessScore += strategy.FitnessScore!.Value;
                 }
                 float avgFitnessScoreThisGen = totalFitnessScore / currentGeneration.Count;
 
@@ -105,11 +105,12 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                 }
 
                 if (!Settings.AllConsoleOutputDisabled) {
-                    Console.Write($"Gen: {numGeneration} Best(gen): {bestGenerationFitnessScore:0.00}\t");
+                    Console.Write($"Gen: {numGeneration,-3} ");
+                    Console.Write($"Best(gen): {bestGenerationFitnessScore:0.00}\t");
                     Console.Write($"Best overall: {bestOverallFitness:0.00}.\t");
 					Console.Write($"Avg (gen): {avgFitnessScoreThisGen:0.00}\t");
 					Console.Write($"Best gen avg: {bestAverageGenerationFitness:0.00}\t");
-					Console.Write($"Mutation rate: '{cellMutationNumCellsToChange:0.00}'");
+					Console.Write($"Mutation rate: '{cellMutationNumCellsToChange:0.00 cells}'");
 				}
 
                 // check to see if we are done
@@ -126,18 +127,21 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                 // add the bestOverall
                 nextGeneration.Add(bestOverallStrategy!);
 
-                // clone best strategy, change a single cell and add a small # of cells
+                // clone best strategy, change a single cell and add a small # of clones
                 int numBestClones = 0;
                 while(numBestClones < Settings.NumOfBestStrategyClonesToMakePerGeneration) {
                     var bestClone = bestOverallStrategy!.Clone();
-                    CellMutateOffspring(bestClone, RandomHelper.Instance.GetRandomIntBetween(1, 3));
+                    int numCellsToChange = (int)Math.Ceiling(cellMutationNumCellsToChange);
+                    // second parameter to GetRandomIntBetween must be >= 2.
+                    // +1 because the second parameter is not inclusive
+					CellMutateOffspring(bestClone, RandomHelper.Instance.GetRandomIntBetween(1, int.Max(numCellsToChange+1, 2)));
 					nextGeneration.Add(bestClone);
 					numBestClones++;
                 }
 
-                // TODO: later add the top X strategies to carry on to the next generation
+				// TODO: later add the top X strategies to carry on to the next generation
 
-                while (nextGeneration.Count < currentGeneration.Count) {
+				while (nextGeneration.Count < Settings.NumStrategiesForFirstGeneration) {
                     var parents = GetTwoParentsTournament(currentGeneration);
                     var children = ProduceOffspring(parents.parent1, parents.parent2);
                     CellMutateOffspring(children.child1, (int)Math.Round(cellMutationNumCellsToChange));
@@ -146,15 +150,16 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
 					nextGeneration.Add(children.child2);
 				}
 
-                if(cellMutationNumCellsToChange != Settings.CellMutationMinNumCellsToChangePerChart) {
-                    cellMutationNumCellsToChange -= cellMutationRateChangePerGen;
+    //            if(cellMutationNumCellsToChange != Settings.CellMutationMinNumCellsToChangePerChart) {
+    //                cellMutationNumCellsToChange -= cellMutationRateChangePerGen;   
+    //            }
+				//if (cellMutationNumCellsToChange < Settings.CellMutationMinNumCellsToChangePerChart) {
+				//	cellMutationNumCellsToChange = Settings.CellMutationMinNumCellsToChangePerChart;
+				//}
 
-                    if(cellMutationNumCellsToChange < Settings.CellMutationMinNumCellsToChangePerChart) {
-                        cellMutationNumCellsToChange = Settings.CellMutationMinNumCellsToChangePerChart;
-                    }
-                }
+                cellMutationNumCellsToChange = Math.Max(cellMutationNumCellsToChange - cellMutationRateChangePerGen, Settings.CellMutationMinNumCellsToChangePerChart);
 
-                if (!Settings.AllConsoleOutputDisabled) {
+				if (!Settings.AllConsoleOutputDisabled) {
                     Console.WriteLine($" [{stopwatch.Elapsed.ToString("mm\\:ss")}]");
                 }
 
@@ -162,7 +167,7 @@ namespace SayedHa.Blackjack.Shared.Blackjack.Strategy {
                 foreach(var strategy in nextGeneration) {
                     currentGeneration.Add(strategy);
                 }
-                    
+
                 numGeneration++;
             }
 

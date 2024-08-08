@@ -104,8 +104,8 @@ num generations: {settings.MaxNumberOfGenerations}
 population: {settings.NumStrategiesForFirstGeneration} 
 num parents (survivors) each gen: {settings.NumStrategiesToGoToNextGeneration}
 num hands to play for each strategy: {settings.NumHandsToPlayForEachStrategy}
-initial mutation rate: {settings.InitialMutationRate}
-min mutation rate: {settings.MinMutationRate}
+cells to mutate: {settings.CellMutationNumCellsToChangePerChart}
+min cells to mutate:  {settings.CellMutationMinNumCellsToChangePerChart}
 num best clones per gen: {settings.NumOfBestStrategyClonesToMakePerGeneration}
 create smart strategies: {settings.CreateSmartRandomStrategies}
 tournament size: {settings.TournamentSize}");
@@ -131,7 +131,8 @@ tournament size: {settings.TournamentSize}");
     var sWriter = new StringWriter(sb);
     sWriter.WriteLine($"elapsed time: {stopwatch.Elapsed.ToString(@"hh\:mm\:ss")}");
     sWriter.WriteLine($"Num generations: {settings.MaxNumberOfGenerations}");
-    sWriter.WriteLine("Top strategies found");
+    sWriter.WriteLine("Top strategies found:");
+    sWriter.WriteLine();
     for (int i = 0; i < result.Count; i++) {
         sWriter.WriteLine($"Num diff from Basic Strategy: {result[i].NumDifferencesFromBasicStrategy}");
         sWriter.WriteLine($" ------------- {i} Score=({result[i].FitnessScore}) -------------");

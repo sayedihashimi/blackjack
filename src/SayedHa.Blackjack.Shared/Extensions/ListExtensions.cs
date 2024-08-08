@@ -22,7 +22,10 @@ namespace SayedHa.Blackjack.Shared.Extensions {
 
         public static void Shuffle<T>(this IList<T> list, bool useRandomNumberGenerator = false) {
             int n = list.Count;
+            int iterationCount = 0;
+            int maxIterations = 1000000;
             while (n > 1) {
+                iterationCount++;
                 n--;
                 int k = useRandomNumberGenerator switch {
                     true => RandomNumberGenerator.GetInt32(n+1),
@@ -33,6 +36,10 @@ namespace SayedHa.Blackjack.Shared.Extensions {
                 //list[k] = list[n];
                 //list[n] = value;
                 (list[k], list[n]) = (list[n], list[k]);
+
+                if (iterationCount > maxIterations) {
+                    throw new ApplicationException($"Exceeded max iterations of {maxIterations}");
+                }
             }
         }
 
