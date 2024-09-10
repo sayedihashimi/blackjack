@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "New Profile",
+    "Projects": [
+      {
+        "Path": "SayedHa.Blackjack.Console\\SayedHa.Blackjack.Console.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "SayedHa.Blackjack.Shared\\SayedHa.Blackjack.Shared.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

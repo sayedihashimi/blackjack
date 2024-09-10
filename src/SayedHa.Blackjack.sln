@@ -31,6 +31,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_sln-items", "_sln-items", 
 		..\README.md = ..\README.md
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SayedHa.Blackjack.Api", "SayedHa.Blackjack.Api\SayedHa.Blackjack.Api.csproj", "{A4673CE2-97BD-4C27-8223-DEB719A802A1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -61,6 +63,10 @@ Global
 		{163F97B0-F72D-4841-ABBC-01D6266D6737}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{163F97B0-F72D-4841-ABBC-01D6266D6737}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{163F97B0-F72D-4841-ABBC-01D6266D6737}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A4673CE2-97BD-4C27-8223-DEB719A802A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A4673CE2-97BD-4C27-8223-DEB719A802A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A4673CE2-97BD-4C27-8223-DEB719A802A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A4673CE2-97BD-4C27-8223-DEB719A802A1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -71,6 +77,7 @@ Global
 		{327A419F-A4DB-444B-A24B-A426303E3BAF} = {02893848-AD2C-4EF8-A031-57385011DB8E}
 		{23B4C9ED-B653-4A3C-97C0-EABDC0A1F84C} = {55262E96-B75D-446A-AF4E-B824EA27E4B8}
 		{163F97B0-F72D-4841-ABBC-01D6266D6737} = {55262E96-B75D-446A-AF4E-B824EA27E4B8}
+		{A4673CE2-97BD-4C27-8223-DEB719A802A1} = {02893848-AD2C-4EF8-A031-57385011DB8E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {ADAB77FA-E57F-4AC5-943F-88466FA143FB}
