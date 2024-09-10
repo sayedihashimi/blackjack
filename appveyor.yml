@@ -15,5 +15,5 @@ after_build:
 artifacts:
 - path: src/SayedHa.Blackjack.Console/bin/Release/*.nupkg
 - path: src/SayedHa.Blackjack.Cli/nupkg/*.nupkg
-- path: src/SayedHa.Roulette.Cli/bin/Release/*.nupkg
+- path: src/SayedHa.Roulette.Cli/nupkg/*.nupkg
 - path: src/SayedHa.Roulette.Console/bin/Release/*.nupkg
