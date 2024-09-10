@@ -10,6 +10,10 @@ build:
 after_build:
 - pwsh: dotnet pack src/SayedHa.Blackjack.Console/SayedHa.Blackjack.Console.csproj -c Release
 - pwsh: dotnet pack src/SayedHa.Blackjack.Cli/SayedHa.Blackjack.Cli.csproj -c Release
+- pwsh: dotnet pack src/SayedHa.Roulette.Cli/SayedHa.Roulette.Cli.csproj -c Release
+- pwsh: dotnet pack src/SayedHa.Roulette.Console/SayedHa.Roulette.Console.csproj -c Release
 artifacts:
 - path: src/SayedHa.Blackjack.Console/bin/Release/*.nupkg
 - path: src/SayedHa.Blackjack.Cli/nupkg/*.nupkg
+- path: src/SayedHa.Roulette.Cli/bin/Release/*.nupkg
+- path: src/SayedHa.Roulette.Console/bin/Release/*.nupkg
