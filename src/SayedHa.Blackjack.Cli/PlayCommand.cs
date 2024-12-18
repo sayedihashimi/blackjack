@@ -129,6 +129,8 @@ namespace SayedHa.Blackjack.Cli {
             float sumbets = 0;
             Dictionary<HandResult, int> handResultAndCount = new Dictionary<HandResult, int>();
 
+            int numGamesWon = 0;
+            int numGamesLost = 0;
             foreach (var hand in sessionReportData.Player.Hands) {
                 sumbets += hand.Bet;
 
@@ -139,6 +141,15 @@ namespace SayedHa.Blackjack.Cli {
                 }
 
                 handResultAndCount[hand.HandResult] = countForThisResult;
+
+                switch (hand.HandResult) {
+                    case HandResult.OpponentWon:
+                        numGamesWon++;
+                        break;
+                    case HandResult.DealerWon:
+                        numGamesLost++;
+                        break;
+                }
 
                 // TODO: Need to track the payout to get the average hand result (avg amt won/lost each hand)
 
@@ -161,6 +172,8 @@ namespace SayedHa.Blackjack.Cli {
             grid.AddRow("Final bankroll", 
                 $"{sessionReportData.Player.BettingStrategy.Bankroll.DollarsRemaining:C0} diff: {sessionReportData.Player.BettingStrategy.Bankroll.DollarsRemaining- sessionReportData.Player.BettingStrategy.Bankroll.InitialBankroll:C0}");
             grid.AddRow("Number of hands played", $"{sessionReportData.Player.GetAllHands().Count}");
+            grid.AddRow("Number of hands won", $"{numGamesWon}");
+            grid.AddRow("Number of hands lost", $"{numGamesLost}");
             grid.AddRow("Avg bet amount", $"{averagebet:C0}");
             // TODO: grid.AddRow("Avg hand result", "");
             grid.AddRow("Number of wrong actions selected", $"{numIncorrectActions}");
