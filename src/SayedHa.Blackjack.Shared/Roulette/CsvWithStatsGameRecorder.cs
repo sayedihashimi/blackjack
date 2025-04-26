@@ -24,6 +24,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             groupConsecutiveSum = new Dictionary<GameCellGroup, long>();
             maxSpinsSince = new Dictionary<GameCellGroup, int>();
             maxConsecutive = new Dictionary<GameCellGroup, int>();
+            groupSpinsSinceSumOfSquares = new();
 
             foreach (GameCellGroup group in EnumHelper.GetHelper().GetAllGameCellGroup()) {
                 groupSpinsSince.Add(group, 0);
@@ -32,6 +33,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
                 groupConsecutiveSum.Add(group, 0);
                 maxSpinsSince.Add(group, 0);
                 maxConsecutive.Add(group, 0);
+                groupSpinsSinceSumOfSquares.Add(group, 0);
             }
 
             groupOuputOrder = new List<GameCellGroup> {
@@ -66,6 +68,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
         Dictionary<GameCellGroup, long> groupConsecutiveSum { get; init; }
         Dictionary<GameCellGroup, int> maxSpinsSince { get; init; }
         Dictionary<GameCellGroup, int> maxConsecutive { get; init; }
+        Dictionary<GameCellGroup, int> groupSpinsSinceSumOfSquares { get; init; }
 
         private bool _enableWriteCsvFile = true;
         public bool EnableWriteCsvFile {
@@ -178,6 +181,8 @@ namespace SayedHa.Blackjack.Shared.Roulette {
                 if (groupConsecutive[group] > maxConsecutive[group]) {
                     maxConsecutive[group] = groupConsecutive[group];
                 }
+
+                groupSpinsSinceSumOfSquares[group] += (groupSpinsSince[group] * groupSpinsSince[group]);
             }
 
             await WriteLineForAsync(cell);
@@ -190,6 +195,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
             groupConsecutiveSum.Clear();
             maxSpinsSince.Clear();
             maxConsecutive.Clear();
+            groupSpinsSinceSumOfSquares.Clear();
 
             foreach (GameCellGroup group in EnumHelper.GetHelper().GetAllGameCellGroup()) {
                 groupSpinsSince.Add(group, 0);
@@ -198,6 +204,7 @@ namespace SayedHa.Blackjack.Shared.Roulette {
                 groupConsecutiveSum.Add(group, 0);
                 maxSpinsSince.Add(group, 0);
                 maxConsecutive.Add(group, 0);
+                groupSpinsSinceSumOfSquares.Add(group, 0);
             }
         }
         public async Task WriteTextSummaryToAsync(StreamWriter writer) {
@@ -219,11 +226,26 @@ namespace SayedHa.Blackjack.Shared.Roulette {
                 }
                 await writer.WriteLineAsync("");
                 foreach (var group in nextThree) {
-                    await writer.WriteAsync($"last since - max: {maxSpinsSince[group]}".PadRight(30));
+                    var mean = groupSpinsSinceSum[group] / _numberOfSpins;
+                    await writer.WriteAsync($"last since - mean: {mean}".PadRight(30));
                 }
                 await writer.WriteLineAsync("");
                 foreach (var group in nextThree) {
+                    // calculate the standard deviation using the average and count
+                    await writer.WriteAsync($"last since - max: {maxSpinsSince[group]}".PadRight(30));
+                }
+
+                await writer.WriteLineAsync("");
+                foreach (var group in nextThree) {
                     await writer.WriteAsync($"max consecutive:  {maxConsecutive[group]}".PadRight(30));
+                }
+
+                await writer.WriteLineAsync("");
+                foreach (var group in nextThree) {
+                    var sumOfSquares = groupSpinsSinceSumOfSquares[group];
+                    var mean = groupSpinsSinceSum[group] / _numberOfSpins;
+                    var variance = Math.Sqrt(sumOfSquares / _numberOfSpins - mean * mean);
+                    await writer.WriteAsync($"stddev:  {variance:F2}".PadRight(30));
                 }
 
                 await writer.WriteLineAsync("");

@@ -2,7 +2,7 @@
   "profiles": {
     "SayedHa.Roulette.Cli": {
       "commandName": "Project",
-      "commandLineArgs": "config --numSpins 100000 --printSettings"
+      "commandLineArgs": "simulate --number-of-spins 500 --enable-csv-output --enable-console-logger"
     }
   }
 }

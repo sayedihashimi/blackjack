@@ -22,7 +22,7 @@ namespace SayedHa.Blackjack.Shared {
     public class GameRunner {
         public GameRunner(ILogger logger) {
             _logger = logger;
-            BasicStrategyPlayer = new BasicStrategyPlayer(_logger);
+            StrategyPlayer = new BasicStrategyPlayer(_logger);
         }
 
         private ILogger _logger = NullLogger.Instance;
@@ -37,7 +37,7 @@ namespace SayedHa.Blackjack.Shared {
         public event EventHandler WrongNextActionSelected;
 
         private Game CurrentGame { get; set; }
-        private Player BasicStrategyPlayer { get; init; }
+        private Player StrategyPlayer { get; init; }
         public Game CreateNewGame(int numDecks, int numOpponents, ParticipantFactory participantFactory, bool discardFirstCard) {
             var game = gameFactory.CreateNewGame(numDecks, numOpponents, participantFactory, BlackjackSettings.GetBlackjackSettings().ShuffleThresholdPercent, _logger);
 
@@ -256,7 +256,7 @@ namespace SayedHa.Blackjack.Shared {
             HandActionAndReason? nextAction = null;
             if (participant.ValidateNextAction && !isDealerHand) {
                 bool isPlayCorrect = false;
-                var correctAction = BasicStrategyPlayer.GetNextAction(hand, dealerHand, (int)Math.Floor(participant.BettingStrategy.Bankroll.DollarsRemaining));
+                var correctAction = StrategyPlayer.GetNextAction(hand, dealerHand, (int)Math.Floor(participant.BettingStrategy.Bankroll.DollarsRemaining));
                 do {
                     nextAction = participant.Player.GetNextAction(hand, dealerHand, (int)Math.Floor(participant.BettingStrategy.Bankroll.DollarsRemaining));
                     isPlayCorrect = nextAction.HandAction == correctAction.HandAction;
