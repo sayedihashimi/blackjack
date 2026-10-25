@@ -13,6 +13,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with SayedHa.Blackjack.  If not, see <https://www.gnu.org/licenses/>.
 using SayedHa.Blackjack.Shared;
+using System;
+using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 
@@ -48,7 +50,19 @@ namespace SayedHa.Blackjack.Cli {
                         EnableMultiThread = enableMultiThread,
                         PathToBlackjackSettingsFile = blackjackPlayerSettingsFilepath
                     };
+                    
+                    // TODO: Remove this line later
+                    analyzer.NumGamesToPlay = 100000;
+                    
+                    // TODO: Remove the code block below, it's for testing using dotMemory
+                    var memoryHog = new List<byte[]>();
+                    for (int i = 0; i < 500; i++) {
+                        memoryHog.Add(new byte[1024 * 1024]); // Allocate ~500 MB
+                    }
+                    
                     await analyzer.AnalyzeAsync();
+
+                    GC.KeepAlive(memoryHog);
 
                 }),
                 OptionNumGamesToPlay(),
