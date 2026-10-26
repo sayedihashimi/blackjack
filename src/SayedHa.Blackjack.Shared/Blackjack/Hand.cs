@@ -238,7 +238,7 @@ namespace SayedHa.Blackjack.Shared {
             return actions;
         }
 
-        public bool DoesHandHaveBlackjack() => (DealtCards[0].Number, DealtCards[1].Number) switch {
+        public bool HasBlackjack() =>(DealtCards[0].Number, DealtCards[1].Number) switch {
             (CardNumber.Ace, CardNumber.Ten) => true,
             (CardNumber.Ace, CardNumber.Jack) => true,
             (CardNumber.Ace, CardNumber.Queen) => true,
