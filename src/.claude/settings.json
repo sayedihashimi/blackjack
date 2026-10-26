@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__rider__open_file_in_editor",
+      "mcp__rider__search_symbol",
+      "mcp__rider__get_solution_projects",
+      "mcp__rider__lint_files",
+      "mcp__rider__build_solution_start",
+      "mcp__rider__build_solution_state",
+      "mcp__rider__get_run_configurations",
+      "mcp__rider__execute_run_configuration",
+      "mcp__rider__xdebug_*",
+      "mcp__rider__dotTraceGetSnapshotInfo",
+      "mcp__rider__dotTraceGetCallTree",
+      "mcp__rider__dotTraceOpenReport",
+      "Bash(dotnet build:*)",
+      "Bash(dotnet test:*)",
+      "PowerShell(dotnet build:*)",
+      "PowerShell(dotnet test:*)"
+    ]
+  }
+}

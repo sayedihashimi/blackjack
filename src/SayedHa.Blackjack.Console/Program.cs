@@ -54,6 +54,8 @@ using SB = SayedHa.Blackjack.Shared.Blackjack.Strategy.StrategyBuilder;
 
 //return;
 
+//var maxGenerations = int.Parse(Environment.GetEnvironmentVariable("BLACKJACK_MAX_GENERATIONS")!);
+
 StartRunningStrategyBuilder2();
 return;
 
