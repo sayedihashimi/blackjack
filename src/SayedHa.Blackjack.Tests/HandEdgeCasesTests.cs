@@ -48,7 +48,7 @@ namespace SayedHa.Blackjack.Tests {
                 }
             };
             
-            Assert.True(hand.DoesHandHaveBlackjack());
+            Assert.True(hand.HasBlackjack());
             Assert.Equal(21, hand.GetScore());
         }
 
@@ -61,7 +61,7 @@ namespace SayedHa.Blackjack.Tests {
                 }
             };
             
-            Assert.False(hand.DoesHandHaveBlackjack());
+            Assert.False(hand.HasBlackjack());
             Assert.Equal(20, hand.GetScore());
         }
 
@@ -194,7 +194,7 @@ namespace SayedHa.Blackjack.Tests {
             };
             
             Assert.Equal(0, hand.GetScore());
-            // DoesHandHaveBlackjack requires exactly 2 cards, so it will throw with empty list
+            // HasBlackjack requires exactly 2 cards, so it will throw with empty list
             // We'll just test that the score is 0
         }
 

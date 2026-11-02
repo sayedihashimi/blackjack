@@ -33,7 +33,7 @@ namespace SayedHa.Blackjack.Shared {
         public List<Card> GetRemainingCardsAsList() {
             var remainingCards = new List<Card> ();
 
-            var currentCard = CurrentCard?.Next;
+            var currentCard = CurrentCard;
             while (currentCard != null) {
                 remainingCards.Add(currentCard.Value);
                 currentCard = currentCard.Next;

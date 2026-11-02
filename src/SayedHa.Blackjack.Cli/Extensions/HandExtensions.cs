@@ -35,7 +35,7 @@ namespace SayedHa.Blackjack.Cli.Extensions {
                 }
             }
 
-            if ( (!isDealerHand && hand.DoesHandHaveBlackjack()) ||
+            if ( (!isDealerHand && hand.HasBlackjack()) ||
                 (isDealerHand && hand.DoesDealerHaveBlackjack())) {
                 sb.Append(" [bold red slowblink]BLACKJACK[/]");
             }

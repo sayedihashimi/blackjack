@@ -149,7 +149,7 @@ namespace SayedHa.Blackjack.Shared {
                             allHandsBusted = false;
                         }
 
-                        if (hand.DoesHandHaveBlackjack()) {
+                        if (hand.HasBlackjack()) {
                             hand.SetHandResult(HandResult.OpponentWon, hand.Bet * bjPayoutMultiplier);
                         }
                         else {
@@ -184,7 +184,7 @@ namespace SayedHa.Blackjack.Shared {
                             }
                             else if (handScore > dealerScore || dealerScore > 21) {
                                 hand.SetHandResult(HandResult.OpponentWon, hand.Bet);
-                                float betMultiplier = hand.DoesHandHaveBlackjack() ? bjPayoutMultiplier : 1;
+                                float betMultiplier = hand.HasBlackjack() ? bjPayoutMultiplier : 1;
                                 var amtToAdd = hand.Bet * betMultiplier;
                                 opponent.BettingStrategy.Bankroll.AddToDollarsRemaining(amtToAdd, opponent.Name);
                                 game.Dealer.BettingStrategy.Bankroll.AddToDollarsRemaining(amtToAdd * -1F, game.Dealer.Name);
@@ -207,7 +207,7 @@ namespace SayedHa.Blackjack.Shared {
                 foreach (var op in game.Opponents) {
                     foreach (var hand in op.Hands) {
                         // check to see if the opponent hand has bj, if so it's a push
-                        if (hand.DoesHandHaveBlackjack()) {
+                        if (hand.HasBlackjack()) {
                             hand.SetHandResult(HandResult.Push, 0);
                             // _logger.LogLine($"Push both player and dealer have blackjack ${hand.Bet:F0} ");
                         }
@@ -285,7 +285,7 @@ namespace SayedHa.Blackjack.Shared {
             Debug.Assert(participant != null);
             Debug.Assert(cards != null);
 
-            if (hand.DoesHandHaveBlackjack()) {
+            if (hand.HasBlackjack()) {
                 var bjPayoutMultiplier = BlackjackSettings.GetBlackjackSettings().BlackjackPayoutMultplier;
                 hand.SetHandResult(HandResult.OpponentWon, hand.Bet * bjPayoutMultiplier);
                 participant.BettingStrategy.Bankroll.AddToDollarsRemaining(hand.BetResult!.Value, participant.Name);
